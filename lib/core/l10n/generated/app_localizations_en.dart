@@ -185,7 +185,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mala_group_accumulations => 'Add recitation to';
 
   @override
-  String get mala_groups_section => 'Groups';
+  String get mala_groups_section => 'Events';
 
   @override
   String get mala_group_untitled => 'Untitled space';
@@ -496,10 +496,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notification_row_timer => 'Timer';
 
   @override
-  String get notification_row_group_posts => 'Space posts';
+  String get notification_row_group_posts => 'Group posts';
 
   @override
-  String get notification_row_group_chats => 'Space chats';
+  String get notification_row_group_chats => 'Group chats';
 
   @override
   String get notification_row_my_prayer_requests => 'My prayer requests';

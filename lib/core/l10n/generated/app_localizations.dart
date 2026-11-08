@@ -410,7 +410,7 @@ abstract class AppLocalizations {
   /// No description provided for @mala_groups_section.
   ///
   /// In en, this message translates to:
-  /// **'Groups'**
+  /// **'Events'**
   String get mala_groups_section;
 
   /// No description provided for @mala_group_untitled.
@@ -962,13 +962,13 @@ abstract class AppLocalizations {
   /// No description provided for @notification_row_group_posts.
   ///
   /// In en, this message translates to:
-  /// **'Space posts'**
+  /// **'Group posts'**
   String get notification_row_group_posts;
 
   /// No description provided for @notification_row_group_chats.
   ///
   /// In en, this message translates to:
-  /// **'Space chats'**
+  /// **'Group chats'**
   String get notification_row_group_chats;
 
   /// No description provided for @notification_row_my_prayer_requests.
