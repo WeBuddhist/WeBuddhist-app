@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_providers.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_notifier.dart';
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_pecha/features/home/data/datasource/series_remote_dataso
 import 'package:flutter_pecha/features/home/domain/entities/series.dart';
 import 'package:flutter_pecha/features/mala/data/datasources/mala_remote_datasource.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_pecha/features/practice/data/repositories/practice_explore_repository.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitations_page_response.dart';
 import 'package:flutter_pecha/features/recitation/presentation/providers/recitations_datasource_provider.dart';
@@ -54,6 +57,10 @@ final practiceExploreRecitationsProvider = AsyncNotifierProvider<
   Either<Failure, RecitationsPageResponse>
 >(() {
   return ScreenCacheNotifier((ref, bind) {
+    // The stored preview is keyed by the user's tradition tags; wait for them.
+    if (ref.watch(traditionTagFilterProvider).isLoading) {
+      return Completer<Either<Failure, RecitationsPageResponse>>().future;
+    }
     final language = ref.watch(contentLanguageProvider);
     return bind.source(
       ref.watch(practiceExploreRepositoryProvider).recitationsSource(language),

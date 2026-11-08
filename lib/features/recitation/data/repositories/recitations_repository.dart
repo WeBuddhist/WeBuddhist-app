@@ -58,7 +58,11 @@ class RecitationsRepository {
   }) {
     return ScreenCacheSource(
       store: store,
-      key: ScreenCacheKey.public('recitations', language: language),
+      key: ScreenCacheKey.public(
+        'recitations',
+        language: language,
+        params: recitationsRemoteDatasource.cacheKeyParams,
+      ),
       fetchJson: () async {
         final recitations = await recitationsRemoteDatasource.fetchRecitations(
           queryParams: RecitationsQueryParams(language: language, noCache: true),
