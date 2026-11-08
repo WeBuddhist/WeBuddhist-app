@@ -56,6 +56,16 @@ recitation/
   the `LIBRARY_CHANTS_TAG_ID` env tag; search is the library `title` filter
   (≥ 2 chars). `RecitationModel.textId` is the text's **primary edition id**.
   The library has no total, so `total` is synthesised from `has_more`.
+- **Tradition filter** — a signed-in user's traditions narrow the catalogue.
+  `traditionTagFilterProvider` (onboarding) resolves their library tags;
+  `recitationsRemoteDatasourceProvider` passes them to the library adapter.
+  The library matches all or any of `tag_id`, never "chants and any of
+  these": one tradition is sent as `chants,tradition`; two or more fetch
+  chant pages and keep texts tagged with any of them client-side (up to
+  `maxFilterPages` library pages per requested page). Empty tags = no
+  filter (guest, none/all selected, lookup failed). Every stored chant list
+  key carries `cacheKeyParams` so a tradition change never shows the old
+  list, and the list providers stay pending while the tags are loading.
 - **Main API** — the user's recitation collections (practice datasource),
   merged into the first page when `shouldIncludeCollections` is set; a
   collections failure never hides the chants.

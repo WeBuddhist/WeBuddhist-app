@@ -39,11 +39,12 @@ class OnboardingRemoteDatasource {
   Future<void> updateOnboardingStatus({required bool hasSeenOnboarding}) async {
     await _dio.put(
       '/users/me/onboarding',
-      data: OnboardingStatusModel(
-        hasSeenOnboarding: hasSeenOnboarding,
-      ).toJson(),
+      data:
+          OnboardingStatusModel(hasSeenOnboarding: hasSeenOnboarding).toJson(),
     );
-    _logger.info('Onboarding status updated: has_seen_onboarding=$hasSeenOnboarding');
+    _logger.info(
+      'Onboarding status updated: has_seen_onboarding=$hasSeenOnboarding',
+    );
   }
 
   /// Save onboarding preferences to backend.
@@ -135,6 +136,28 @@ class OnboardingRemoteDatasource {
     return pathsJson;
   }
 
+  /// The public tradition catalogue, with each tradition's library tag.
+  ///
+  /// Endpoint: GET /traditions
+  Future<List<Tradition>> fetchTraditions() async {
+    final response = await _dio.get('/traditions');
+
+    final data = response.data;
+    final traditionsJson =
+        data is Map<String, dynamic> ? data['traditions'] : null;
+    if (traditionsJson is! List<dynamic>) {
+      throw DioException(
+        requestOptions: response.requestOptions,
+        message: 'Invalid traditions response',
+      );
+    }
+
+    return traditionsJson
+        .whereType<Map<String, dynamic>>()
+        .map(Tradition.fromJson)
+        .toList(growable: false);
+  }
+
   /// Fetch the user's selected traditions.
   ///
   /// Endpoint: GET /users/me/traditions
@@ -172,10 +195,7 @@ class OnboardingRemoteDatasource {
   ///
   /// Endpoint: POST /api/v1/users/me/traditions
   Future<void> saveUserTradition(SaveTraditionRequest request) async {
-    await _dio.post(
-      '/users/me/traditions',
-      data: request.toJson(),
-    );
+    await _dio.post('/users/me/traditions', data: request.toJson());
     _logger.info('User tradition saved: ${request.traditionCode}');
   }
 

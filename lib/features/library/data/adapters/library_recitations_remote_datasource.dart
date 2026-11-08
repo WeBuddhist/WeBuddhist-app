@@ -10,20 +10,29 @@ import 'package:flutter_pecha/features/recitation/data/models/recitations_page_r
 
 /// Chant catalogue and search from the library API; the user's collections
 /// and saved chants still come from the main API.
+///
+/// [traditionTagIds] narrows the catalogue to the user's traditions. The
+/// library matches either all or any of the tags it is given, never "chants
+/// and any of these", so one tradition is asked for as `chants,tradition`
+/// (all), while two or more fetch chant pages and keep the texts tagged with
+/// any of them here, reading up to [maxFilterPages] pages to fill one.
 class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
   LibraryRecitationsRemoteDatasource({
     required LibraryRepository library,
     required MyRecitationCollectionsRemoteDatasource collections,
     required String? tagId,
+    List<String> traditionTagIds = const [],
   }) : _library = library,
        _collections = collections,
-       _tagId = tagId;
+       _tagId = tagId,
+       _traditionTagIds = List.unmodifiable(traditionTagIds);
 
   final LibraryRepository _library;
   final MyRecitationCollectionsRemoteDatasource _collections;
 
   /// Null when the build has no chants tag configured.
   final String? _tagId;
+  final List<String> _traditionTagIds;
   final _logger = AppLogger('LibraryRecitationsRemoteDatasource');
 
   static const int _defaultLimit = 20;
@@ -31,6 +40,26 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
   static const int _minTitleQueryLength = 2;
   static const int _collectionsPageSize = 20;
   static const int _maxCollectionPages = 50;
+
+  /// Library pages read for one requested page when filtering here.
+  static const int maxFilterPages = 5;
+
+  @override
+  List<String> get cacheKeyParams =>
+      _traditionTagIds.isEmpty
+          ? const []
+          : ['tags-${_traditionTagIds.join('-')}'];
+
+  /// Tags sent to the library: the chants tag, plus the tradition when a
+  /// single one can be matched server-side.
+  String _serverTagIds(String chantsTagId) =>
+      _traditionTagIds.length == 1
+          ? '$chantsTagId,${_traditionTagIds.single}'
+          : chantsTagId;
+
+  /// Tags matched on the client, or null when the server did the filtering.
+  Set<String>? get _clientTagIds =>
+      _traditionTagIds.length > 1 ? _traditionTagIds.toSet() : null;
 
   /// `search` becomes the library title filter; `total` is synthesized from
   /// `has_more` so [RecitationsPageResponse.hasMore] keeps working, and
@@ -67,19 +96,31 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
       if (tagId == null) {
         throw StateError('LIBRARY_CHANTS_TAG_ID is not configured');
       }
-      final page = await _library.fetchChants(
-        tagId: tagId,
-        language: params.language,
-        title: search,
-        limit: limit,
-        offset: skip,
-        noCache: params.noCache,
-      );
-      // A text without an edition has nothing to open, so it is not listed;
-      // the next offset still counts it so pages never repeat.
-      texts = page.items.where((t) => t.primaryEditionId != null).toList();
-      hasMore = page.hasMore && page.items.isNotEmpty;
-      nextSkip = skip + page.items.length;
+      final clientTagIds = _clientTagIds;
+      final pages = clientTagIds == null ? 1 : maxFilterPages;
+      final kept = <LibraryText>[];
+      for (var i = 0; i < pages; i++) {
+        final page = await _library.fetchChants(
+          tagId: _serverTagIds(tagId),
+          language: params.language,
+          title: search,
+          limit: limit,
+          offset: nextSkip,
+          noCache: params.noCache,
+        );
+        kept.addAll(
+          clientTagIds == null
+              ? page.items
+              : page.items.where((t) => t.tagIds.any(clientTagIds.contains)),
+        );
+        // Every library text counts towards the next offset, filtered-out and
+        // edition-less ones included, so pages never repeat.
+        nextSkip += page.items.length;
+        hasMore = page.hasMore && page.items.isNotEmpty;
+        if (!hasMore || kept.length >= limit) break;
+      }
+      // A text without an edition has nothing to open, so it is not listed.
+      texts = kept.where((t) => t.primaryEditionId != null).toList();
     }
 
     // No first-verse preview: it cost two more calls per chant.

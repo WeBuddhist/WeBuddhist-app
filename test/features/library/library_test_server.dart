@@ -101,6 +101,7 @@ Map<String, dynamic> textJson(
   String? commentaryOf,
   List<String> editions = const [],
   List<String> translations = const [],
+  List<String> tagIds = const [],
 }) => {
   'id': id,
   'title': {language: 'Title $id'},
@@ -111,7 +112,7 @@ Map<String, dynamic> textJson(
   'editions': editions,
   'translations': translations,
   'commentaries': [],
-  'tag_ids': [],
+  'tag_ids': tagIds,
 };
 
 /// One pair of an alignment page: segment [sourceId] to segment [targetId].

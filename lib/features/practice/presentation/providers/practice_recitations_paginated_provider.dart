@@ -8,6 +8,7 @@ import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/core/utils/local_storage_service.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_pecha/features/recitation/data/datasource/recitations_remote_datasource.dart';
 import 'package:flutter_pecha/features/recitation/data/models/my_recitation_list_collection_model.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
@@ -73,7 +74,8 @@ class PracticeRecitationsState {
   }
 }
 
-class PracticeRecitationsNotifier extends StateNotifier<PracticeRecitationsState> {
+class PracticeRecitationsNotifier
+    extends StateNotifier<PracticeRecitationsState> {
   final RecitationsRemoteDatasource _datasource;
   final String _languageCode;
   final bool _includeCollections;
@@ -134,21 +136,28 @@ class PracticeRecitationsNotifier extends StateNotifier<PracticeRecitationsState
     );
   }
 
-  /// Page 1 is stored per language (per user when collections are included).
+  /// Page 1 is stored per language and tradition filter (per user when
+  /// collections are included).
   static ScreenCacheSource<RecitationsPageResponse> firstPageSource({
     required RecitationsRemoteDatasource datasource,
     required ScreenCacheStore store,
     required String languageCode,
     required bool includeCollections,
   }) {
+    final params = datasource.cacheKeyParams;
     final key =
         includeCollections
             ? ScreenCacheKey.user(
               'chants_page1',
               userId: store.currentUserIdSync,
               language: languageCode,
+              params: params,
             )
-            : ScreenCacheKey.public('chants_page1', language: languageCode);
+            : ScreenCacheKey.public(
+              'chants_page1',
+              language: languageCode,
+              params: params,
+            );
     return ScreenCacheSource(
       store: store,
       key: key,
@@ -386,10 +395,15 @@ final practiceRecitationsPaginatedProvider = StateNotifierProvider.autoDispose
       );
 
       // Defer the first fetch until auth is ready so a logged-in session
-      // attaches Bearer + should_include_collections on the first request.
+      // attaches Bearer + should_include_collections on the first request,
+      // and until the user's tradition tags are known so the first page is
+      // never an unfiltered list that is then replaced.
+      final tagsLoading = ref.watch(
+        traditionTagFilterProvider.select((tags) => tags.isLoading),
+      );
       final datasource = ref.watch(recitationsRemoteDatasourceProvider);
       final store = ref.watch(screenCacheStoreProvider);
-      if (isAuthLoading) {
+      if (isAuthLoading || tagsLoading) {
         return PracticeRecitationsNotifier(
           datasource: datasource,
           store: store,
@@ -410,18 +424,23 @@ final practiceRecitationsPaginatedProvider = StateNotifierProvider.autoDispose
 /// The chant catalogue alone, without the user's collections, for pickers
 /// that only list chants (e.g. the group post composer's in-app content
 /// sheet). Skips the `/users/me/recitation-collections` request that
-/// [practiceRecitationsPaginatedProvider] makes for a signed-in user, and
-/// needs no auth deferral since nothing on the request depends on auth.
+/// [practiceRecitationsPaginatedProvider] makes for a signed-in user. It
+/// still waits for the user's tradition tags, which the catalogue is
+/// narrowed by.
 final practiceRecitationsCatalogueProvider = StateNotifierProvider.autoDispose
     .family<PracticeRecitationsNotifier, PracticeRecitationsState, String>((
       ref,
       languageCode,
     ) {
+      final tagsLoading = ref.watch(
+        traditionTagFilterProvider.select((tags) => tags.isLoading),
+      );
       return PracticeRecitationsNotifier(
         datasource: ref.watch(recitationsRemoteDatasourceProvider),
         store: ref.watch(screenCacheStoreProvider),
         languageCode: languageCode,
         includeCollections: false,
+        deferLoad: tagsLoading,
       );
     });
 
