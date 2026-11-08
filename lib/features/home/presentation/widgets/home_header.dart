@@ -124,7 +124,12 @@ class HomeTabAppBar extends ConsumerWidget implements PreferredSizeWidget {
       strutStyle: context.tibetanStrutStyle(fontSize, compact: true),
       textHeightBehavior: DefaultTextHeightBehavior.maybeOf(context),
     )..layout(maxWidth: _greetingMaxWidth(context));
-    return (height: painter.height, lines: painter.computeLineMetrics().length);
+    final block = (
+      height: painter.height,
+      lines: painter.computeLineMetrics().length,
+    );
+    painter.dispose();
+    return block;
   }
 
   @override

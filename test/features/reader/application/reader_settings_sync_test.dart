@@ -135,6 +135,7 @@ void main() {
 
   const sky = {'background': 'sky'};
   const gold = {'background': 'gold'};
+  const rose = {'background': 'rose'};
   const zhPick = {'translation_language': 'zh'};
 
   group('first sign-in', () {
@@ -395,6 +396,46 @@ void main() {
       await flush;
 
       expect(server.preferences['reader_appearance'], gold);
+    });
+
+    test(
+      'a save still waiting its turn does not reach the next account',
+      () async {
+        local.blocks = const ReaderSyncBlocks(appearance: gold);
+        await signIn('user-a');
+        server.patches.clear();
+
+        // Queued behind other work, and still waiting when the account
+        // changes under it: user-b's token would carry it up.
+        local.blocks = const ReaderSyncBlocks(appearance: sky);
+        sync.onReconnected();
+        sync.setAuthenticated(false);
+        server.preferences = {'reader_appearance': rose};
+        await signIn('user-b');
+
+        expect(server.patches, isEmpty, reason: 'nothing went up as user-b');
+        expect(server.preferences['reader_appearance'], rose);
+        expect(local.blocks.appearance, rose);
+        expect(storage.values[StorageKeys.readerSettingsOwner], 'user-b');
+      },
+    );
+
+    test('the sign-out save stops short of the next account', () async {
+      local.blocks = const ReaderSyncBlocks(appearance: gold);
+      await signIn('user-a');
+      server.patches.clear();
+      local.blocks = const ReaderSyncBlocks(appearance: sky);
+
+      // Logout stopped waiting for it, and the next account signed in
+      // before it ran.
+      final flush = sync.flushBeforeSignOut();
+      sync.setAuthenticated(false);
+      server.preferences = {'reader_appearance': rose};
+      await signIn('user-b');
+      await flush;
+
+      expect(server.patches, isEmpty);
+      expect(local.blocks.appearance, rose);
     });
   });
 

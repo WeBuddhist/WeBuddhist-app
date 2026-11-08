@@ -124,8 +124,13 @@ class ReaderSettingsSync {
     _debounceTimer?.cancel();
     final session = _session;
     if (session == null) return;
+    // Sign-out itself ends the epoch while this may still be queued; the
+    // push outlives that, but not the sign-in after it.
+    final epoch = _epoch;
     try {
-      await _enqueue(() => _push(session)).timeout(signOutTimeout);
+      await _enqueue(
+        () => _push(session, epoch: epoch, outlivesSignOut: true),
+      ).timeout(signOutTimeout);
     } on TimeoutException {
       _logger.warning('Saving reader settings before sign-out timed out');
     }
@@ -138,7 +143,9 @@ class ReaderSettingsSync {
 
   void _enqueuePush() {
     final session = _session;
-    if (session != null) _enqueue(() => _push(session));
+    if (session == null) return;
+    final epoch = _epoch;
+    _enqueue(() => _push(session, epoch: epoch));
   }
 
   Future<void> _enqueue(Future<void> Function() work) {
@@ -215,11 +222,23 @@ class ReaderSettingsSync {
     await _persist(session);
     if (epoch != _epoch) return;
     _session = session;
-    await _push(session);
+    await _push(session, epoch: epoch);
   }
 
-  Future<void> _push(_Session session) async {
+  /// Saves what differs from what [session] has synced. Queued work can run
+  /// after the account it was queued for ([epoch]) has signed out, so it stops
+  /// before the request and before claiming the device: with the next account
+  /// signed in, the request would carry their token. The push made at
+  /// sign-out may outlive the sign-out itself, but not the sign-in after it.
+  Future<void> _push(
+    _Session session, {
+    required int epoch,
+    bool outlivesSignOut = false,
+  }) async {
+    bool stale() => _epoch - epoch > (outlivesSignOut ? 1 : 0);
+    if (stale()) return;
     final (:language, blocks: local) = await _readLocal();
+    if (stale()) return;
     final changed = [
       for (final block in ReaderSyncBlock.values)
         if (!local.sameBlock(block, session.synced)) block,
@@ -240,6 +259,7 @@ class ReaderSettingsSync {
       final response = await _remote.patchPreferences(
         _changesFor(session, local, sent),
       );
+      if (stale()) return;
       final reader = response.preferences[ReaderSyncBlocks.readerKey];
       session
         ..reader = reader is Map ? Map<String, dynamic>.from(reader) : const {}
