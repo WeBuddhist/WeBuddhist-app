@@ -84,6 +84,7 @@ class PracticeExploreRepository {
       key: ScreenCacheKey.public(
         'practice_explore_recitations',
         language: language,
+        params: recitationsRemote.cacheKeyParams,
       ),
       fetchJson: () async {
         final page = await recitationsRemote.fetchRecitationsPage(
