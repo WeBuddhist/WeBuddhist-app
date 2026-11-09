@@ -46,6 +46,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_members_tab.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_nested_tab_scroll_view.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_posts_tab.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_removed_notice_card.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/series_enrollment_provider.dart';
 import 'package:flutter_pecha/features/plans/presentation/widgets/plan_inline_markdown_view.dart';
@@ -558,7 +559,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
           },
           body:
               controller == null
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const GroupProfileTabSkeleton(
+                    variant: GroupProfileTabSkeletonVariant.feed,
+                  )
                   : TabBarView(
                     controller: controller,
                     children: [
@@ -673,7 +676,13 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
             ),
             const SliverFillRemaining(
               hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: GroupProfileTabSkeleton.box(
+                  variant: GroupProfileTabSkeletonVariant.member,
+                  itemCount: 2,
+                ),
+              ),
             ),
           ],
         ),
@@ -1288,9 +1297,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     final practicesState = ref.watch(groupPracticesProvider(profile.id));
 
     if (practicesState.isLoading && practicesState.practices.isEmpty) {
-      return GroupProfileNestedTabScrollView.centered(
+      return GroupProfileTabSkeleton(
         pageStorageKey: pageStorageKey,
-        child: const Center(child: CircularProgressIndicator()),
+        variant: GroupProfileTabSkeletonVariant.feed,
       );
     }
 

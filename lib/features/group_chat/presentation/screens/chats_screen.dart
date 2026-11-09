@@ -8,6 +8,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/providers/chat_ro
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_room_tile.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_error_state.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -112,7 +113,10 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
 
   Widget _body(ChatRoomsState state) {
     if (!state.hasLoaded && state.rooms.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileTabSkeleton.box(
+        variant: GroupProfileTabSkeletonVariant.member,
+        avatarSize: 48,
+      );
     }
 
     if (state.rooms.isEmpty && state.error != null) {
