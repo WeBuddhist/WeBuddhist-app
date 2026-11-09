@@ -979,6 +979,7 @@
   "group_change_practice_message": "You are already practicing this plan with another space. Would you like to change your practice space?",
   "group_join_to_contribute": "Join to contribute",
   "group_accumulator_join_error": "Unable to join accumulation. Please try again",
+  "group_accumulator_practice_unavailable": "This practice can't be opened right now.",
   "group_accumulator_join_before_practice": "Join this accumulation before adding it to your practices",
   "group_accumulator_participants": "{count} participants",
   "@group_accumulator_participants": {

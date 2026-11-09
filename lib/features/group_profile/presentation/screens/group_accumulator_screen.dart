@@ -18,6 +18,7 @@ import 'package:flutter_pecha/features/group_profile/domain/entities/group_accum
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_accumulator_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_accumulator_practice_launcher.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_analytics.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_manager.dart';
@@ -306,17 +307,13 @@ class _GroupAccumulatorScreenState
   ) async {
     final ended = isPastEndDate(detail.endDate, DateTime.now());
     if (!detail.hasTextContent) {
-      final presetId = detail.presetAccumulatorId;
-      if (presetId.isEmpty) return;
-      await context.push(
-        '/mala',
-        extra: {
-          'presetId': presetId,
-          'groupAccumulatorId': detail.id,
-          'groupAccumulatorEnded': ended,
-        },
+      final opened = await pushGroupAccumulatorMala(
+        context,
+        ref,
+        detail,
+        ended: ended,
       );
-      if (!context.mounted) return;
+      if (!opened || !context.mounted) return;
       await _refreshAfterPractice(detail);
       return;
     }

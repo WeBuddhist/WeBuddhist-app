@@ -3569,6 +3569,12 @@ abstract class AppLocalizations {
   /// **'Unable to join accumulation. Please try again'**
   String get group_accumulator_join_error;
 
+  /// No description provided for @group_accumulator_practice_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This practice can\'t be opened right now.'**
+  String get group_accumulator_practice_unavailable;
+
   /// No description provided for @group_accumulator_join_before_practice.
   ///
   /// In en, this message translates to:

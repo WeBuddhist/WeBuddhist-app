@@ -250,6 +250,77 @@ class MalaSettingsSheet extends ConsumerWidget {
   }
 }
 
+/// Speed, sound and vibration only. For a mantra counted into a single group
+/// accumulation, which has no preset to bookmark, share or add to a practice.
+class MalaPracticeSettingsSheet extends ConsumerWidget {
+  const MalaPracticeSettingsSheet({super.key});
+
+  static Future<void> show(BuildContext context) {
+    return showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      builder: (_) => const MalaPracticeSettingsSheet(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final settings = ref.watch(malaSettingsProvider);
+    final settingsNotifier = ref.read(malaSettingsProvider.notifier);
+    final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardBackgroundDark : AppColors.goldLight,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            _MalaSettingsSectionHeader(label: l10n.mala_settings_section),
+            _MalaSettingsTile(
+              icon: AppAssets.speedometer,
+              label: l10n.mala_mantra_speed,
+              onTap: () => MantraSpeedSheet.show(context),
+            ),
+            Divider(height: 1, color: dividerColor),
+            _MalaSettingsToggleTile(
+              icon: AppAssets.speakerSimpleHigh,
+              label: l10n.mala_sound,
+              value: settings.soundEnabled,
+              onChanged: settingsNotifier.setSoundEnabled,
+            ),
+            Divider(height: 1, color: dividerColor),
+            _MalaSettingsToggleTile(
+              icon: AppAssets.vibrate,
+              label: l10n.mala_vibration,
+              value: settings.vibrationEnabled,
+              onChanged: settingsNotifier.setVibrationEnabled,
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MalaSettingsSectionHeader extends StatelessWidget {
   const _MalaSettingsSectionHeader({required this.label});
 

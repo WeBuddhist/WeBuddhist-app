@@ -261,6 +261,8 @@ abstract final class AnalyticsProperties {
 
   // Mala
   static const String presetId = 'preset_id';
+  static const String groupAccumulatorId = 'group_accumulator_id';
+  static const String mantraId = 'mantra_id';
   static const String mantraName = 'mantra_name';
   static const String mode = 'mode';
   static const String startingTotal = 'starting_total';

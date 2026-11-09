@@ -1968,6 +1968,10 @@ class AppLocalizationsTh extends AppLocalizations {
       'ไม่สามารถเข้าร่วมยอดสะสมได้ โปรดลองอีกครั้ง';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'เข้าร่วมยอดสะสมนี้ก่อนเพิ่มลงในการปฏิบัติของคุณ';
 
