@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/features/onboarding/application/tradition_selection_provider.dart';
 import 'package:flutter_pecha/features/onboarding/application/tradition_selection_state.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/utils/onboarding_analytics.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/widgets/onboarding_checkbox_option.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/widgets/onboarding_choice_scaffold.dart';
@@ -27,6 +28,9 @@ class OnboardingScreenTradition extends ConsumerWidget {
   Future<void> _handleContinue(BuildContext context, WidgetRef ref) async {
     final saved =
         await ref.read(traditionSelectionProvider.notifier).submitSelection();
+    // Chant lists are narrowed by the saved traditions, even after a partial
+    // save, so the filter is re-resolved either way.
+    ref.invalidate(traditionTagFilterProvider);
     if (!context.mounted || !saved) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

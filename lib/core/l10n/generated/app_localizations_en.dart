@@ -595,6 +595,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get see_all => 'See all';
 
   @override
+  String get see_more => 'See more';
+
+  @override
   String get connect_groups_load_error =>
       'Unable to load spaces.\nCheck your connection and try again';
 
@@ -612,6 +615,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connect_tab_groups => 'Spaces';
+
+  @override
+  String get connect_landing_title => 'Connect with your Buddhist community';
+
+  @override
+  String get connect_popular_spaces => 'Popular spaces';
+
+  @override
+  String get connect_your_spaces => 'Your spaces';
+
+  @override
+  String get connect_find_a_space => 'Find a space';
 
   @override
   String get connect_segment_my => 'Your spaces';
@@ -699,6 +714,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No comments yet. Start the conversation';
 
   @override
+  String get connect_post_media_viewer_hint =>
+      'Pinch or double-tap to zoom · swipe for the next image';
+
+  @override
   String get connect_online => 'Online';
 
   @override
@@ -711,6 +730,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get home_group_events => 'Featured events';
+
+  @override
+  String get home_community_feed => 'From the community';
 
   @override
   String get home_poems => 'Poems';
@@ -1129,6 +1151,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to load. Check your connection and try again';
 
   @override
+  String get reader_not_translated => 'Not translated';
+
+  @override
+  String get error_offline_title => 'No connection';
+
+  @override
+  String get error_server_title => 'Can\'t load right now';
+
+  @override
+  String get reader_error_server_message =>
+      'This text can\'t be loaded right now. Please try again later.';
+
+  @override
+  String get chants_error_server_message =>
+      'Chants can\'t be loaded right now. Please try again later.';
+
+  @override
   String get somethingWrong =>
       'Something went wrong. Check your connection and try again';
 
@@ -1498,6 +1537,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendar_title => 'Calendar';
+
+  @override
+  String get calendar_today => 'Today';
+
+  @override
+  String get calendar_no_events => 'No events';
+
+  @override
+  String get calendar_source_lunar => 'Lunar calendar';
+
+  @override
+  String get calendar_add_event => 'Add event';
+
+  @override
+  String get calendar_event_name => 'Event name';
+
+  @override
+  String get calendar_event_name_hint => 'Add an event to your calendar';
+
+  @override
+  String get calendar_repeat => 'Repeat';
+
+  @override
+  String get calendar_does_not_repeat => 'Does not repeat';
+
+  @override
+  String get calendar_repeat_weekly => 'Weekly';
+
+  @override
+  String get calendar_repeat_monthly => 'Monthly';
+
+  @override
+  String get calendar_repeat_yearly => 'Yearly';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return 'Monthly ($day lunar)';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+
+  @override
+  String get calendar_delete_event => 'Delete event';
+
+  @override
+  String get calendar_delete_event_title => 'Delete event?';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => 'Delete repeating event?';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_event_deleted => 'Event deleted';
 
   @override
   String get calendar_upcoming_events => 'Upcoming events';

@@ -45,12 +45,19 @@ onboarding/
 
 - `onboardingProvider` — page index, preferences (**not** autoDispose — page index survives across sessions in one process)
 - `traditionSelectionProvider` — multi-select traditions (autoDispose)
+- `traditionTagFilterProvider` — keep-alive; the signed-in user's library
+  tags from `GET /traditions` (`library_tag_id`) joined to
+  `GET /users/me/traditions` by code (`domain/tradition_tag_ids.dart`).
+  Empty for guests, none/all selected, or a failed lookup. Stored in the
+  screen cache per user so later launches have it synchronously; pending
+  while auth boots. Invalidate it after traditions change (onboarding
+  submit, profile edit do).
 - Uses **hooks_riverpod** in application layer
 
 ## Data sources
 
 - **Local:** SharedPreferences / local datasource (preferences; backend preference sync is still a TODO in the repository)
-- **Remote:** onboarding status (`GET/PUT /users/me/onboarding`), tradition paths and user traditions
+- **Remote:** onboarding status (`GET/PUT /users/me/onboarding`), tradition paths and user traditions, the public tradition catalogue (`GET /traditions`, no auth)
 
 ## Cross-feature dependencies
 

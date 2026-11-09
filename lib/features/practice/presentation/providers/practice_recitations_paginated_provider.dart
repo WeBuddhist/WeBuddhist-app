@@ -3,10 +3,12 @@ import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_providers.dar
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_source.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_store.dart';
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
+import 'package:flutter_pecha/core/error/load_error_kind.dart';
 import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/core/utils/local_storage_service.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_pecha/features/recitation/data/datasource/recitations_remote_datasource.dart';
 import 'package:flutter_pecha/features/recitation/data/models/my_recitation_list_collection_model.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
@@ -26,6 +28,9 @@ class PracticeRecitationsState {
   final bool isLoading;
   final bool isLoadingMore;
   final String? error;
+
+  /// Why [error] happened, for what the screen tells the person.
+  final LoadErrorKind? errorKind;
   final bool hasMore;
   final int skip;
   final int total;
@@ -36,6 +41,7 @@ class PracticeRecitationsState {
     this.isLoading = false,
     this.isLoadingMore = false,
     this.error,
+    this.errorKind,
     this.hasMore = true,
     this.skip = 0,
     this.total = 0,
@@ -49,6 +55,7 @@ class PracticeRecitationsState {
     bool? isLoading,
     bool? isLoadingMore,
     String? error,
+    LoadErrorKind? errorKind,
     bool? hasMore,
     int? skip,
     int? total,
@@ -59,6 +66,7 @@ class PracticeRecitationsState {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       error: error,
+      errorKind: errorKind,
       hasMore: hasMore ?? this.hasMore,
       skip: skip ?? this.skip,
       total: total ?? this.total,
@@ -66,7 +74,8 @@ class PracticeRecitationsState {
   }
 }
 
-class PracticeRecitationsNotifier extends StateNotifier<PracticeRecitationsState> {
+class PracticeRecitationsNotifier
+    extends StateNotifier<PracticeRecitationsState> {
   final RecitationsRemoteDatasource _datasource;
   final String _languageCode;
   final bool _includeCollections;
@@ -127,21 +136,28 @@ class PracticeRecitationsNotifier extends StateNotifier<PracticeRecitationsState
     );
   }
 
-  /// Page 1 is stored per language (per user when collections are included).
+  /// Page 1 is stored per language and tradition filter (per user when
+  /// collections are included).
   static ScreenCacheSource<RecitationsPageResponse> firstPageSource({
     required RecitationsRemoteDatasource datasource,
     required ScreenCacheStore store,
     required String languageCode,
     required bool includeCollections,
   }) {
+    final params = datasource.cacheKeyParams;
     final key =
         includeCollections
             ? ScreenCacheKey.user(
               'chants_page1',
               userId: store.currentUserIdSync,
               language: languageCode,
+              params: params,
             )
-            : ScreenCacheKey.public('chants_page1', language: languageCode);
+            : ScreenCacheKey.public(
+              'chants_page1',
+              language: languageCode,
+              params: params,
+            );
     return ScreenCacheSource(
       store: store,
       key: key,
@@ -208,7 +224,11 @@ class PracticeRecitationsNotifier extends StateNotifier<PracticeRecitationsState
         (failure) {
           _logger.error('Initial recitations load failed: ${failure.message}');
           if (state.isEmpty) {
-            state = state.copyWith(isLoading: false, error: failure.message);
+            state = state.copyWith(
+              isLoading: false,
+              error: failure.message,
+              errorKind: loadErrorKindOf(failure),
+            );
           }
         },
         (page) {
@@ -258,7 +278,11 @@ class PracticeRecitationsNotifier extends StateNotifier<PracticeRecitationsState
     } catch (e) {
       _logger.error('Load more recitations failed', e);
       if (!mounted) return;
-      state = state.copyWith(isLoadingMore: false, error: e.toString());
+      state = state.copyWith(
+        isLoadingMore: false,
+        error: e.toString(),
+        errorKind: loadErrorKindOf(e),
+      );
     }
   }
 
@@ -279,11 +303,13 @@ class PracticeRecitationsLanguageNotifier extends StateNotifier<String> {
     required LocalStorageService localStorageService,
     required String fallbackLanguage,
   }) : _localStorageService = localStorageService,
+       _fallbackLanguage = fallbackLanguage,
        super(_lastKnown ?? fallbackLanguage) {
     _initFuture = _initialize();
   }
 
   final LocalStorageService _localStorageService;
+  final String _fallbackLanguage;
   // Kept static so a stored pick is re-applied synchronously when the notifier
   // is rebuilt (app content language change) instead of flashing that language.
   static String? _lastKnown;
@@ -327,6 +353,19 @@ class PracticeRecitationsLanguageNotifier extends StateNotifier<String> {
       _logger.warning('Persisting chant list language failed', e);
     }
   }
+
+  /// Takes the pick saved on the server; null means none, so the list goes
+  /// back to following the content language.
+  Future<void> applySynced(String? languageCode) async {
+    if (languageCode != null && languageCode.isNotEmpty) {
+      await setLanguage(languageCode);
+      return;
+    }
+    _userSelected = true;
+    _lastKnown = null;
+    state = _fallbackLanguage;
+    await _localStorageService.remove(StorageKeys.chantListLanguage);
+  }
 }
 
 /// Chant list language for [AllRecitationsScreen]. Does not change app locale.
@@ -356,10 +395,15 @@ final practiceRecitationsPaginatedProvider = StateNotifierProvider.autoDispose
       );
 
       // Defer the first fetch until auth is ready so a logged-in session
-      // attaches Bearer + should_include_collections on the first request.
+      // attaches Bearer + should_include_collections on the first request,
+      // and until the user's tradition tags are known so the first page is
+      // never an unfiltered list that is then replaced.
+      final tagsLoading = ref.watch(
+        traditionTagFilterProvider.select((tags) => tags.isLoading),
+      );
       final datasource = ref.watch(recitationsRemoteDatasourceProvider);
       final store = ref.watch(screenCacheStoreProvider);
-      if (isAuthLoading) {
+      if (isAuthLoading || tagsLoading) {
         return PracticeRecitationsNotifier(
           datasource: datasource,
           store: store,
@@ -380,18 +424,23 @@ final practiceRecitationsPaginatedProvider = StateNotifierProvider.autoDispose
 /// The chant catalogue alone, without the user's collections, for pickers
 /// that only list chants (e.g. the group post composer's in-app content
 /// sheet). Skips the `/users/me/recitation-collections` request that
-/// [practiceRecitationsPaginatedProvider] makes for a signed-in user, and
-/// needs no auth deferral since nothing on the request depends on auth.
+/// [practiceRecitationsPaginatedProvider] makes for a signed-in user. It
+/// still waits for the user's tradition tags, which the catalogue is
+/// narrowed by.
 final practiceRecitationsCatalogueProvider = StateNotifierProvider.autoDispose
     .family<PracticeRecitationsNotifier, PracticeRecitationsState, String>((
       ref,
       languageCode,
     ) {
+      final tagsLoading = ref.watch(
+        traditionTagFilterProvider.select((tags) => tags.isLoading),
+      );
       return PracticeRecitationsNotifier(
         datasource: ref.watch(recitationsRemoteDatasourceProvider),
         store: ref.watch(screenCacheStoreProvider),
         languageCode: languageCode,
         includeCollections: false,
+        deferLoad: tagsLoading,
       );
     });
 

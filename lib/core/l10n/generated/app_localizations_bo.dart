@@ -603,6 +603,9 @@ class AppLocalizationsBo extends AppLocalizations {
   String get see_all => 'ཡོངས་ལ་གཟིགས།';
 
   @override
+  String get see_more => 'See more';
+
+  @override
   String get connect_groups_load_error =>
       'ཚོགས་པ་ལེན་མ་ཐུབ།\nཁྱེད་ཀྱི་དྲ་རྒྱར་བསྐྱར་ཞིབ་བྱས་ཏེ་བསྐྱར་དུ་ཚོད་ལྟ་བྱོས།';
 
@@ -620,6 +623,18 @@ class AppLocalizationsBo extends AppLocalizations {
 
   @override
   String get connect_tab_groups => 'ཚོགས་པ།';
+
+  @override
+  String get connect_landing_title => 'Connect with your Buddhist community';
+
+  @override
+  String get connect_popular_spaces => 'Popular spaces';
+
+  @override
+  String get connect_your_spaces => 'Your spaces';
+
+  @override
+  String get connect_find_a_space => 'Find a space';
 
   @override
   String get connect_segment_my => 'ཁྱེད་ཀྱི་ཚོགས་པ།';
@@ -706,6 +721,10 @@ class AppLocalizationsBo extends AppLocalizations {
       'ད་དུང་བསམ་ཚུལ་མི་འདུག གླེང་མོལ་འགོ་བཙུགས།';
 
   @override
+  String get connect_post_media_viewer_hint =>
+      'ཆེ་རུ་གཏོང་བར་མཛུབ་མོས་བསྐྱེད་པའམ་ཐེངས་གཉིས་རྡེབ། · པར་རྗེས་མར་སྤོ་བར་འདྲུད།';
+
+  @override
   String get connect_online => 'དྲ་ཐོག';
 
   @override
@@ -718,6 +737,9 @@ class AppLocalizationsBo extends AppLocalizations {
 
   @override
   String get home_group_events => 'ཁྱད་གསལ་བྱེད་སྒོ།';
+
+  @override
+  String get home_community_feed => 'From the community';
 
   @override
   String get home_poems => 'སྙན་ངག';
@@ -1143,6 +1165,23 @@ class AppLocalizationsBo extends AppLocalizations {
       'སྟོན་ཐུབ་མ་སོང་། ཁྱེད་ཀྱིས་རང་གི་དྲ་རྒྱར་བསྐྱར་ཞིབ་བྱས་ཏེ་བསྐྱར་དུ་ཚོད་ལྟ་བྱོས།';
 
   @override
+  String get reader_not_translated => 'ཡིག་སྒྱུར་མ་བྱས།';
+
+  @override
+  String get error_offline_title => 'དྲ་རྒྱ་མཐུད་མེད།';
+
+  @override
+  String get error_server_title => 'ད་ལྟ་སྟོན་ཐུབ་མ་སོང་།';
+
+  @override
+  String get reader_error_server_message =>
+      'དཔེ་ཆ་འདི་ད་ལྟ་སྟོན་ཐུབ་མ་སོང་། རྗེས་སུ་བསྐྱར་དུ་ཚོད་ལྟ་བྱོས།';
+
+  @override
+  String get chants_error_server_message =>
+      'ཞལ་འདོན་ད་ལྟ་སྟོན་ཐུབ་མ་སོང་། རྗེས་སུ་བསྐྱར་དུ་ཚོད་ལྟ་བྱོས།';
+
+  @override
   String get somethingWrong =>
       'ཅིག་འགྲིག་མ་སོང་། རང་གི་དྲ་རྒྱར་བསྐྱར་ཞིབ་བྱས་ཏེ་བསྐྱར་དུ་ཚོད་ལྟ་བྱོས།';
 
@@ -1517,6 +1556,69 @@ class AppLocalizationsBo extends AppLocalizations {
 
   @override
   String get calendar_title => 'ལོ་ཐོ།';
+
+  @override
+  String get calendar_today => 'Today';
+
+  @override
+  String get calendar_no_events => 'No events';
+
+  @override
+  String get calendar_source_lunar => 'Lunar calendar';
+
+  @override
+  String get calendar_add_event => 'Add event';
+
+  @override
+  String get calendar_event_name => 'Event name';
+
+  @override
+  String get calendar_event_name_hint => 'Add an event to your calendar';
+
+  @override
+  String get calendar_repeat => 'Repeat';
+
+  @override
+  String get calendar_does_not_repeat => 'Does not repeat';
+
+  @override
+  String get calendar_repeat_weekly => 'Weekly';
+
+  @override
+  String get calendar_repeat_monthly => 'Monthly';
+
+  @override
+  String get calendar_repeat_yearly => 'Yearly';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return 'Monthly ($day lunar)';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+
+  @override
+  String get calendar_delete_event => 'Delete event';
+
+  @override
+  String get calendar_delete_event_title => 'Delete event?';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => 'Delete repeating event?';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_event_deleted => 'Event deleted';
 
   @override
   String get calendar_upcoming_events => 'འབྱུང་འགྱུར་བྱེད་སྒོ།';

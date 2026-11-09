@@ -256,12 +256,17 @@
   "discover_groups": "Discover spaces",
   "my_groups": "My spaces",
   "see_all": "See all",
+  "see_more": "See more",
   "connect_groups_load_error": "Unable to load spaces.\nCheck your connection and try again",
   "connect_groups_empty_title": "No more spaces",
   "connect_tab_feed": "Feed",
   "connect_tab_events": "Events",
   "connect_tab_practices": "Practices",
   "connect_tab_groups": "Spaces",
+  "connect_landing_title": "Connect with your Buddhist community",
+  "connect_popular_spaces": "Popular spaces",
+  "connect_your_spaces": "Your spaces",
+  "connect_find_a_space": "Find a space",
   "connect_segment_my": "Your spaces",
   "connect_segment_discover": "Discover",
   "connect_empty_discover_events": "No events to discover",
@@ -299,6 +304,7 @@
     }
   },
   "connect_post_comments_empty": "No comments yet. Start the conversation",
+  "connect_post_media_viewer_hint": "Pinch or double-tap to zoom · swipe for the next image",
   "connect_online": "Online",
   "connect_ended": "Ended",
   "connect_ended_on": "Ended {date}",
@@ -310,6 +316,7 @@
     }
   },
   "home_group_events": "Featured events",
+  "home_community_feed": "From the community",
   "home_poems": "Poems",
   "poems_load_error": "Unable to load poems.\nCheck your connection and try again",
   "poems_empty": "No poems yet. Check back soon",
@@ -534,6 +541,11 @@
   "anonymous": "Anonymous",
   "noContentAvailable": "No content available",
   "unableToLoad": "Unable to load. Check your connection and try again",
+  "reader_not_translated": "Not translated",
+  "error_offline_title": "No connection",
+  "error_server_title": "Can't load right now",
+  "reader_error_server_message": "This text can't be loaded right now. Please try again later.",
+  "chants_error_server_message": "Chants can't be loaded right now. Please try again later.",
   "somethingWrong": "Something went wrong. Check your connection and try again",
   "source": "Source",
   "noTasks": "No tasks available",
@@ -714,6 +726,49 @@
   "legal_privacy_policy": "Privacy policy",
   "follow": "Follow",
   "calendar_title": "Calendar",
+  "calendar_today": "Today",
+  "calendar_no_events": "No events",
+  "calendar_source_lunar": "Lunar calendar",
+  "calendar_add_event": "Add event",
+  "calendar_event_name": "Event name",
+  "calendar_event_name_hint": "Add an event to your calendar",
+  "calendar_repeat": "Repeat",
+  "calendar_does_not_repeat": "Does not repeat",
+  "calendar_repeat_weekly": "Weekly",
+  "calendar_repeat_monthly": "Monthly",
+  "calendar_repeat_yearly": "Yearly",
+  "calendar_repeat_monthly_lunar": "Monthly ({day} lunar)",
+  "@calendar_repeat_monthly_lunar": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_repeat_yearly_lunar": "Yearly (lunar date)",
+  "calendar_delete_event": "Delete event",
+  "calendar_delete_event_title": "Delete event?",
+  "calendar_delete_event_body": "\"{title}\" will be removed from your calendar. This can’t be undone.",
+  "@calendar_delete_event_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_delete_repeating_title": "Delete repeating event?",
+  "calendar_delete_repeating_body": "Every date of \"{title}\" ({repeat}) will be removed from your calendar. This can’t be undone.",
+  "@calendar_delete_repeating_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "repeat": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_event_deleted": "Event deleted",
   "calendar_upcoming_events": "Upcoming events",
   "calendar_day_short": "DAY",
   "calendar_day_label": "Day",

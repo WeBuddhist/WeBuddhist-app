@@ -95,6 +95,11 @@ class StorageKeys {
   /// Daily reminder enabled flag
   static const String dailyReminderEnabled = 'daily_reminder_enabled';
 
+  /// Set once this install has asked for the OS notification permission. Tells
+  /// a first ask from a blocked one on Android; analytics only.
+  static const String notificationPermissionAsked =
+      'notification_permission_asked';
+
   /// App-level master notification toggle. When false the app cancels all
   /// scheduled notifications without touching OS permission. Re-enabling
   /// re-schedules from the stored routine. Default: true.
@@ -163,6 +168,14 @@ class StorageKeys {
   /// language's defaults; the library keys are left alone.
   static const String readerLayoutLanguage = 'reader_layouts_language';
 
+  /// The account the reader settings on this device last synced with, so one
+  /// account's settings are never uploaded to another.
+  static const String readerSettingsOwner = 'reader_settings_owner';
+
+  /// JSON of the reader settings last known to be on the server. Local values
+  /// that differ from it have not been saved yet.
+  static const String readerSettingsSynced = 'reader_settings_synced';
+
   /// Bead-tap sound on the mala counter. Default: true.
   static const String malaSoundEnabled = 'mala_sound_enabled';
 
@@ -178,6 +191,9 @@ class StorageKeys {
   /// Per-preset accumulation source: `personal` or `group:{uuid}`.
   static const String malaAccumulationSelectionPrefix =
       'mala_accumulation_selection_';
+
+  /// Space the Connect tab last showed, by group id.
+  static const String connectLastSpaceId = 'connect_last_space_id';
 
   // ========== BUSINESS LOGIC ==========
   /// Last profile update timestamp

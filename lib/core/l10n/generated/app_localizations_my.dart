@@ -605,6 +605,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get see_all => 'အားလုံး ကြည့်ရန်';
 
   @override
+  String get see_more => 'See more';
+
+  @override
   String get connect_groups_load_error =>
       'အဖွဲ့များကို ဖွင့်၍ မရပါ။\nအင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ';
 
@@ -622,6 +625,18 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get connect_tab_groups => 'အဖွဲ့များ';
+
+  @override
+  String get connect_landing_title => 'Connect with your Buddhist community';
+
+  @override
+  String get connect_popular_spaces => 'Popular spaces';
+
+  @override
+  String get connect_your_spaces => 'Your spaces';
+
+  @override
+  String get connect_find_a_space => 'Find a space';
 
   @override
   String get connect_segment_my => 'သင့်အဖွဲ့များ';
@@ -710,6 +725,10 @@ class AppLocalizationsMy extends AppLocalizations {
       'မှတ်ချက် မရှိသေးပါ။ စတင် ဆွေးနွေးလိုက်ပါ';
 
   @override
+  String get connect_post_media_viewer_hint =>
+      'ချဲ့ရန် ဆွဲချဲ့ပါ သို့မဟုတ် နှစ်ချက်နှိပ်ပါ · နောက်ပုံအတွက် ပွတ်ဆွဲပါ';
+
+  @override
   String get connect_online => 'အွန်လိုင်း';
 
   @override
@@ -722,6 +741,9 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get home_group_events => 'အထူးဖော်ပြထားသော ပွဲများ';
+
+  @override
+  String get home_community_feed => 'From the community';
 
   @override
   String get home_poems => 'ကဗျာများ';
@@ -1144,6 +1166,23 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဖွင့်၍ မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ';
 
   @override
+  String get reader_not_translated => 'ဘာသာမပြန်ရသေးပါ';
+
+  @override
+  String get error_offline_title => 'အင်တာနက် ချိတ်ဆက်မှု မရှိပါ';
+
+  @override
+  String get error_server_title => 'ယခု ဖွင့်၍ မရပါ';
+
+  @override
+  String get reader_error_server_message =>
+      'ဤစာကို ယခု ဖွင့်၍ မရပါ။ နောက်မှ ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get chants_error_server_message =>
+      'ရွတ်ဆိုရန်စာများကို ယခု ဖွင့်၍ မရပါ။ နောက်မှ ထပ်ကြိုးစားပါ။';
+
+  @override
   String get somethingWrong =>
       'တစ်ခုခု မှားယွင်းသွားပါသည်။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ';
 
@@ -1520,6 +1559,69 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get calendar_title => 'ပြက္ခဒိန်';
+
+  @override
+  String get calendar_today => 'Today';
+
+  @override
+  String get calendar_no_events => 'No events';
+
+  @override
+  String get calendar_source_lunar => 'Lunar calendar';
+
+  @override
+  String get calendar_add_event => 'Add event';
+
+  @override
+  String get calendar_event_name => 'Event name';
+
+  @override
+  String get calendar_event_name_hint => 'Add an event to your calendar';
+
+  @override
+  String get calendar_repeat => 'Repeat';
+
+  @override
+  String get calendar_does_not_repeat => 'Does not repeat';
+
+  @override
+  String get calendar_repeat_weekly => 'Weekly';
+
+  @override
+  String get calendar_repeat_monthly => 'Monthly';
+
+  @override
+  String get calendar_repeat_yearly => 'Yearly';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return 'Monthly ($day lunar)';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+
+  @override
+  String get calendar_delete_event => 'Delete event';
+
+  @override
+  String get calendar_delete_event_title => 'Delete event?';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => 'Delete repeating event?';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_event_deleted => 'Event deleted';
 
   @override
   String get calendar_upcoming_events => 'လာမည့် ပွဲများ';

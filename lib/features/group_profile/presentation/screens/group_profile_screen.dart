@@ -26,10 +26,18 @@ class GroupProfileScreen extends ConsumerStatefulWidget {
   /// prayer-request notification tap.
   final bool openPrayerRequests;
 
+  /// Replaces the back arrow, e.g. the Connect tab's spaces menu.
+  final Widget? leading;
+
+  /// Carried as `source` on `group_viewed`; see [GroupViewSource].
+  final String? analyticsSource;
+
   const GroupProfileScreen({
     super.key,
     required this.groupId,
     this.openPrayerRequests = false,
+    this.leading,
+    this.analyticsSource,
   });
 
   @override
@@ -109,7 +117,11 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
       onFirstValue:
           (profile) => ref
               .read(groupAnalyticsProvider)
-              .groupViewed(groupId: groupId, groupType: profile.groupType),
+              .groupViewed(
+                groupId: groupId,
+                groupType: profile.groupType,
+                source: widget.analyticsSource,
+              ),
       child: scaffold,
     );
   }
@@ -131,16 +143,17 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(AppAssets.arrowLeft),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go(AppRoutes.home);
-              }
-            },
-          ),
+          widget.leading ??
+              IconButton(
+                icon: const Icon(AppAssets.arrowLeft),
+                onPressed: () {
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go(AppRoutes.home);
+                  }
+                },
+              ),
           Expanded(
             child: AnimatedOpacity(
               opacity: showTitle && hasTitle ? 1 : 0,

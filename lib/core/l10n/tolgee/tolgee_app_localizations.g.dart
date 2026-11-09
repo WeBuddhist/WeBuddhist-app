@@ -1125,6 +1125,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
       TolgeeBridge.get(localeName, 'see_all', () => _fallback.see_all);
 
   @override
+  String get see_more =>
+      TolgeeBridge.get(localeName, 'see_more', () => _fallback.see_more);
+
+  @override
   String get connect_groups_load_error => TolgeeBridge.get(
     localeName,
     'connect_groups_load_error',
@@ -1164,6 +1168,34 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'connect_tab_groups',
     () => _fallback.connect_tab_groups,
+  );
+
+  @override
+  String get connect_landing_title => TolgeeBridge.get(
+    localeName,
+    'connect_landing_title',
+    () => _fallback.connect_landing_title,
+  );
+
+  @override
+  String get connect_popular_spaces => TolgeeBridge.get(
+    localeName,
+    'connect_popular_spaces',
+    () => _fallback.connect_popular_spaces,
+  );
+
+  @override
+  String get connect_your_spaces => TolgeeBridge.get(
+    localeName,
+    'connect_your_spaces',
+    () => _fallback.connect_your_spaces,
+  );
+
+  @override
+  String get connect_find_a_space => TolgeeBridge.get(
+    localeName,
+    'connect_find_a_space',
+    () => _fallback.connect_find_a_space,
   );
 
   @override
@@ -1330,6 +1362,13 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get connect_post_media_viewer_hint => TolgeeBridge.get(
+    localeName,
+    'connect_post_media_viewer_hint',
+    () => _fallback.connect_post_media_viewer_hint,
+  );
+
+  @override
   String get connect_online => TolgeeBridge.get(
     localeName,
     'connect_online',
@@ -1356,6 +1395,13 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'home_group_events',
     () => _fallback.home_group_events,
+  );
+
+  @override
+  String get home_community_feed => TolgeeBridge.get(
+    localeName,
+    'home_community_feed',
+    () => _fallback.home_community_feed,
   );
 
   @override
@@ -2198,6 +2244,41 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get reader_not_translated => TolgeeBridge.get(
+    localeName,
+    'reader_not_translated',
+    () => _fallback.reader_not_translated,
+  );
+
+  @override
+  String get error_offline_title => TolgeeBridge.get(
+    localeName,
+    'error_offline_title',
+    () => _fallback.error_offline_title,
+  );
+
+  @override
+  String get error_server_title => TolgeeBridge.get(
+    localeName,
+    'error_server_title',
+    () => _fallback.error_server_title,
+  );
+
+  @override
+  String get reader_error_server_message => TolgeeBridge.get(
+    localeName,
+    'reader_error_server_message',
+    () => _fallback.reader_error_server_message,
+  );
+
+  @override
+  String get chants_error_server_message => TolgeeBridge.get(
+    localeName,
+    'chants_error_server_message',
+    () => _fallback.chants_error_server_message,
+  );
+
+  @override
   String get somethingWrong => TolgeeBridge.get(
     localeName,
     'somethingWrong',
@@ -2906,6 +2987,143 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'calendar_title',
     () => _fallback.calendar_title,
+  );
+
+  @override
+  String get calendar_today => TolgeeBridge.get(
+    localeName,
+    'calendar_today',
+    () => _fallback.calendar_today,
+  );
+
+  @override
+  String get calendar_no_events => TolgeeBridge.get(
+    localeName,
+    'calendar_no_events',
+    () => _fallback.calendar_no_events,
+  );
+
+  @override
+  String get calendar_source_lunar => TolgeeBridge.get(
+    localeName,
+    'calendar_source_lunar',
+    () => _fallback.calendar_source_lunar,
+  );
+
+  @override
+  String get calendar_add_event => TolgeeBridge.get(
+    localeName,
+    'calendar_add_event',
+    () => _fallback.calendar_add_event,
+  );
+
+  @override
+  String get calendar_event_name => TolgeeBridge.get(
+    localeName,
+    'calendar_event_name',
+    () => _fallback.calendar_event_name,
+  );
+
+  @override
+  String get calendar_event_name_hint => TolgeeBridge.get(
+    localeName,
+    'calendar_event_name_hint',
+    () => _fallback.calendar_event_name_hint,
+  );
+
+  @override
+  String get calendar_repeat => TolgeeBridge.get(
+    localeName,
+    'calendar_repeat',
+    () => _fallback.calendar_repeat,
+  );
+
+  @override
+  String get calendar_does_not_repeat => TolgeeBridge.get(
+    localeName,
+    'calendar_does_not_repeat',
+    () => _fallback.calendar_does_not_repeat,
+  );
+
+  @override
+  String get calendar_repeat_weekly => TolgeeBridge.get(
+    localeName,
+    'calendar_repeat_weekly',
+    () => _fallback.calendar_repeat_weekly,
+  );
+
+  @override
+  String get calendar_repeat_monthly => TolgeeBridge.get(
+    localeName,
+    'calendar_repeat_monthly',
+    () => _fallback.calendar_repeat_monthly,
+  );
+
+  @override
+  String get calendar_repeat_yearly => TolgeeBridge.get(
+    localeName,
+    'calendar_repeat_yearly',
+    () => _fallback.calendar_repeat_yearly,
+  );
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) => TolgeeBridge.format(
+    localeName,
+    'calendar_repeat_monthly_lunar',
+    <String, Object>{'day': day},
+    () => _fallback.calendar_repeat_monthly_lunar(day),
+  );
+
+  @override
+  String get calendar_repeat_yearly_lunar => TolgeeBridge.get(
+    localeName,
+    'calendar_repeat_yearly_lunar',
+    () => _fallback.calendar_repeat_yearly_lunar,
+  );
+
+  @override
+  String get calendar_delete_event => TolgeeBridge.get(
+    localeName,
+    'calendar_delete_event',
+    () => _fallback.calendar_delete_event,
+  );
+
+  @override
+  String get calendar_delete_event_title => TolgeeBridge.get(
+    localeName,
+    'calendar_delete_event_title',
+    () => _fallback.calendar_delete_event_title,
+  );
+
+  @override
+  String calendar_delete_event_body(String title) => TolgeeBridge.format(
+    localeName,
+    'calendar_delete_event_body',
+    <String, Object>{'title': title},
+    () => _fallback.calendar_delete_event_body(title),
+  );
+
+  @override
+  String get calendar_delete_repeating_title => TolgeeBridge.get(
+    localeName,
+    'calendar_delete_repeating_title',
+    () => _fallback.calendar_delete_repeating_title,
+  );
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) =>
+      TolgeeBridge.format(
+        localeName,
+        'calendar_delete_repeating_body',
+        <String, Object>{'title': title, 'repeat': repeat},
+        () => _fallback.calendar_delete_repeating_body(title, repeat),
+      );
+
+  @override
+  String get calendar_event_deleted => TolgeeBridge.get(
+    localeName,
+    'calendar_event_deleted',
+    () => _fallback.calendar_event_deleted,
   );
 
   @override

@@ -1145,6 +1145,12 @@ abstract class AppLocalizations {
   /// **'See all'**
   String get see_all;
 
+  /// No description provided for @see_more.
+  ///
+  /// In en, this message translates to:
+  /// **'See more'**
+  String get see_more;
+
   /// No description provided for @connect_groups_load_error.
   ///
   /// In en, this message translates to:
@@ -1180,6 +1186,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spaces'**
   String get connect_tab_groups;
+
+  /// No description provided for @connect_landing_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your Buddhist community'**
+  String get connect_landing_title;
+
+  /// No description provided for @connect_popular_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular spaces'**
+  String get connect_popular_spaces;
+
+  /// No description provided for @connect_your_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Your spaces'**
+  String get connect_your_spaces;
+
+  /// No description provided for @connect_find_a_space.
+  ///
+  /// In en, this message translates to:
+  /// **'Find a space'**
+  String get connect_find_a_space;
 
   /// No description provided for @connect_segment_my.
   ///
@@ -1319,6 +1349,12 @@ abstract class AppLocalizations {
   /// **'No comments yet. Start the conversation'**
   String get connect_post_comments_empty;
 
+  /// No description provided for @connect_post_media_viewer_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pinch or double-tap to zoom · swipe for the next image'**
+  String get connect_post_media_viewer_hint;
+
   /// No description provided for @connect_online.
   ///
   /// In en, this message translates to:
@@ -1342,6 +1378,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Featured events'**
   String get home_group_events;
+
+  /// No description provided for @home_community_feed.
+  ///
+  /// In en, this message translates to:
+  /// **'From the community'**
+  String get home_community_feed;
 
   /// No description provided for @home_poems.
   ///
@@ -2105,6 +2147,36 @@ abstract class AppLocalizations {
   /// **'Unable to load. Check your connection and try again'**
   String get unableToLoad;
 
+  /// No description provided for @reader_not_translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Not translated'**
+  String get reader_not_translated;
+
+  /// No description provided for @error_offline_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection'**
+  String get error_offline_title;
+
+  /// No description provided for @error_server_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t load right now'**
+  String get error_server_title;
+
+  /// No description provided for @reader_error_server_message.
+  ///
+  /// In en, this message translates to:
+  /// **'This text can\'t be loaded right now. Please try again later.'**
+  String get reader_error_server_message;
+
+  /// No description provided for @chants_error_server_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Chants can\'t be loaded right now. Please try again later.'**
+  String get chants_error_server_message;
+
   /// No description provided for @somethingWrong.
   ///
   /// In en, this message translates to:
@@ -2746,6 +2818,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Calendar'**
   String get calendar_title;
+
+  /// No description provided for @calendar_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get calendar_today;
+
+  /// No description provided for @calendar_no_events.
+  ///
+  /// In en, this message translates to:
+  /// **'No events'**
+  String get calendar_no_events;
+
+  /// No description provided for @calendar_source_lunar.
+  ///
+  /// In en, this message translates to:
+  /// **'Lunar calendar'**
+  String get calendar_source_lunar;
+
+  /// No description provided for @calendar_add_event.
+  ///
+  /// In en, this message translates to:
+  /// **'Add event'**
+  String get calendar_add_event;
+
+  /// No description provided for @calendar_event_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Event name'**
+  String get calendar_event_name;
+
+  /// No description provided for @calendar_event_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an event to your calendar'**
+  String get calendar_event_name_hint;
+
+  /// No description provided for @calendar_repeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get calendar_repeat;
+
+  /// No description provided for @calendar_does_not_repeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not repeat'**
+  String get calendar_does_not_repeat;
+
+  /// No description provided for @calendar_repeat_weekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get calendar_repeat_weekly;
+
+  /// No description provided for @calendar_repeat_monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get calendar_repeat_monthly;
+
+  /// No description provided for @calendar_repeat_yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get calendar_repeat_yearly;
+
+  /// No description provided for @calendar_repeat_monthly_lunar.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly ({day} lunar)'**
+  String calendar_repeat_monthly_lunar(String day);
+
+  /// No description provided for @calendar_repeat_yearly_lunar.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly (lunar date)'**
+  String get calendar_repeat_yearly_lunar;
+
+  /// No description provided for @calendar_delete_event.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete event'**
+  String get calendar_delete_event;
+
+  /// No description provided for @calendar_delete_event_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete event?'**
+  String get calendar_delete_event_title;
+
+  /// No description provided for @calendar_delete_event_body.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" will be removed from your calendar. This can’t be undone.'**
+  String calendar_delete_event_body(String title);
+
+  /// No description provided for @calendar_delete_repeating_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete repeating event?'**
+  String get calendar_delete_repeating_title;
+
+  /// No description provided for @calendar_delete_repeating_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Every date of \"{title}\" ({repeat}) will be removed from your calendar. This can’t be undone.'**
+  String calendar_delete_repeating_body(String title, String repeat);
+
+  /// No description provided for @calendar_event_deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Event deleted'**
+  String get calendar_event_deleted;
 
   /// No description provided for @calendar_upcoming_events.
   ///

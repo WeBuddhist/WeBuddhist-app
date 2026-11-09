@@ -36,6 +36,7 @@ import 'package:flutter_pecha/features/auth/presentation/providers/firebase_sess
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/user_session_bootstrap.dart';
 import 'package:flutter_pecha/features/home/presentation/screens/main_navigation_screen.dart';
+import 'package:flutter_pecha/features/home/presentation/utils/home_analytics.dart';
 import 'package:flutter_pecha/features/mala/data/datasources/mala_local_datasource.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/more/data/datasource/user_stats_local_datasource.dart';
@@ -45,6 +46,7 @@ import 'package:flutter_pecha/features/plans/presentation/providers/use_case_pro
 import 'package:flutter_pecha/features/practice/data/datasource/routine_local_storage.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_providers.dart';
 import 'package:flutter_pecha/features/reader/presentation/providers/reader_context_layout_provider.dart';
+import 'package:flutter_pecha/features/reader/presentation/providers/reader_settings_sync_provider.dart';
 import 'package:flutter_pecha/features/timer/data/datasource/timers_local_datasource.dart';
 import 'package:flutter_pecha/features/timer/presentation/providers/timers_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -361,10 +363,13 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     });
 
     // Bottom tabs are not routes, so Clarity's screen name for the home
-    // shell has to follow the selected tab from here.
+    // shell has to follow the selected tab from here, and PostHog's
+    // route-based screen events never see a tab change.
     ref.listen<int>(mainNavigationIndexProvider, (previous, next) {
       if (previous == next) return;
-      ClarityAnalyticsService.instance.setTab(MainTab.values[next].name);
+      final tab = MainTab.values[next].name;
+      ClarityAnalyticsService.instance.setTab(tab);
+      ref.read(homeAnalyticsProvider).tabViewed(tab: tab);
     });
 
     // Get the singleton router instance - same instance is reused across rebuilds
@@ -462,6 +467,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
     // Clears user-scoped HTTP cache and invalidates profile/plan providers
     // when auth transitions between accounts.
     ref.watch(userSessionBootstrapProvider);
+    // Keeps the chant reader's settings on the server across devices.
+    ref.watch(readerSettingsSyncProvider);
     // Home background sync — flushes pending local-first writes when
     // connectivity returns.
     ref.watch(homeSyncBootstrapProvider);
