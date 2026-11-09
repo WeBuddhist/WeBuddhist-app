@@ -67,8 +67,11 @@ library/
   `LIBRARY_API_KEY`, which prod requires); cache, error and logging
   interceptors. Errors are mapped by `ErrorInterceptor`; 404s are treated
   as "none" for TOC, yigchungs and alignments.
-- Chants: `/v2/texts?tag_id=$LIBRARY_CHANTS_TAG_ID` (title filter ≥ 2 chars).
-  User collections still come from the main API (practice).
+- Chants: `/v2/texts?tag_id=$LIBRARY_CHANTS_TAG_ID` (title filter ≥ 2 chars),
+  plus the user's tradition tag when there is exactly one (`tag_id` is
+  comma-separated, `tag_id_match` defaults to `all`); several traditions are
+  filtered client-side on `tag_ids` since the API cannot express
+  "chants AND any of". User collections still come from the main API.
 
 ## Cross-feature dependencies
 

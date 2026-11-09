@@ -31,6 +31,7 @@ import 'package:flutter_pecha/features/mala/presentation/providers/mala_provider
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_manager.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/providers/onboarding_datasource_providers.dart';
 import 'package:flutter_pecha/features/push_notifications/presentation/providers/push_notification_providers.dart';
+import 'package:flutter_pecha/features/reader/presentation/providers/reader_settings_sync_provider.dart';
 import 'package:flutter_pecha/shared/domain/base_classes/usecase.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/state/auth_state.dart';
@@ -436,7 +437,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         _authAnalytics.loginFailed(
           method: connection,
           source: source,
-          reason: failure.message,
+          failureMessage: failure.message,
         );
         state = state.copyWith(
           isLoading: false,
@@ -481,6 +482,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         userId: userId,
         isGuest: false,
         epoch: epoch,
+        isLogin: true,
       );
       if (!_isAuthEpochCurrent(epoch)) return;
     }
@@ -563,6 +565,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // the FCM token, and it must first let this unregister use the stored id
     // while the JWT is still valid. Awaited below, before credentials go.
     final pushUnregister = _unregisterPushDevice();
+    // Same reason: it needs the session that the flip below ends.
+    final readerSettingsFlush = _flushReaderSettings();
     _invalidateAuthSession();
     ref.read(cacheInterceptorProvider).clearUserScoped();
 
@@ -577,6 +581,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // Prayers tapped just before their sheet closed may still be going out.
     await ref.read(pendingPrayerSendsProvider).settle();
     await pushUnregister;
+    await readerSettingsFlush;
 
     final logoutResult = await _localLogoutUseCase(const NoParams());
     logoutResult.fold(
@@ -704,6 +709,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Best-effort save of reader settings changed moments before sign-out.
+  Future<void> _flushReaderSettings() async {
+    try {
+      await ref.read(readerSettingsSyncProvider).flushBeforeSignOut();
+    } catch (e) {
+      _logger.warning('Reader settings flush on logout failed (ignored): $e');
+    }
+  }
+
   void _invalidateAuthSession() {
     _bumpAuthEpoch();
     state = state.copyWith(
@@ -795,12 +809,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String userId,
     required bool isGuest,
     required int epoch,
+    bool isLogin = false,
   }) async {
     _identityEpoch = epoch;
-    await _analytics.identify(
-      userId: userId,
-      properties: {AnalyticsProperties.isGuest: isGuest},
-    );
+    final guestFlag = {AnalyticsProperties.isGuest: isGuest};
+    await Future.wait([
+      // Person properties go out once, at login. A restored session already
+      // has them, and re-sending makes the Android SDK emit `$set` every start.
+      _analytics.identify(
+        userId: userId,
+        properties: isLogin ? guestFlag : null,
+      ),
+      // No `$set` here. Replaces the flag a guest session left on every event,
+      // and keeps Clarity's per-session tag on restored sessions.
+      _analytics.setSuperProperties(guestFlag),
+    ]);
   }
 
   /// Resets analytics unless the current auth attempt owns its identity.

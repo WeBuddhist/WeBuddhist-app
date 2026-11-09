@@ -63,6 +63,7 @@ class LibraryTestServer {
     int segmentPageSize = 500,
     int relatedPageSize = 20,
     int maxPages = 1000,
+    int segmentCacheSize = 6,
     Duration yigchungTimeout = const Duration(seconds: 5),
   }) {
     return LibraryRepository(
@@ -70,6 +71,7 @@ class LibraryTestServer {
       segmentPageSize: segmentPageSize,
       relatedPageSize: relatedPageSize,
       maxPages: maxPages,
+      segmentCacheSize: segmentCacheSize,
       yigchungTimeout: yigchungTimeout,
     );
   }
@@ -99,6 +101,7 @@ Map<String, dynamic> textJson(
   String? commentaryOf,
   List<String> editions = const [],
   List<String> translations = const [],
+  List<String> tagIds = const [],
 }) => {
   'id': id,
   'title': {language: 'Title $id'},
@@ -109,7 +112,7 @@ Map<String, dynamic> textJson(
   'editions': editions,
   'translations': translations,
   'commentaries': [],
-  'tag_ids': [],
+  'tag_ids': tagIds,
 };
 
 /// One pair of an alignment page: segment [sourceId] to segment [targetId].

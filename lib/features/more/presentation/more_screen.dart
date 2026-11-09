@@ -17,6 +17,7 @@ import 'package:flutter_pecha/features/auth/presentation/providers/state_provide
 import 'package:flutter_pecha/features/auth/presentation/widgets/login_drawer.dart';
 import 'package:flutter_pecha/features/feedback/presentation/screens/help_contact_screen.dart';
 import 'package:flutter_pecha/features/feedback/presentation/utils/help_contact_analytics.dart';
+import 'package:flutter_pecha/features/more/presentation/utils/me_analytics.dart';
 import 'package:flutter_pecha/features/notifications/presentation/notification_settings_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -81,7 +82,10 @@ class MoreScreen extends ConsumerWidget {
                 context,
                 icon: AppAssets.profile,
                 title: localizations.settings_edit_profile,
-                onTap: () => context.push(AppRoutes.profile),
+                onTap: () {
+                  ref.read(meAnalyticsProvider).itemTapped(MeItem.editProfile);
+                  context.push(AppRoutes.profile);
+                },
               ),
             _buildLanguageRow(context, ref, contentLanguageCode),
             _buildNotificationRow(context, localizations),
@@ -193,7 +197,10 @@ class MoreScreen extends ConsumerWidget {
     );
 
     return InkWell(
-      onTap: () => context.push(AppRoutes.profile),
+      onTap: () {
+        ref.read(meAnalyticsProvider).itemTapped(MeItem.editProfile);
+        context.push(AppRoutes.profile);
+      },
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),

@@ -1114,6 +1114,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get unableToLoad => '無法載入，請再試一次';
 
   @override
+  String get reader_not_translated => '未翻譯';
+
+  @override
+  String get error_offline_title => '沒有網路連線';
+
+  @override
+  String get error_server_title => '目前無法載入';
+
+  @override
+  String get reader_error_server_message => '目前無法載入此經文，請稍後再試。';
+
+  @override
+  String get chants_error_server_message => '目前無法載入持誦，請稍後再試。';
+
+  @override
   String get somethingWrong => '出了點問題，請檢查您的連接並重試';
 
   @override
@@ -1462,6 +1477,69 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get calendar_title => '日曆';
+
+  @override
+  String get calendar_today => 'Today';
+
+  @override
+  String get calendar_no_events => 'No events';
+
+  @override
+  String get calendar_source_lunar => 'Lunar calendar';
+
+  @override
+  String get calendar_add_event => 'Add event';
+
+  @override
+  String get calendar_event_name => 'Event name';
+
+  @override
+  String get calendar_event_name_hint => 'Add an event to your calendar';
+
+  @override
+  String get calendar_repeat => 'Repeat';
+
+  @override
+  String get calendar_does_not_repeat => 'Does not repeat';
+
+  @override
+  String get calendar_repeat_weekly => 'Weekly';
+
+  @override
+  String get calendar_repeat_monthly => 'Monthly';
+
+  @override
+  String get calendar_repeat_yearly => 'Yearly';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return 'Monthly ($day lunar)';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+
+  @override
+  String get calendar_delete_event => 'Delete event';
+
+  @override
+  String get calendar_delete_event_title => 'Delete event?';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => 'Delete repeating event?';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_event_deleted => 'Event deleted';
 
   @override
   String get calendar_upcoming_events => '近期活動';
@@ -4972,6 +5050,21 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get unableToLoad => '无法加载，请再试一次';
+
+  @override
+  String get reader_not_translated => '未翻译';
+
+  @override
+  String get error_offline_title => '没有网络连接';
+
+  @override
+  String get error_server_title => '目前无法加载';
+
+  @override
+  String get reader_error_server_message => '目前无法加载此经文，请稍后再试。';
+
+  @override
+  String get chants_error_server_message => '目前无法加载持诵，请稍后再试。';
 
   @override
   String get somethingWrong => '出了点问题，请检查您的连接并重试';
