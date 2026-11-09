@@ -35,7 +35,7 @@ enum GroupAccumulatorPracticeMode {
 /// while it has not loaded; then a mantra accumulation uses
 /// [GroupAccumulatorPracticeMode.groupMantra], which is always correct.
 GroupAccumulatorPracticeMode resolveGroupAccumulatorPracticeMode(
-  GroupAccumulatorDetail detail, {
+  GroupAccumulator detail, {
   List<Mantra>? catalogue,
 }) {
   if (detail.hasTextContent) return GroupAccumulatorPracticeMode.reader;

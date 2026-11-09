@@ -599,14 +599,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           // A group accumulation with its own mantra (e.g. a space mantra)
           // opens in single-accumulation mode.
           final groupAccumulator = extra?['groupAccumulator'];
-          if (groupAccumulator is GroupAccumulatorDetail) {
-            final mantra = groupAccumulator.mantra;
-            if (mantra != null) {
-              return GroupMantraMalaScreen(
-                detail: groupAccumulator,
-                mantra: mantra,
-              );
-            }
+          if (groupAccumulator is GroupAccumulator &&
+              groupAccumulator.mantra != null) {
+            return MalaScreen(singleAccumulation: groupAccumulator);
           }
           return MalaScreen(
             initialPresetId: extra?['presetId'] as String?,
