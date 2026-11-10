@@ -64,11 +64,11 @@ class GroupProfileSkeleton extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: [
-                Bone.text(words: 1, fontSize: 16),
+                Flexible(child: Bone.text(words: 1, fontSize: 16)),
                 const SizedBox(width: 32),
-                Bone.text(words: 1, fontSize: 16),
+                Flexible(child: Bone.text(words: 1, fontSize: 16)),
                 const SizedBox(width: 32),
-                Bone.text(words: 1, fontSize: 16),
+                Flexible(child: Bone.text(words: 1, fontSize: 16)),
               ],
             ),
           ),

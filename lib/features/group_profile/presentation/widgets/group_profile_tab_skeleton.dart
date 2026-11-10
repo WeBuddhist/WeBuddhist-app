@@ -32,11 +32,16 @@ class GroupProfileTabSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (boxed) {
+      // Hosts may hand this less height than its rows need (a sheet, a short
+      // screen, a NestedScrollView body); clip instead of overflowing.
       return Skeletonizer(
         enabled: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: _boxChildren(context),
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _boxChildren(context),
+          ),
         ),
       );
     }

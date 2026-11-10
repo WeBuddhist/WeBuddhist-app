@@ -3,6 +3,7 @@ import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_body.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupProfileDrawer extends ConsumerWidget {
@@ -66,8 +67,7 @@ class GroupProfileDrawer extends ConsumerWidget {
                             isDark: isDark,
                           ),
                         ),
-                    loading:
-                        () => const Center(child: CircularProgressIndicator()),
+                    loading: () => const GroupProfileSkeleton(),
                     error:
                         (error, _) => Center(
                           child: ErrorStateWidget(

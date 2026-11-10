@@ -134,8 +134,9 @@ class _MyPrayerRequestsScreenState
     final l10n = context.l10n;
 
     if (!state.hasLoaded || (state.isLoading && state.requests.isEmpty)) {
+      // The skeleton already carries the list's 16px side margins.
       return const Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: EdgeInsets.only(top: 4),
         child: PrayerRequestsSkeleton(),
       );
     }

@@ -454,12 +454,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     }
 
     final (hasPractices, isPracticesLoading) = ref.watch(
-      groupPracticesProvider(profile.id).select(
-        (state) => (
-          state.practices.isNotEmpty,
-          !state.hasLoaded,
-        ),
-      ),
+      groupPracticesProvider(
+        profile.id,
+      ).select((state) => (state.practices.isNotEmpty, !state.hasLoaded)),
     );
     // Posts and events refetch when the group's signal moves.
     ref.watch(groupSignalsProvider(profile.id));
@@ -558,9 +555,12 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
             return slivers;
           },
           body:
+              // No controller means no SliverOverlapAbsorber in the header,
+              // so the nested-tab skeleton (which injects) would throw.
               controller == null
-                  ? const GroupProfileTabSkeleton(
+                  ? const GroupProfileTabSkeleton.box(
                     variant: GroupProfileTabSkeletonVariant.feed,
+                    itemCount: 2,
                   )
                   : TabBarView(
                     controller: controller,
@@ -877,7 +877,10 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     await _openEventComposer(profile);
   }
 
-  Future<void> _onEditDraft(GroupProfile profile, GroupEventCmsItem item) async {
+  Future<void> _onEditDraft(
+    GroupProfile profile,
+    GroupEventCmsItem item,
+  ) async {
     if (!_canPublishPosts(profile)) return;
     await _openEventComposer(
       profile,
@@ -1377,13 +1380,13 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
       isEnrollingSeries:
           series != null ? _enrollingSeriesId == series.id : null,
       onSeriesTap:
-          series != null ? () => _navigateToSeriesDetail(profile, series) : null,
+          series != null
+              ? () => _navigateToSeriesDetail(profile, series)
+              : null,
       onSeriesJoinTap:
           series != null ? () => _onPracticeWithUsTap(profile, series) : null,
       isJoiningAccumulator:
-          accumulator != null
-              ? _joiningAccumulatorId == accumulator.id
-              : null,
+          accumulator != null ? _joiningAccumulatorId == accumulator.id : null,
       onAccumulatorTap:
           accumulator != null
               ? () => _navigateToAccumulatorDetail(accumulator.id)
@@ -1677,8 +1680,7 @@ class _GroupFollowButton extends ConsumerWidget {
       return _buildRequestSentButton(context);
     }
 
-    final isRemoved =
-        watchActiveGroupRemovalNotice(ref, profile.id) != null;
+    final isRemoved = watchActiveGroupRemovalNotice(ref, profile.id) != null;
 
     return _buildRequestToJoinButton(context, ref, isLoading, isRemoved);
   }

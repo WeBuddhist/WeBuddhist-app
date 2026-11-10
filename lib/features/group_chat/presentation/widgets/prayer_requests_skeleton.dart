@@ -6,16 +6,21 @@ class PrayerRequestsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Hosts such as the prayer sheet size this to whatever height is left,
+    // which can be less than three cards; clip instead of overflowing.
     return Skeletonizer(
       enabled: true,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (int i = 0; i < 3; i++) ...[
-            _buildPrayerRequestSkeletonItem(context),
-            const SizedBox(height: 12),
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (int i = 0; i < 3; i++) ...[
+              _buildPrayerRequestSkeletonItem(context),
+              const SizedBox(height: 12),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -30,9 +35,7 @@ class PrayerRequestsSkeleton extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDark ? theme.cardColor : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: theme.dividerColor.withValues(alpha: 0.1),
-          ),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
         ),
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
         child: Column(

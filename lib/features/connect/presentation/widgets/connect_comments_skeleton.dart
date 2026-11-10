@@ -13,27 +13,31 @@ class ConnectCommentsSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Skeletonizer(
-      enabled: true,
-      child: ListView(
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.fromLTRB(20, showPostPreview ? 0 : 8, 20, 16),
-        children: [
-          if (showPostPreview && postCard != null) ...[
-            postCard!,
-            const SizedBox(height: 24),
-          ],
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Bone.text(words: 2, fontSize: 18),
-          ),
-          const SizedBox(height: 20),
-          for (int i = 0; i < 6; i++) ...[
-            _buildCommentSkeletonItem(),
-            const SizedBox(height: 16),
-          ],
+    // The post card is real content: keep it outside the Skeletonizer so it
+    // paints and responds to taps while only the comments are placeholders.
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(20, showPostPreview ? 0 : 8, 20, 16),
+      children: [
+        if (showPostPreview && postCard != null) ...[
+          postCard!,
+          const SizedBox(height: 24),
         ],
-      ),
+        Skeletonizer(
+          enabled: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Bone.text(words: 2, fontSize: 18),
+              const SizedBox(height: 20),
+              for (int i = 0; i < 6; i++) ...[
+                _buildCommentSkeletonItem(),
+                const SizedBox(height: 16),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
