@@ -12,6 +12,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/providers/grou
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_event_draft_menu_sheet.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_event_list_tile.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_nested_tab_scroll_view.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_pecha/core/widgets/screen_cache_builder.dart';
@@ -50,9 +51,9 @@ class GroupProfileEventsTab extends ConsumerWidget {
 
     return ScreenCacheBuilder<GroupEventsPage>(
       value: eventsAsync,
-      skeleton: GroupProfileNestedTabScrollView.centered(
+      skeleton: GroupProfileTabSkeleton(
         pageStorageKey: pageStorageKey,
-        child: const Center(child: CircularProgressIndicator()),
+        variant: GroupProfileTabSkeletonVariant.event,
       ),
       onRetry: () => ref.invalidate(groupEventsProvider(groupId)),
       error:
@@ -120,9 +121,9 @@ extension on GroupProfileEventsTab {
     return itemsAsync.when(
       skipLoadingOnReload: true,
       loading:
-          () => GroupProfileNestedTabScrollView.centered(
+          () => GroupProfileTabSkeleton(
             pageStorageKey: pageStorageKey,
-            child: const Center(child: CircularProgressIndicator()),
+            variant: GroupProfileTabSkeletonVariant.event,
           ),
       error:
           (error, _) => GroupProfileNestedTabScrollView.centered(

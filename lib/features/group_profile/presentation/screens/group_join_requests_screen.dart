@@ -6,6 +6,7 @@ import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_join_request.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_pecha/core/utils/network_image_utils.dart';
@@ -136,7 +137,9 @@ class _GroupJoinRequestsScreenState
     bool isDark,
   ) {
     if (state.isLoading && state.requests.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileTabSkeleton.box(
+        variant: GroupProfileTabSkeletonVariant.member,
+      );
     }
 
     if (state.error != null && state.requests.isEmpty) {

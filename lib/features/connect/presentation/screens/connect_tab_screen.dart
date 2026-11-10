@@ -7,6 +7,7 @@ import 'package:flutter_pecha/features/connect/presentation/screens/your_spaces_
 import 'package:flutter_pecha/features/connect/presentation/utils/connect_analytics.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_landing_view.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_profile_screen.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_skeleton.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -47,7 +48,7 @@ class _ConnectTabScreenState extends ConsumerState<ConnectTabScreen> {
     final joined = ref.watch(joinedSpacesProvider);
     final lastSpace = ref.watch(connectLastSpaceProvider);
     if (joined.isLoading || (joined.spaces.isNotEmpty && !lastSpace.loaded)) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileSkeleton();
     }
 
     final space = resolveConnectSpace(

@@ -17,6 +17,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/widgets/new_praye
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_notification_settings_sheet.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_request_prompt.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_request_tile.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_skeleton.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_filter_bar.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_sort_sheet.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_supporters_sheet.dart';
@@ -430,7 +431,7 @@ class _PrayerRequestsSheetState extends ConsumerState<PrayerRequestsSheet> {
       );
     } else if (!state.hasLoaded ||
         (state.isLoading && state.requests.isEmpty)) {
-      placeholder = const Center(child: CircularProgressIndicator());
+      placeholder = const PrayerRequestsSkeleton();
     } else if (state.requests.isEmpty && state.filter.mine) {
       placeholder = _Notice(
         text: context.l10n.event_prayer_mine_empty_title,
