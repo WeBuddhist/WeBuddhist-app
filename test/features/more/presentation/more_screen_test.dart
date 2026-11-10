@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/user.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/auth_notifier.dart';
@@ -8,6 +7,7 @@ import 'package:flutter_pecha/features/auth/presentation/providers/user_notifier
 import 'package:flutter_pecha/features/auth/presentation/state/auth_state.dart';
 import 'package:flutter_pecha/features/auth/presentation/state/user_state.dart';
 import 'package:flutter_pecha/features/more/presentation/more_screen.dart';
+import 'package:flutter_pecha/features/more/presentation/providers/sign_in_account_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -39,14 +39,11 @@ Future<void> _pumpSettings(
   WidgetTester tester, {
   required AuthState auth,
   User? user,
+  SignInAccount? account,
 }) async {
   final router = GoRouter(
     routes: [
       GoRoute(path: '/', builder: (context, state) => const MoreScreen()),
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const Text('edit profile'),
-      ),
     ],
   );
   addTearDown(router.dispose);
@@ -56,6 +53,7 @@ Future<void> _pumpSettings(
       overrides: [
         authProvider.overrideWith((ref) => _Auth(auth)),
         userProvider.overrideWith((ref) => _User(user)),
+        signInAccountProvider.overrideWith((ref) async => account),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -65,49 +63,71 @@ Future<void> _pumpSettings(
     ),
   );
   await tester.pump();
+  await tester.pump();
+}
+
+Future<void> _scrollToLogout(WidgetTester tester) async {
+  await tester.scrollUntilVisible(find.text('Log out'), 200);
 }
 
 void main() {
-  testWidgets('profile card shows the username and email when signed in', (
-    tester,
-  ) async {
+  testWidgets('shows no profile card or Edit profile row', (tester) async {
     await _pumpSettings(tester, auth: _signedIn, user: _tenzin);
 
-    expect(find.text('tenzin'), findsOneWidget);
-    expect(find.text('tenzin@example.com'), findsOneWidget);
+    expect(find.text('tenzin'), findsNothing);
     expect(find.text('Tenzin Dolma'), findsNothing);
+    expect(find.text('Edit profile'), findsNothing);
   });
 
-  testWidgets('profile card leaves out the email when there is none', (
-    tester,
-  ) async {
+  testWidgets('shows the Google email above Log out', (tester) async {
+    await _pumpSettings(
+      tester,
+      auth: _signedIn,
+      user: _tenzin,
+      account: const SignInAccount(
+        method: SignInMethod.google,
+        identifier: 'tenzin@example.com',
+      ),
+    );
+    await _scrollToLogout(tester);
+
+    expect(find.text('Signed in with Google'), findsOneWidget);
+    expect(find.text('tenzin@example.com'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('tenzin@example.com')).dy,
+      lessThan(tester.getTopLeft(find.text('Log out')).dy),
+    );
+  });
+
+  testWidgets('shows the phone number for phone sign-in', (tester) async {
     await _pumpSettings(
       tester,
       auth: _signedIn,
       user: const User(id: 'me', username: 'tenzin'),
+      account: const SignInAccount(
+        method: SignInMethod.phone,
+        identifier: '+66 81 234 5678',
+      ),
     );
+    await _scrollToLogout(tester);
 
-    expect(find.text('tenzin'), findsOneWidget);
-    expect(find.textContaining('@'), findsNothing);
+    expect(find.text('Signed in with phone number'), findsOneWidget);
+    expect(find.text('+66 81 234 5678'), findsOneWidget);
   });
 
-  testWidgets('tapping the profile card opens Edit profile', (tester) async {
-    await _pumpSettings(tester, auth: _signedIn, user: _tenzin);
-
-    await tester.tap(find.text('tenzin'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('edit profile'), findsOneWidget);
-  });
-
-  testWidgets('guests see no profile card', (tester) async {
+  testWidgets('guests see Sign in and no account row', (tester) async {
     await _pumpSettings(
       tester,
       auth: const AuthState(isLoggedIn: true, isGuest: true),
       user: _tenzin,
+      account: const SignInAccount(
+        method: SignInMethod.google,
+        identifier: 'tenzin@example.com',
+      ),
     );
+    await tester.scrollUntilVisible(find.text('Sign in'), 200);
 
-    expect(find.text('tenzin'), findsNothing);
     expect(find.text('tenzin@example.com'), findsNothing);
+    expect(find.text('Log out'), findsNothing);
   });
 }
