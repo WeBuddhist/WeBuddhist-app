@@ -1997,6 +1997,10 @@ class AppLocalizationsMn extends AppLocalizations {
       'Хуримтлалд нэгдэх боломжгүй байна. Дахин оролдоно уу';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'Дадлагадаа нэмэхээсээ өмнө энэ хуримтлалд нэгдээрэй';
 

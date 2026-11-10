@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_providers.dart';
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
@@ -228,4 +229,19 @@ final malaCounterProvider = StateNotifierProvider.autoDispose
         }
       });
       return notifier;
+    });
+
+/// Bead artwork bytes for a skin URL the server already resolved, such as a
+/// group accumulation's `mala_image.url`. Null when the download fails, so
+/// the beads fall back to the drawn bead.
+final malaBeadImageBytesProvider = FutureProvider.autoDispose
+    .family<Uint8List?, String>((ref, url) async {
+      try {
+        final bytes = await ref
+            .read(malaRemoteDataSourceProvider)
+            .fetchImageBytes(url);
+        return bytes.isEmpty ? null : Uint8List.fromList(bytes);
+      } catch (_) {
+        return null;
+      }
     });
