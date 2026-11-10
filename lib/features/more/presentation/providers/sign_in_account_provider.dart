@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/core/error/failures.dart';
+import 'package:flutter_pecha/core/network/connectivity_service.dart'
+    show connectivityNotifierProvider;
 import 'package:flutter_pecha/core/storage/preferences_service.dart';
 import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/auth_providers.dart';
@@ -97,6 +100,15 @@ final signInAccountProvider = FutureProvider.autoDispose<SignInAccount?>((
   if (fromProfile != null) return fromProfile;
 
   final credentials = await ref.read(authRepositoryProvider).getCredentials();
+  final failure = credentials.fold((f) => f, (_) => null);
+  if (failure is NetworkFailure) {
+    // Offline token renewal is temporary: look again once back online
+    // rather than leaving the row hidden while Settings stays open.
+    ref.listen<bool>(connectivityNotifierProvider, (wasOnline, isOnline) {
+      if (isOnline && wasOnline != true) ref.invalidateSelf();
+    });
+    return null;
+  }
   final idToken = credentials.fold((_) => null, (c) => c.idToken);
   if (idToken == null || idToken.isEmpty) return null;
 
