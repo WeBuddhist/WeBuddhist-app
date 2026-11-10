@@ -29,7 +29,10 @@ import 'package:flutter_pecha/features/group_profile/domain/entities/group_event
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_accumulator_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_post_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
+import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_collection_live_screen.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_manage_screen.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_collection_entry.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_actions.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_analytics.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_link_utils.dart';
@@ -51,6 +54,7 @@ import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_man
 import 'package:flutter_pecha/features/plans/presentation/providers/plans_providers.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/user_plans_provider.dart';
 import 'package:flutter_pecha/features/plans/presentation/widgets/plan_inline_markdown_view.dart';
+import 'package:flutter_pecha/features/plans/presentation/widgets/plan_navigation/plan_navigator.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -104,6 +108,12 @@ class _GroupEventDetailScreenState
   bool _didOpenPrayerRequests = false;
   bool _didOpenInitialEntry = false;
 
+  /// Keeps the opened collection's completion state alive while its reader
+  /// sits above this page, so the chants it finishes are recorded and
+  /// shown as done on the next swipe.
+  ProviderSubscription<GroupRecitationCollectionCompletionState>?
+  _collectionCompletion;
+
   @override
   void initState() {
     super.initState();
@@ -123,6 +133,12 @@ class _GroupEventDetailScreenState
       // the helper sends guests to login like the chip does.
       _openPrayerRequests(widget.eventId);
     });
+  }
+
+  @override
+  void dispose() {
+    _collectionCompletion?.close();
+    super.dispose();
   }
 
   @override
@@ -553,7 +569,8 @@ class _GroupEventDetailScreenState
   };
 
   /// Opens the event's puja: auto-enrolls in its series and opens the (only)
-  /// plan's day list, or previews the plan when the event has no series.
+  /// plan's day list, previews the plan when the event has no series, or
+  /// opens its recitation collection in the reader when it has neither.
   /// Only online attendees get the live stream; a hybrid attendee who never
   /// picked is asked first, since the choice decides the layout.
   Future<void> _enterPuja(
@@ -564,7 +581,8 @@ class _GroupEventDetailScreenState
     if (_isOpeningPuja) return;
     final seriesId = event.series?.id ?? event.seriesId;
     final planId = event.plan?.id ?? event.planId;
-    if (seriesId == null && planId == null) return;
+    final collectionId = event.practiceCollectionId;
+    if (seriesId == null && planId == null && collectionId == null) return;
 
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
@@ -586,22 +604,36 @@ class _GroupEventDetailScreenState
       }
       final showLiveStream =
           participation == GroupEventParticipationType.online;
-      final bool entered =
-          seriesId != null
-              ? await _enterSeries(
-                event,
-                seriesId,
-                showLiveStream: showLiveStream,
-                liveTextId: liveTextId,
-                liveSegmentId: liveSegmentId,
-              )
-              : await _openPlanPreview(
-                planId!,
-                eventId: event.id,
-                showLiveStream: showLiveStream,
-                liveTextId: liveTextId,
-                liveSegmentId: liveSegmentId,
-              );
+      final bool entered;
+      final GroupEventLiveTarget target;
+      if (seriesId != null) {
+        target = GroupEventLiveTarget.series;
+        entered = await _enterSeries(
+          event,
+          seriesId,
+          showLiveStream: showLiveStream,
+          liveTextId: liveTextId,
+          liveSegmentId: liveSegmentId,
+        );
+      } else if (planId != null) {
+        target = GroupEventLiveTarget.plan;
+        entered = await _openPlanPreview(
+          planId,
+          eventId: event.id,
+          showLiveStream: showLiveStream,
+          liveTextId: liveTextId,
+          liveSegmentId: liveSegmentId,
+        );
+      } else {
+        target = GroupEventLiveTarget.collection;
+        entered = await _openCollection(
+          event,
+          collectionId!,
+          online: showLiveStream,
+          liveTextId: liveTextId,
+          liveSegmentId: liveSegmentId,
+        );
+      }
       // Only an opened practice counts; a missing plan or a failed series
       // enrollment leaves the user here.
       if (entered && mounted) {
@@ -611,10 +643,7 @@ class _GroupEventDetailScreenState
               eventId: event.id,
               groupId: event.groupId,
               participation: participation,
-              target:
-                  seriesId != null
-                      ? GroupEventLiveTarget.series
-                      : GroupEventLiveTarget.plan,
+              target: target,
             );
       }
     } finally {
@@ -629,7 +658,8 @@ class _GroupEventDetailScreenState
     if (_isOpeningPuja) return;
     final seriesId = event.series?.id ?? event.seriesId;
     final planId = event.plan?.id ?? event.planId;
-    if (seriesId == null && planId == null) return;
+    final collectionId = event.practiceCollectionId;
+    if (seriesId == null && planId == null && collectionId == null) return;
 
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
@@ -646,11 +676,18 @@ class _GroupEventDetailScreenState
           showLiveStream: online,
           readOnly: true,
         );
-      } else {
+      } else if (planId != null) {
         await _openPlanPreview(
-          planId!,
+          planId,
           eventId: event.id,
           showLiveStream: online,
+          readOnly: true,
+        );
+      } else {
+        await _openCollection(
+          event,
+          collectionId!,
+          online: online,
           readOnly: true,
         );
       }
@@ -706,6 +743,86 @@ class _GroupEventDetailScreenState
         'readOnly': readOnly,
       },
     );
+    return true;
+  }
+
+  /// Opens the event's recitation collection in the reader, every text on
+  /// one page: straight in for an in-person attendee, under the stream for
+  /// an online one. [readOnly] records no completions.
+  Future<bool> _openCollection(
+    GroupEvent event,
+    String collectionId, {
+    required bool online,
+    String? liveTextId,
+    String? liveSegmentId,
+    bool readOnly = false,
+  }) async {
+    final key = GroupRecitationCollectionKey(
+      groupId: event.groupId,
+      collectionId: collectionId,
+    );
+    // The detail provider is autoDispose; hold it while the request runs.
+    final detail = ref.listenManual(
+      groupRecitationCollectionDetailProvider(key).future,
+      (_, _) {},
+    );
+    final GroupRecitationCollection? collection;
+    try {
+      final either = await detail.read();
+      collection = either.fold((_) => null, (value) => value);
+    } catch (_) {
+      if (mounted) _showError(context.l10n.something_went_wrong);
+      return false;
+    } finally {
+      detail.close();
+    }
+    if (!mounted) return false;
+    if (collection == null || collection.items.isEmpty) {
+      _showError(context.l10n.notFound);
+      return false;
+    }
+
+    _collectionCompletion?.close();
+    _collectionCompletion =
+        readOnly
+            ? null
+            : ref.listenManual(
+              groupRecitationCollectionCompletionProvider(key),
+              (_, _) {},
+            );
+    final navigationContext = groupEventCollectionNavigationContext(
+      eventId: event.id,
+      key: key,
+      collection: collection,
+      completionState:
+          _collectionCompletion?.read() ??
+          const GroupRecitationCollectionCompletionState(),
+      isOnlineAttendee: online,
+      groupName: event.groupName,
+      liveTextId: liveTextId,
+      liveSegmentId: liveSegmentId,
+      readOnly: readOnly,
+    );
+
+    if (online) {
+      unawaited(
+        context.push(
+          AppRoutes.groupEventCollectionPath(event.id),
+          extra: GroupEventCollectionLiveArgs(
+            event: event,
+            navigationContext: navigationContext,
+          ),
+        ),
+      );
+    } else {
+      unawaited(
+        PlanNavigator.push<void>(
+          context,
+          navigationContext.currentItem!,
+          navigationContext,
+        ),
+      );
+    }
     return true;
   }
 

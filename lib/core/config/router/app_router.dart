@@ -18,6 +18,7 @@ import 'package:flutter_pecha/features/group_profile/domain/entities/group_accum
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_accumulator_screen.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_collection_live_screen.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_detail_screen.dart';
 import 'package:flutter_pecha/features/home/presentation/utils/home_live_event_entry.dart';
 import 'package:flutter_pecha/features/feedback/domain/entities/help_topic.dart';
@@ -467,6 +468,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     eventId: eventId,
                     openPrayerRequests: openPrayerRequests,
                     initialEntry: entry,
+                  );
+                },
+              ),
+              GoRoute(
+                path: "events/:eventId/collection",
+                name: "home-group-event-collection",
+                parentNavigatorKey: rootNavigatorKey,
+                builder: (context, state) {
+                  final extra = state.extra;
+                  if (extra is GroupEventCollectionLiveArgs) {
+                    return GroupEventCollectionLiveScreen(args: extra);
+                  }
+                  // Restored or deep-linked without the prepared reader:
+                  // the event page can open it again.
+                  return GroupEventDetailScreen(
+                    eventId: state.pathParameters['eventId'] ?? '',
                   );
                 },
               ),

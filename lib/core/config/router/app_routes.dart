@@ -59,6 +59,12 @@ class AppRoutes {
     return '$path?$eventPrayersQuery=1';
   }
 
+  /// Online view of an event whose practice is a recitation collection: the
+  /// stream on top, the reader below. Needs a [GroupEventCollectionLiveArgs]
+  /// as `extra`; without one it falls back to the event page.
+  static String groupEventCollectionPath(String eventId) =>
+      '/home/events/$eventId/collection';
+
   /// Query on `/home/group/:groupId`. When `1`, the space page opens its
   /// prayer-request sheet after it is showing.
   static const String groupPrayersQuery = 'prayers';

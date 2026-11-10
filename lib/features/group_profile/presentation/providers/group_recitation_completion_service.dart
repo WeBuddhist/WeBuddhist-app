@@ -30,7 +30,9 @@ class GroupRecitationCompletionService {
   DateTime? _completedOn;
 
   /// Completes the current chant in [navContext], then refreshes the
-  /// completion state once the API confirms success.
+  /// completion state once the API confirms success. An item that shows
+  /// several chants on one page (an event's collection) completes each of
+  /// them, as a combined plan task does.
   ///
   /// Awaitable: finish actions await it so the refresh is in flight before
   /// they pop. Mid-sequence navigation calls it fire-and-forget — the
@@ -45,27 +47,43 @@ class GroupRecitationCompletionService {
     }
 
     final currentItem = navContext.currentItem;
-    if (currentItem == null) return;
-
-    final chantId = currentItem.subtaskId;
-    if (chantId == null || chantId.isEmpty) return;
-    if (currentItem.isCompleted) return;
-
-    _resetIfDayChanged();
-    if (_completedChantIds.contains(chantId)) return;
+    if (currentItem == null || currentItem.isCompleted) return;
 
     final groupId = navContext.groupId;
     final collectionId = navContext.collectionId;
     if (groupId == null || collectionId == null) return;
 
-    // Claim it up front so a concurrent or repeat swipe can't re-POST.
-    _completedChantIds.add(chantId);
+    _resetIfDayChanged();
+    final alreadyDone = currentItem.completedSubtaskIds;
+    final pending = [
+      for (final source in currentItem.sources)
+        if (source.subtaskId != null &&
+            source.subtaskId!.isNotEmpty &&
+            !alreadyDone.contains(source.subtaskId) &&
+            !_completedChantIds.contains(source.subtaskId))
+          source,
+    ];
+    if (pending.isEmpty) return;
 
+    // Claim them up front so a concurrent or repeat swipe can't re-POST.
+    _completedChantIds.addAll(pending.map((source) => source.subtaskId!));
+
+    final key = GroupRecitationCollectionKey(
+      groupId: groupId,
+      collectionId: collectionId,
+    );
+    await Future.wait(
+      pending.map((source) => _completeChant(key, navContext, source)),
+    );
+  }
+
+  Future<void> _completeChant(
+    GroupRecitationCollectionKey key,
+    NavigationContext navContext,
+    PlanSourceRef source,
+  ) async {
+    final chantId = source.subtaskId!;
     try {
-      final key = GroupRecitationCollectionKey(
-        groupId: groupId,
-        collectionId: collectionId,
-      );
       final wasCompleted = _ref
           .read(groupRecitationCollectionCompletionProvider(key))
           .isCompleted(chantId);
@@ -76,7 +94,7 @@ class GroupRecitationCompletionService {
       switch (result) {
         case GroupChantCompletionResult.completed:
           _logger.info('Marked chant $chantId as complete');
-          if (!wasCompleted) _trackCompleted(key, navContext, currentItem);
+          if (!wasCompleted) _trackCompleted(key, navContext, source.textId);
           break;
         case GroupChantCompletionResult.membershipRequired:
           _logger.warning('Chant completion requires group membership');
@@ -93,25 +111,28 @@ class GroupRecitationCompletionService {
     }
   }
 
-  /// Reports the confirmed item, and the collection once every item is done.
+  /// Reports the confirmed chant, and the collection once every chant is
+  /// done.
   void _trackCompleted(
     GroupRecitationCollectionKey key,
     NavigationContext navContext,
-    PlanTextItem currentItem,
+    String textId,
   ) {
-    final items = navContext.planTextItems ?? const <PlanTextItem>[];
+    final chantIds = [
+      for (final item in navContext.planTextItems ?? const <PlanTextItem>[])
+        ...item.subtaskIds,
+    ];
     final state = _ref.read(groupRecitationCollectionCompletionProvider(key));
-    final completedCount =
-        items.where((item) => state.isCompleted(item.subtaskId ?? '')).length;
+    final completedCount = chantIds.where(state.isCompleted).length;
     final analytics = _ref.read(groupAnalyticsProvider);
     analytics.recitationCollectionItemCompleted(
       collectionId: key.collectionId,
       groupId: key.groupId,
-      textId: currentItem.textId,
+      textId: textId,
       completedCount: completedCount,
-      itemCount: items.length,
+      itemCount: chantIds.length,
     );
-    if (completedCount == items.length) {
+    if (completedCount == chantIds.length) {
       analytics.recitationCollectionCompleted(
         collectionId: key.collectionId,
         groupId: key.groupId,
