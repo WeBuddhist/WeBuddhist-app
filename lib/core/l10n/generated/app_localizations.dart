@@ -2405,6 +2405,30 @@ abstract class AppLocalizations {
   /// **'Edit profile'**
   String get settings_edit_profile;
 
+  /// No description provided for @settings_signed_in_with_google.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with Google'**
+  String get settings_signed_in_with_google;
+
+  /// No description provided for @settings_signed_in_with_apple.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with Apple'**
+  String get settings_signed_in_with_apple;
+
+  /// No description provided for @settings_signed_in_with_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with phone number'**
+  String get settings_signed_in_with_phone;
+
+  /// No description provided for @settings_signed_in_as.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as'**
+  String get settings_signed_in_as;
+
   /// No description provided for @settings_theme.
   ///
   /// In en, this message translates to:
