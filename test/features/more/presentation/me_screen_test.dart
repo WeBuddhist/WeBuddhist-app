@@ -91,6 +91,10 @@ Future<void> _pumpRoutedMeScreen(
         path: AppRoutes.myPrayerRequests,
         builder: (_, _) => const Text('prayer requests page'),
       ),
+      GoRoute(
+        path: AppRoutes.profile,
+        builder: (_, _) => const Text('edit profile page'),
+      ),
     ],
   );
   addTearDown(router.dispose);
@@ -176,6 +180,19 @@ void main() {
     expect(find.text('settings page'), findsOneWidget);
     expect(analytics.eventNames, [AnalyticsEvents.meItemTapped]);
     expect(analytics.events.single.properties, {'item': 'settings'});
+  });
+
+  testWidgets('tapping the pencil is tracked and opens Edit profile', (
+    tester,
+  ) async {
+    final analytics = RecordingAnalyticsService();
+    await _pumpRoutedMeScreen(tester, analytics);
+
+    await tester.tap(find.byIcon(AppAssets.pencilSimple));
+    await tester.pumpAndSettle();
+
+    expect(find.text('edit profile page'), findsOneWidget);
+    expect(analytics.events.single.properties, {'item': 'edit_profile'});
   });
 
   testWidgets('tapping prayer requests is tracked and still opens it', (

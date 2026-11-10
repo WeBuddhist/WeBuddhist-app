@@ -1326,6 +1326,18 @@ class AppLocalizationsBo extends AppLocalizations {
   String get settings_edit_profile => 'ངོ་སྤྲོད་བཟོ་བཅོས།';
 
   @override
+  String get settings_signed_in_with_google => 'Signed in with Google';
+
+  @override
+  String get settings_signed_in_with_apple => 'Signed in with Apple';
+
+  @override
+  String get settings_signed_in_with_phone => 'Signed in with phone number';
+
+  @override
+  String get settings_signed_in_as => 'Signed in as';
+
+  @override
   String get settings_theme => 'རྣམ་པ།';
 
   @override

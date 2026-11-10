@@ -142,7 +142,15 @@ class _LoggedInProfileState extends ConsumerState<_LoggedInProfile>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  MeProfileHeader(user: user),
+                  MeProfileHeader(
+                    user: user,
+                    onEditProfile: () {
+                      ref
+                          .read(meAnalyticsProvider)
+                          .itemTapped(MeItem.editProfile);
+                      context.push(AppRoutes.profile);
+                    },
+                  ),
                   if (statsAsync.isLoading && !statsAsync.hasValue)
                     const MeStatsSectionSkeleton()
                   else

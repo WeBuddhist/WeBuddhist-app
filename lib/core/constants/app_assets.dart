@@ -129,6 +129,8 @@ class AppAssets {
   static const IconData squaresFour = PhosphorIconsRegular.squaresFour;
   static const IconData trash = PhosphorIconsRegular.trash;
   static const IconData pencilSimple = PhosphorIconsRegular.pencilSimple;
+  static const IconData userCircle = PhosphorIconsRegular.userCircle;
+  static const IconData deviceMobile = PhosphorIconsRegular.deviceMobile;
   static const IconData prohibit = PhosphorIconsRegular.prohibit;
   static const IconData fileText = PhosphorIconsRegular.fileText;
   static const IconData bookmarkSimple = PhosphorIconsRegular.bookmarkSimple;
