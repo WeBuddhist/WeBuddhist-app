@@ -95,10 +95,33 @@ final joinedSpaceMantrasProvider =
       return items;
     });
 
+/// Whether a group mantra can take chants yet.
+enum GroupMantraCountStatus {
+  /// The server count is still loading.
+  loading,
+
+  /// The server count is in, so chants build on the real total.
+  ready,
+
+  /// The server count did not load. Chants stay blocked until a retry works.
+  failed,
+}
+
+/// Chants are allowed only once the server count is in. The server ignores a
+/// lower `current_count`, so a chant counted on a stale local base (such as 0
+/// on a new device) would be lost.
+GroupMantraCountStatus groupMantraCountStatus(
+  AsyncValue<bool> seed, {
+  required bool hasServerCount,
+}) {
+  if (hasServerCount) return GroupMantraCountStatus.ready;
+  if (seed.isLoading) return GroupMantraCountStatus.loading;
+  return GroupMantraCountStatus.failed;
+}
+
 /// Seeds one group accumulation's count from the server into its counts
-/// state, since the server ignores a lower `current_count` and chants counted
-/// on a stale base would be lost. Resolves false when the fetch failed; the
-/// local count is used then, as in preset mode.
+/// state. Resolves true once the counts state holds the server count, and
+/// false when the fetch failed.
 final groupMantraCountSeedProvider = FutureProvider.autoDispose
     .family<bool, String>((ref, groupAccumulatorId) async {
       final counts = ref.watch(
@@ -116,7 +139,7 @@ final groupMantraCountSeedProvider = FutureProvider.autoDispose
       );
       if (serverTotal == null) return false;
       await counts.mergeFromServerCounts({groupAccumulatorId: serverTotal});
-      return true;
+      return counts.hasServerCount(groupAccumulatorId);
     });
 
 /// Bead artwork for [item]: the accumulation's resolved skin first, then the

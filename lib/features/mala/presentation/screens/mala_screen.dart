@@ -186,9 +186,7 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
     if (singleItem != null) {
       return Scaffold(
         body: ClipRect(
-          child: SafeArea(
-            child: _buildLoaded(context, const [], [singleItem]),
-          ),
+          child: SafeArea(child: _buildLoaded(context, const [], [singleItem])),
         ),
       );
     }
@@ -340,8 +338,7 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
                           child:
                               retry != null
                                   ? _ErrorView(
-                                    message:
-                                        context.l10n.mala_count_load_error,
+                                    message: context.l10n.mala_count_load_error,
                                     onRetry: retry,
                                   )
                                   : MalaBeads(
@@ -356,8 +353,7 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
                                     beadImageBytes: practice.beadImageBytes,
                                     beadColor: const Color(0xFF8D6E63),
                                     threadColor: const Color(0xFFC62828),
-                                    onTap:
-                                        () => practice.onBead(MalaInput.tap),
+                                    onTap: () => practice.onBead(MalaInput.tap),
                                     onSwipe:
                                         () => practice.onBead(MalaInput.swipe),
                                   ),
@@ -386,7 +382,10 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
   ) {
     ref.watch(
       prefetchBookmarkExistsProvider(
-        BookmarkTarget(type: BookmarkType.accumulator, sourceId: mantra.presetId),
+        BookmarkTarget(
+          type: BookmarkType.accumulator,
+          sourceId: mantra.presetId,
+        ),
       ),
     );
 
@@ -511,15 +510,20 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
     final counts = ref.read(
       groupAccumulationCountsProvider(item.countsKey).notifier,
     );
-    final seeding = ref.watch(groupMantraCountSeedProvider(accumulatorId))
-        .isLoading;
+    final status = groupMantraCountStatus(
+      ref.watch(groupMantraCountSeedProvider(accumulatorId)),
+      hasServerCount: counts.hasServerCount(accumulatorId),
+    );
+    final ready = status == GroupMantraCountStatus.ready;
     _trackSpaceOpened(item);
 
     const beadsPerRound = kBeadsPerRound;
-    final displayTotal = seeding ? 0 : counts.countFor(accumulatorId);
+    // Until the server count is in, the local count may be stale (0 on a new
+    // device), so it is neither shown nor counted on.
+    final displayTotal = ready ? counts.countFor(accumulatorId) : 0;
 
     void onBead(MalaInput input) {
-      if (seeding) return;
+      if (!ready) return;
       final total = counts.increment(
         groupAccumulatorId: accumulatorId,
         groups: const [],
@@ -545,13 +549,18 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
     return _MalaPractice(
       title: item.title,
       onMorePressed: () => MalaPracticeSettingsSheet.show(context),
-      showCountSkeleton: seeding,
+      showCountSkeleton: !ready,
       displayTotal: displayTotal,
       beadsPerRound: beadsPerRound,
-      countingEnabled: !seeding,
+      countingEnabled: ready,
       beadImageBytes: watchSpaceMantraBeadBytes(ref, item),
       beadsKey: item.countsKey,
       onBead: onBead,
+      onSeedRetry:
+          status == GroupMantraCountStatus.failed
+              ? () =>
+                  ref.invalidate(groupMantraCountSeedProvider(accumulatorId))
+              : null,
     );
   }
 
@@ -589,8 +598,7 @@ class _CounterBlock extends StatelessWidget {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final useTibetan = context.isTibetanLocale;
-    final beadText =
-        useTibetan ? toTibetanDigits(beadInRound) : '$beadInRound';
+    final beadText = useTibetan ? toTibetanDigits(beadInRound) : '$beadInRound';
     final perRoundText =
         useTibetan ? toTibetanDigits(beadsPerRound) : '$beadsPerRound';
     final roundsText = useTibetan ? toTibetanDigits(rounds) : '$rounds';
@@ -608,9 +616,7 @@ class _CounterBlock extends StatelessWidget {
       fontWeight: FontWeight.w500,
       color: color,
     );
-    final roundsStyle = theme.textTheme.titleLarge?.copyWith(
-      color: mutedColor,
-    );
+    final roundsStyle = theme.textTheme.titleLarge?.copyWith(color: mutedColor);
 
     return Semantics(
       label: l10n.mala_counter_semantics(
@@ -627,7 +633,9 @@ class _CounterBlock extends StatelessWidget {
             TextSpan(
               text: beadText,
               style: beadStyle,
-              children: [TextSpan(text: '/$perRoundText', style: perRoundStyle)],
+              children: [
+                TextSpan(text: '/$perRoundText', style: perRoundStyle),
+              ],
             ),
           ),
           const SizedBox(height: 4),
@@ -645,10 +653,7 @@ class _CounterBlock extends StatelessWidget {
                   colorBlendMode: BlendMode.srcIn,
                 ),
               ),
-              if (addRounds != null) ...[
-                const SizedBox(width: 10),
-                addRounds!,
-              ],
+              if (addRounds != null) ...[const SizedBox(width: 10), addRounds!],
             ],
           ),
         ],
@@ -717,7 +722,9 @@ class _HandLayoutIcon extends StatelessWidget {
       size: const Size.square(24),
       painter: _HandLayoutIconPainter(
         fillLeft: leftHanded,
-        color: IconTheme.of(context).color ?? Theme.of(context).colorScheme.onSurface,
+        color:
+            IconTheme.of(context).color ??
+            Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
