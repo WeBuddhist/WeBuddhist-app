@@ -1999,6 +1999,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không thể tham gia tích lũy. Vui lòng thử lại';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'Hãy tham gia tích lũy này trước khi thêm vào pháp tu của bạn';
 

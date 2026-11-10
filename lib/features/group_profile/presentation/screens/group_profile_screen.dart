@@ -15,6 +15,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/utils/group_an
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_member_menu.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_notification_settings_drawer.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_body.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_pecha/core/widgets/screen_cache_builder.dart';
@@ -100,7 +101,7 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
             Expanded(
               child: ScreenCacheBuilder<GroupProfile>(
                 value: profileAsync,
-                skeleton: const Center(child: CircularProgressIndicator()),
+                skeleton: const GroupProfileSkeleton(),
                 onRetry: () => ref.invalidate(groupProfileProvider(groupId)),
                 data:
                     (profile) =>

@@ -10,6 +10,7 @@ import 'package:flutter_pecha/features/connect/presentation/utils/connect_commen
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_report.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_reports_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_report_reason_label.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -137,9 +138,7 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
   void _viewMessage(GroupReportedItem item) {
     final messageId = item.latest.messageId?.trim() ?? '';
     if (messageId.isEmpty) return;
-    context.push(
-      AppRoutes.groupChatPath(widget.groupId, messageId: messageId),
-    );
+    context.push(AppRoutes.groupChatPath(widget.groupId, messageId: messageId));
   }
 
   static bool _isNearEnd(ScrollMetrics metrics) =>
@@ -234,7 +233,9 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
     final notifier = ref.read(groupReportsProvider(widget.groupId).notifier);
 
     if (state.isLoading && state.items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileTabSkeleton.box(
+        variant: GroupProfileTabSkeletonVariant.member,
+      );
     }
 
     if (state.error != null && state.items.isEmpty) {

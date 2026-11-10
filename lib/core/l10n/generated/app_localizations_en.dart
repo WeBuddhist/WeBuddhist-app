@@ -1989,6 +1989,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to join accumulation. Please try again';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'Join this accumulation before adding it to your practices';
 

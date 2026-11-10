@@ -2014,6 +2014,10 @@ class AppLocalizationsNe extends AppLocalizations {
       'संचयमा सामेल हुन असमर्थ। कृपया फेरि प्रयास गर्नुहोस्';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'आफ्नो अभ्यासमा थप्नुअघि यो संचयमा सामेल हुनुहोस्';
 

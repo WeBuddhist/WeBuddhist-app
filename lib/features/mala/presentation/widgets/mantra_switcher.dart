@@ -511,12 +511,20 @@ class _Chevron extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.onSurface;
-    return IconButton(
-      onPressed: onTap,
-      icon: Icon(icon, size: 24),
-      color: color,
-      disabledColor: color.withValues(alpha: 0.25),
-      splashRadius: 24,
+    // With nothing to switch to (a single mantra) the chevron is hidden but
+    // keeps its space, so the artwork stays centred.
+    return Visibility(
+      visible: onTap != null,
+      maintainSize: true,
+      maintainAnimation: true,
+      maintainState: true,
+      child: IconButton(
+        onPressed: onTap,
+        icon: Icon(icon, size: 24),
+        color: color,
+        disabledColor: color.withValues(alpha: 0.25),
+        splashRadius: 24,
+      ),
     );
   }
 }

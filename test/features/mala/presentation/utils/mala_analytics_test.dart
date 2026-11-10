@@ -206,6 +206,42 @@ void main() {
       });
     });
 
+    test('a space mantra session has no preset id and is its own session', () {
+      bead(total: 1);
+      void spaceBead(int total, String accumulatorId) => tracker.onBead(
+        presetId: null,
+        groupAccumulatorId: accumulatorId,
+        mantraId: 'space-mantra',
+        mantraName: 'Akshobhya',
+        mode: MalaMode.group,
+        groupId: 'space-1',
+        total: total,
+        roundComplete: false,
+        input: MalaInput.tap,
+      );
+      spaceBead(43, 'acc-1');
+      spaceBead(44, 'acc-1');
+      // Another accumulation in the same space is a new session.
+      spaceBead(10, 'acc-2');
+
+      expect(service.eventNames, [
+        AnalyticsEvents.malaSessionStarted,
+        AnalyticsEvents.malaSessionEnded,
+        AnalyticsEvents.malaSessionStarted,
+        AnalyticsEvents.malaSessionEnded,
+        AnalyticsEvents.malaSessionStarted,
+      ]);
+      expect(service.events[2].properties, {
+        'group_accumulator_id': 'acc-1',
+        'mantra_id': 'space-mantra',
+        'mode': 'group',
+        'group_id': 'space-1',
+        'starting_total': 42,
+      });
+      expect(service.events[3].properties['beads_counted'], 2);
+      expect(service.events[3].properties.containsKey('preset_id'), isFalse);
+    });
+
     test('idle for the timeout ends the session', () async {
       bead(total: 1);
       await Future<void>.delayed(const Duration(milliseconds: 60));

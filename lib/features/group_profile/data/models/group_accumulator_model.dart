@@ -1,4 +1,5 @@
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_accumulator.dart';
+import 'package:flutter_pecha/features/mala/data/models/accumulator_model.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 
 class GroupAccumulatorModel {
@@ -6,6 +7,12 @@ class GroupAccumulatorModel {
   final String presetAccumulatorId;
   final String? textId;
   final String? mantraId;
+
+  /// The mantra in use (`mantra`): the accumulation's own, else its preset's.
+  final PresetMantraModel? mantra;
+
+  /// The bead skin to show (`mala_image.url`), already resolved by the server.
+  final String? malaImageUrl;
   final String groupId;
   final String title;
   final Map<String, dynamic>? imageJson;
@@ -25,6 +32,8 @@ class GroupAccumulatorModel {
     required this.presetAccumulatorId,
     this.textId,
     this.mantraId,
+    this.mantra,
+    this.malaImageUrl,
     required this.groupId,
     required this.title,
     this.imageJson,
@@ -41,11 +50,23 @@ class GroupAccumulatorModel {
   });
 
   factory GroupAccumulatorModel.fromJson(Map<String, dynamic> json) {
+    final mantraJson = json['mantra'];
+    final malaImageJson = json['mala_image'];
+    final malaImageUrl =
+        malaImageJson is Map<String, dynamic>
+            ? malaImageJson['url'] as String?
+            : null;
     return GroupAccumulatorModel(
       id: json['id'] as String? ?? '',
       presetAccumulatorId: json['preset_accumulator_id'] as String? ?? '',
       textId: json['text_id'] as String?,
       mantraId: json['mantra_id'] as String?,
+      mantra:
+          mantraJson is Map<String, dynamic>
+              ? PresetMantraModel.fromJson(mantraJson)
+              : null,
+      malaImageUrl:
+          (malaImageUrl == null || malaImageUrl.isEmpty) ? null : malaImageUrl,
       groupId: json['group_id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       imageJson: json['image'] as Map<String, dynamic>?,
@@ -73,6 +94,8 @@ class GroupAccumulatorModel {
       presetAccumulatorId: presetAccumulatorId,
       textId: textId,
       mantraId: mantraId,
+      mantra: mantra?.toEntity(),
+      malaImageUrl: malaImageUrl,
       groupId: groupId,
       title: title,
       image: imageJson != null ? ResponsiveImage.fromJson(imageJson) : null,
@@ -91,6 +114,8 @@ class GroupAccumulatorModel {
       presetAccumulatorId: presetAccumulatorId,
       textId: textId,
       mantraId: mantraId,
+      mantra: mantra?.toEntity(),
+      malaImageUrl: malaImageUrl,
       groupId: groupId,
       title: title,
       image: imageJson != null ? ResponsiveImage.fromJson(imageJson) : null,

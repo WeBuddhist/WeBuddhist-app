@@ -6,6 +6,7 @@ import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_event.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupEventParticipantsDrawer extends ConsumerStatefulWidget {
@@ -113,9 +114,9 @@ class _GroupEventParticipantsDrawerState
                         : context.l10n.connect_event_participants_attending(
                           widget.totalAttending,
                         ),
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -124,7 +125,11 @@ class _GroupEventParticipantsDrawerState
                 color: isDark ? AppColors.cardBorderDark : AppColors.grey100,
               ),
               Flexible(
-                child: _buildParticipantsBody(context, participantsState, isDark),
+                child: _buildParticipantsBody(
+                  context,
+                  participantsState,
+                  isDark,
+                ),
               ),
               const SizedBox(height: 8),
             ],
@@ -140,7 +145,9 @@ class _GroupEventParticipantsDrawerState
     bool isDark,
   ) {
     if (participantsState.isLoading && participantsState.participants.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileTabSkeleton.box(
+        variant: GroupProfileTabSkeletonVariant.member,
+      );
     }
 
     if (participantsState.error != null &&
@@ -149,9 +156,12 @@ class _GroupEventParticipantsDrawerState
         child: ErrorStateWidget(
           error: participantsState.error!,
           onRetry:
-              () => ref
-                  .read(groupEventParticipantsProvider(widget.eventId).notifier)
-                  .retry(),
+              () =>
+                  ref
+                      .read(
+                        groupEventParticipantsProvider(widget.eventId).notifier,
+                      )
+                      .retry(),
         ),
       );
     }
@@ -202,9 +212,7 @@ class _ParticipantsList extends StatelessWidget {
             context.l10n.connect_event_participants_empty,
             style: TextStyle(
               color:
-                  isDark
-                      ? AppColors.textTertiaryDark
-                      : AppColors.textSecondary,
+                  isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
             ),
           ),
         ),

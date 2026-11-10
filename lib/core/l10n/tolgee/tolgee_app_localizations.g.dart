@@ -3910,6 +3910,13 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get group_accumulator_practice_unavailable => TolgeeBridge.get(
+    localeName,
+    'group_accumulator_practice_unavailable',
+    () => _fallback.group_accumulator_practice_unavailable,
+  );
+
+  @override
   String get group_accumulator_join_before_practice => TolgeeBridge.get(
     localeName,
     'group_accumulator_join_before_practice',

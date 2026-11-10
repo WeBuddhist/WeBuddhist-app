@@ -16,15 +16,18 @@ import 'package:flutter_pecha/features/practice/domain/entities/practice_items_t
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_items_paginated_provider.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_recitations_paginated_provider.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/practice_chant_list_tile.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/practice_my_chants_collection_list_tile.dart';
+import 'package:flutter_pecha/features/recitation/data/models/my_recitation_list_collection_model.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
 import 'package:flutter_pecha/features/recitation/presentation/widgets/recitation_list_skeleton.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/presentation/providers/timers_providers.dart';
+import 'package:flutter_pecha/features/timer/presentation/widgets/timer_picker_card.dart';
+import 'package:flutter_pecha/features/timer/presentation/widgets/timer_section_title.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_pecha/features/plans/data/utils/plan_date_format.dart';
 import 'package:go_router/go_router.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/core/cache/app_image_cache_manager.dart';
 
@@ -103,6 +106,13 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     ).pop<SessionSelection>(RecitationSessionSelection(recitation));
   }
 
+  void _onCollectionSelected(MyRecitationListCollectionModel collection) {
+    if (_enrollingItemId != null) return;
+    Navigator.of(
+      context,
+    ).pop<SessionSelection>(MyRecitationCollectionSessionSelection(collection));
+  }
+
   void _onMantraSelected(Mantra mantra) {
     Navigator.of(context).pop<SessionSelection>(MantraSessionSelection(mantra));
   }
@@ -177,6 +187,7 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
             scrollController: _chantsScrollController,
             enrollingItemId: _enrollingItemId,
             onRecitationSelected: _onRecitationSelected,
+            onCollectionSelected: _onCollectionSelected,
           ),
           _MalasTab(onMantraSelected: _onMantraSelected),
           _TimersTab(onTimerSelected: _onTimerSelected),
@@ -373,11 +384,14 @@ class _ChantsTab extends ConsumerWidget {
   final ScrollController scrollController;
   final String? enrollingItemId;
   final void Function(RecitationModel recitation) onRecitationSelected;
+  final void Function(MyRecitationListCollectionModel collection)
+  onCollectionSelected;
 
   const _ChantsTab({
     required this.scrollController,
     required this.enrollingItemId,
     required this.onRecitationSelected,
+    required this.onCollectionSelected,
   });
 
   @override
@@ -391,14 +405,13 @@ class _ChantsTab extends ConsumerWidget {
         .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
         .refresh();
 
-    if (recitationsState.isLoading && recitationsState.recitations.isEmpty) {
+    if (recitationsState.isLoading && recitationsState.isEmpty) {
       return const RecitationListSkeleton(
         variant: RecitationListSkeletonVariant.chantTile,
       );
     }
 
-    if (recitationsState.error != null &&
-        recitationsState.recitations.isEmpty) {
+    if (recitationsState.error != null && recitationsState.isEmpty) {
       return _RefreshableScrollBody(
         onRefresh: onRefresh,
         child: _SessionTabMessage(
@@ -407,9 +420,10 @@ class _ChantsTab extends ConsumerWidget {
       );
     }
 
+    final collections = recitationsState.collections;
     final recitations = recitationsState.recitations;
 
-    if (recitations.isEmpty && !recitationsState.isLoading) {
+    if (recitationsState.isEmpty && !recitationsState.isLoading) {
       return _RefreshableScrollBody(
         onRefresh: onRefresh,
         child: _SessionTabMessage(message: context.l10n.session_no_chants),
@@ -422,9 +436,29 @@ class _ChantsTab extends ConsumerWidget {
         controller: scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: recitations.length + (recitationsState.hasMore ? 1 : 0),
+        itemCount:
+            collections.length +
+            recitations.length +
+            (recitationsState.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index == recitations.length) {
+          if (index < collections.length) {
+            final collection = collections[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: PracticeMyChantsCollectionListTile(
+                collection: collection,
+                showTrailingCaret: false,
+                includeOuterPadding: false,
+                onTap:
+                    enrollingItemId == null
+                        ? () => onCollectionSelected(collection)
+                        : null,
+              ),
+            );
+          }
+
+          final recitationIndex = index - collections.length;
+          if (recitationIndex == recitations.length) {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
@@ -436,7 +470,7 @@ class _ChantsTab extends ConsumerWidget {
             );
           }
 
-          final recitation = recitations[index];
+          final recitation = recitations[recitationIndex];
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -561,96 +595,83 @@ class _TimersTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final localizations = AppLocalizations.of(context)!;
+    final l10n = context.l10n;
     final timersAsync = ref.watch(presetTimersFutureProvider);
+    final ambientSoundsById = ref.watch(ambientSoundByIdProvider);
     Future<void> onRefresh() async {
+      ref.invalidate(ambientSoundsFutureProvider);
       ref.invalidate(presetTimersFutureProvider);
       await ref.read(presetTimersFutureProvider.future);
     }
+
+    // Null while a sound id is set but the sound catalogue has not loaded.
+    String? soundLabel(PresetTimer timer) {
+      final soundId = timer.ambientSoundId;
+      if (soundId == null || soundId.isEmpty) {
+        return l10n.timer_ambient_sound_none;
+      }
+      return ambientSoundsById[soundId]?.name;
+    }
+
+    Widget timerCard(PresetTimer timer) => Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TimerPickerCard(
+        timer: timer,
+        soundLabel: soundLabel(timer),
+        onTap: () => onTimerSelected(timer),
+      ),
+    );
 
     return timersAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error:
           (_, __) => _RefreshableScrollBody(
             onRefresh: onRefresh,
-            child: _SessionTabMessage(
-              message: context.l10n.session_timers_load_error,
-            ),
+            child: _SessionTabMessage(message: l10n.session_timers_load_error),
           ),
       data:
           (either) => either.fold(
             (_) => _RefreshableScrollBody(
               onRefresh: onRefresh,
               child: _SessionTabMessage(
-                message: context.l10n.session_timers_load_error,
+                message: l10n.session_timers_load_error,
               ),
             ),
             (timers) {
-              if (timers.isEmpty) {
+              // Same split and order as the timers screen: the user's own
+              // timers as created, then presets shortest first.
+              final customTimers =
+                  timers.where((timer) => timer.isUserCreated).toList();
+              final presetTimers =
+                  timers.where((timer) => timer.isPreset).toList()
+                    ..sort((a, b) => a.durationMs.compareTo(b.durationMs));
+
+              if (customTimers.isEmpty && presetTimers.isEmpty) {
                 return _RefreshableScrollBody(
                   onRefresh: onRefresh,
-                  child: _SessionTabMessage(
-                    message: context.l10n.session_no_timers,
-                  ),
+                  child: _SessionTabMessage(message: l10n.session_no_timers),
                 );
               }
 
               return RefreshIndicator(
                 onRefresh: onRefresh,
-                child: ListView.builder(
+                child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  itemCount: timers.length,
-                  itemBuilder: (context, index) {
-                    final timer = timers[index];
-
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _SessionCard(
-                        isDark: isDark,
-                        onTap: () => onTimerSelected(timer),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color:
-                                    isDark
-                                        ? AppColors.surfaceVariantDark
-                                        : AppColors.grey100,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                PhosphorIconsRegular.timer,
-                                size: 22,
-                                color:
-                                    isDark
-                                        ? AppColors.textTertiaryDark
-                                        : AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                '${timer.displayValue} ${timer.displaysSeconds ? localizations.timer_duration_sec : localizations.timer_min}',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
+                  children: [
+                    if (customTimers.isNotEmpty) ...[
+                      TimerSectionTitle(title: l10n.timer_your_timers),
+                      const SizedBox(height: 12),
+                      for (final timer in customTimers) timerCard(timer),
+                    ],
+                    if (customTimers.isNotEmpty && presetTimers.isNotEmpty)
+                      const SizedBox(height: 20),
+                    if (presetTimers.isNotEmpty) ...[
+                      TimerSectionTitle(title: l10n.preset_timers),
+                      const SizedBox(height: 12),
+                      for (final timer in presetTimers) timerCard(timer),
+                    ],
+                  ],
                 ),
               );
             },

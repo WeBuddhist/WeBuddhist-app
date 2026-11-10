@@ -29,6 +29,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_cha
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_reply_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_selection_header.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_thread.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_skeleton.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -637,6 +638,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   }
 
   Widget _buildLoading() {
-    return const Center(child: CircularProgressIndicator());
+    return const GroupChatSkeleton();
   }
 }

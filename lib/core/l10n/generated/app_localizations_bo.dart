@@ -2012,6 +2012,10 @@ class AppLocalizationsBo extends AppLocalizations {
       'གྲངས་གསོག་ལ་ཞུགས་མ་ཐུབ། ཡང་བསྐྱར་ཚོད་ལྟ་གནང་རོགས།';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'ཁྱེད་ཀྱི་ཉམས་ལེན་ནང་མ་བསྣན་གོང་གྲངས་གསོག་འདི་ལ་ཞུགས་རོགས།';
 

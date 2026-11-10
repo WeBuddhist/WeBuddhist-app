@@ -2016,6 +2016,10 @@ class AppLocalizationsMy extends AppLocalizations {
       'စုဆောင်းမှုတွင် ပါဝင်၍ မရပါ။ ထပ်ကြိုးစားပါ';
 
   @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
+
+  @override
   String get group_accumulator_join_before_practice =>
       'သင့်ကျင့်စဉ်များထဲ မထည့်မီ ဤစုဆောင်းမှုတွင် ပါဝင်ပါ';
 

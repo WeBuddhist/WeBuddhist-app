@@ -37,6 +37,7 @@ timer/
 |------|-------|
 | Presets + Your timers | `presentation/screens/preset_timers_screen.dart` |
 | Create / edit custom timer | `presentation/screens/new_timer_screen.dart` |
+| Shared cards / headings (also used by the practice "Add to session" picker's Timers tab) | `presentation/widgets/{preset_timer_card,timer_picker_card,timer_section_title}.dart` |
 | Duration / Ambient sound sheets | `presentation/widgets/{duration_picker_sheet,ambient_sound_sheet}.dart` |
 | Ambient sound playback (preview + session) | `presentation/services/ambient_sound_player.dart` |
 | Active session | `presentation/screens/active_timer_screen.dart` |

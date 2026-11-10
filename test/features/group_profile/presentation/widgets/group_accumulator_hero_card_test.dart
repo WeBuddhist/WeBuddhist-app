@@ -110,16 +110,18 @@ void main() {
       detail: _detail(mantraId: 'mantra-1'),
       overrides: [
         malaCatalogueProvider.overrideWith(
-          () => ScreenCacheNotifier.fixed(const Right([
-            Mantra(
-              presetId: 'preset-1',
-              mantra: MantraText(
-                id: 'mantra-1',
-                text: 'ཨོཾ་ཨཱཿ་ཧཱུྃ',
-                pronunciation: 'Om Ah Hung Vajra Guru Padma Siddhi Hung',
+          () => ScreenCacheNotifier.fixed(
+            const Right([
+              Mantra(
+                presetId: 'preset-1',
+                mantra: MantraText(
+                  id: 'mantra-1',
+                  text: 'ཨོཾ་ཨཱཿ་ཧཱུྃ',
+                  pronunciation: 'Om Ah Hung Vajra Guru Padma Siddhi Hung',
+                ),
               ),
-            ),
-          ])),
+            ]),
+          ),
         ),
       ],
     );
@@ -141,16 +143,44 @@ void main() {
       detail: _detail(mantraId: 'mantra-1'),
       overrides: [
         malaCatalogueProvider.overrideWith(
-          () => ScreenCacheNotifier.fixed(const Right([
-            Mantra(
-              presetId: 'preset-1',
-              mantra: MantraText(id: 'mantra-1', text: 'ཨོཾ་ཨཱཿ་ཧཱུྃ'),
-            ),
-          ])),
+          () => ScreenCacheNotifier.fixed(
+            const Right([
+              Mantra(
+                presetId: 'preset-1',
+                mantra: MantraText(id: 'mantra-1', text: 'ཨོཾ་ཨཱཿ་ཧཱུྃ'),
+              ),
+            ]),
+          ),
         ),
       ],
     );
 
     expect(find.text('ཨོཾ་ཨཱཿ་ཧཱུྃ'), findsOneWidget);
   });
+
+  testWidgets(
+    "a space's own mantra shows from the response without the catalogue",
+    (tester) async {
+      await _pump(
+        tester,
+        detail: const GroupAccumulatorDetail(
+          id: 'acc-1',
+          presetAccumulatorId: '',
+          mantra: MantraText(
+            id: 'space-mantra',
+            text: 'ཨོཾ་ཨཀྵོ་བྷྱ་ཧཱུྃ།',
+            pronunciation: 'Om Akshobhya Hum',
+          ),
+          groupId: 'group-1',
+          title: 'Space Akshobhya',
+        ),
+        // A catalogue that never loads: the line must not wait for it.
+        overrides: [
+          malaCatalogueProvider.overrideWith(ScreenCacheNotifier.pending),
+        ],
+      );
+
+      expect(find.text('Om Akshobhya Hum'), findsOneWidget);
+    },
+  );
 }

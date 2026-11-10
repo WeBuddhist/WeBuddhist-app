@@ -321,6 +321,14 @@ class _AccumulatorSourceRow extends ConsumerWidget {
   /// on the mala counter, or the mantra script when that line is empty.
   Widget? _mantraLeading(WidgetRef ref) {
     if (detail.hasTextContent) return null;
+
+    // The response carries the mantra in use, including a space's own mantra
+    // that the public catalogue never lists, so no catalogue wait is needed.
+    final own = detail.mantra;
+    if (own != null) {
+      return _mantraLine(pronunciation: own.pronunciation, script: own.text);
+    }
+
     if (!detail.hasMantraContent && detail.presetAccumulatorId.isEmpty) {
       return null;
     }
@@ -333,10 +341,16 @@ class _AccumulatorSourceRow extends ConsumerWidget {
     final mantra = mantras == null ? null : _matchingMantra(mantras);
     if (mantra == null) return null;
 
-    final pronunciation = mantra.mantra?.pronunciation?.trim();
-    final hasPronunciation = pronunciation != null && pronunciation.isNotEmpty;
-    final script = mantra.tibetan?.trim();
-    final label = hasPronunciation ? pronunciation : script;
+    return _mantraLine(
+      pronunciation: mantra.mantra?.pronunciation,
+      script: mantra.tibetan,
+    );
+  }
+
+  Widget? _mantraLine({String? pronunciation, String? script}) {
+    final spoken = pronunciation?.trim();
+    final hasPronunciation = spoken != null && spoken.isNotEmpty;
+    final label = hasPronunciation ? spoken : script?.trim();
     if (label == null || label.isEmpty) return null;
 
     return _MantraLine(

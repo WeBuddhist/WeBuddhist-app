@@ -8,6 +8,7 @@ import 'package:flutter_pecha/features/auth/presentation/providers/state_provide
 import 'package:flutter_pecha/features/auth/presentation/widgets/login_drawer.dart';
 import 'package:flutter_pecha/features/connect/presentation/utils/connect_comment_utils.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_action_menu.dart';
+import 'package:flutter_pecha/features/connect/presentation/widgets/connect_comments_skeleton.dart';
 import 'package:flutter_pecha/features/home/domain/entities/verse_of_day_engagement.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/verse_of_day_engagement_providers.dart';
 import 'package:flutter_pecha/features/home/presentation/utils/verse_comment_threading.dart';
@@ -263,7 +264,7 @@ class _VerseCommentsSheetState extends ConsumerState<VerseCommentsSheet> {
     ScrollController scrollController,
   ) {
     if (state.isLoading && state.comments.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const ConnectCommentsSkeleton();
     }
 
     if (state.error != null && state.comments.isEmpty) {
