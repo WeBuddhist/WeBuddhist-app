@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/features/practice/presentation/providers/routine_refresh.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/ambient_sound.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/domain/usecases/create_user_timer_usecase.dart';
@@ -181,11 +184,18 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    result.fold((failure) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(_failureMessage(failure))));
-    }, (_) => context.pop());
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_failureMessage(failure))));
+      },
+      (_) {
+        // Routine blocks show this timer's name, length and sound.
+        unawaited(refreshRoutineFromServer(ref));
+        context.pop();
+      },
+    );
   }
 
   Future<void> _onBeginSession() async {
