@@ -1264,6 +1264,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_edit_profile => '編輯個人檔案';
 
   @override
+  String get settings_signed_in_with_google => 'Signed in with Google';
+
+  @override
+  String get settings_signed_in_with_apple => 'Signed in with Apple';
+
+  @override
+  String get settings_signed_in_with_phone => 'Signed in with phone number';
+
+  @override
+  String get settings_signed_in_as => 'Signed in as';
+
+  @override
   String get settings_theme => '主題';
 
   @override
@@ -1893,6 +1905,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get group_accumulator_join_error => '無法加入計數統計，請再試一次';
+
+  @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
 
   @override
   String get group_accumulator_join_before_practice => '先加入本共修計數活動，再將它加入您的修持計畫';

@@ -8,6 +8,7 @@ import 'package:flutter_pecha/features/connect/presentation/providers/connect_pr
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_space_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/screens/group_search_screen.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/group_search_result_card.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Connect for someone with no spaces: a hero with the space search, then
@@ -102,13 +103,18 @@ class _ConnectLandingViewState extends ConsumerState<ConnectLandingView> {
   ) {
     final groups = state.groups;
     if (groups.isEmpty) {
-      final Widget child;
       if (state.isLoading || !state.hasLoaded) {
-        child = const Padding(
-          padding: EdgeInsets.all(32),
-          child: Center(child: CircularProgressIndicator()),
-        );
-      } else if (state.error != null) {
+        return const [
+          SliverToBoxAdapter(
+            child: GroupProfileTabSkeleton.box(
+              variant: GroupProfileTabSkeletonVariant.member,
+            ),
+          ),
+        ];
+      }
+
+      final Widget child;
+      if (state.error != null) {
         child = ErrorStateWidget(error: state.error!, onRetry: notifier.retry);
       } else {
         child = Padding(

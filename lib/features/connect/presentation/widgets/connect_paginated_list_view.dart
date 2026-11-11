@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 
 /// Builds a scrollable list with standard loading, error, empty, and
 /// paginated footer states for Connect My/Discover tabs.
@@ -53,7 +54,20 @@ class ConnectPaginatedListView<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if ((isLoading || !hasLoaded) && items.isEmpty) {
-      return _scrollableState(const Center(child: CircularProgressIndicator()));
+      return CustomScrollView(
+        key: scrollViewKey,
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          if (header != null) SliverToBoxAdapter(child: header!),
+          const SliverToBoxAdapter(
+            child: GroupProfileTabSkeleton.box(
+              variant: GroupProfileTabSkeletonVariant.feed,
+              itemCount: 2,
+            ),
+          ),
+        ],
+      );
     }
 
     if (error != null && items.isEmpty) {

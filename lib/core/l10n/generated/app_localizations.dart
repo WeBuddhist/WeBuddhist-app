@@ -2405,6 +2405,30 @@ abstract class AppLocalizations {
   /// **'Edit profile'**
   String get settings_edit_profile;
 
+  /// No description provided for @settings_signed_in_with_google.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with Google'**
+  String get settings_signed_in_with_google;
+
+  /// No description provided for @settings_signed_in_with_apple.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with Apple'**
+  String get settings_signed_in_with_apple;
+
+  /// No description provided for @settings_signed_in_with_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in with phone number'**
+  String get settings_signed_in_with_phone;
+
+  /// No description provided for @settings_signed_in_as.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as'**
+  String get settings_signed_in_as;
+
   /// No description provided for @settings_theme.
   ///
   /// In en, this message translates to:
@@ -3568,6 +3592,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to join accumulation. Please try again'**
   String get group_accumulator_join_error;
+
+  /// No description provided for @group_accumulator_practice_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This practice can\'t be opened right now.'**
+  String get group_accumulator_practice_unavailable;
 
   /// No description provided for @group_accumulator_join_before_practice.
   ///

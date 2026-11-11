@@ -12,6 +12,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_cha
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/new_prayer_request_sheet.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_request_tile.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_supporters_sheet.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Every prayer request the viewer has posted, in any space or event,
@@ -133,7 +134,11 @@ class _MyPrayerRequestsScreenState
     final l10n = context.l10n;
 
     if (!state.hasLoaded || (state.isLoading && state.requests.isEmpty)) {
-      return const Center(child: CircularProgressIndicator());
+      // The skeleton already carries the list's 16px side margins.
+      return const Padding(
+        padding: EdgeInsets.only(top: 4),
+        child: PrayerRequestsSkeleton(),
+      );
     }
     if (state.requests.isEmpty && state.error != null) {
       return _Notice(

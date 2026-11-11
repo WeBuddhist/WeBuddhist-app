@@ -10,6 +10,7 @@ import 'package:flutter_pecha/features/connect/presentation/widgets/connect_feed
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_post_card.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_post_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_nested_tab_scroll_view.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupProfilePostsTab extends ConsumerWidget {
@@ -45,9 +46,9 @@ class GroupProfilePostsTab extends ConsumerWidget {
 
     if (state.posts.isEmpty) {
       if (!state.hasLoaded) {
-        return GroupProfileNestedTabScrollView.centered(
+        return GroupProfileTabSkeleton(
           pageStorageKey: pageStorageKey,
-          child: const Center(child: CircularProgressIndicator()),
+          variant: GroupProfileTabSkeletonVariant.feed,
         );
       }
 

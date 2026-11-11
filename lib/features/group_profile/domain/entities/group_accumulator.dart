@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 
 class GroupAccumulator extends Equatable {
@@ -6,6 +7,13 @@ class GroupAccumulator extends Equatable {
   final String presetAccumulatorId;
   final String? textId;
   final String? mantraId;
+
+  /// The mantra in use: the accumulation's own, else its preset's. Null when
+  /// it has neither (a text accumulation, or a preset without a mantra).
+  final MantraText? mantra;
+
+  /// The bead skin to show (`mala_image.url`), already resolved by the server.
+  final String? malaImageUrl;
   final String groupId;
   final String title;
   final ResponsiveImage? image;
@@ -21,6 +29,8 @@ class GroupAccumulator extends Equatable {
     required this.presetAccumulatorId,
     this.textId,
     this.mantraId,
+    this.mantra,
+    this.malaImageUrl,
     required this.groupId,
     required this.title,
     this.image,
@@ -34,7 +44,8 @@ class GroupAccumulator extends Equatable {
 
   bool get hasTextContent => textId != null && textId!.isNotEmpty;
 
-  bool get hasMantraContent => mantraId != null && mantraId!.isNotEmpty;
+  bool get hasMantraContent =>
+      mantra != null || (mantraId != null && mantraId!.isNotEmpty);
 
   bool get hasJoined => isJoined == true;
 
@@ -51,6 +62,8 @@ class GroupAccumulator extends Equatable {
     presetAccumulatorId,
     textId,
     mantraId,
+    mantra,
+    malaImageUrl,
     groupId,
     title,
     image,
@@ -97,6 +110,8 @@ class GroupAccumulatorDetail extends GroupAccumulator {
     required super.presetAccumulatorId,
     super.textId,
     super.mantraId,
+    super.mantra,
+    super.malaImageUrl,
     required super.groupId,
     required super.title,
     super.image,

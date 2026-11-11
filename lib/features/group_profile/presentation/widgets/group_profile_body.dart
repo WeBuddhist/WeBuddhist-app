@@ -46,6 +46,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_members_tab.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_nested_tab_scroll_view.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_posts_tab.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_removed_notice_card.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/series_enrollment_provider.dart';
 import 'package:flutter_pecha/features/plans/presentation/widgets/plan_inline_markdown_view.dart';
@@ -453,12 +454,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     }
 
     final (hasPractices, isPracticesLoading) = ref.watch(
-      groupPracticesProvider(profile.id).select(
-        (state) => (
-          state.practices.isNotEmpty,
-          !state.hasLoaded,
-        ),
-      ),
+      groupPracticesProvider(
+        profile.id,
+      ).select((state) => (state.practices.isNotEmpty, !state.hasLoaded)),
     );
     // Posts and events refetch when the group's signal moves.
     ref.watch(groupSignalsProvider(profile.id));
@@ -557,8 +555,13 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
             return slivers;
           },
           body:
+              // No controller means no SliverOverlapAbsorber in the header,
+              // so the nested-tab skeleton (which injects) would throw.
               controller == null
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const GroupProfileTabSkeleton.box(
+                    variant: GroupProfileTabSkeletonVariant.feed,
+                    itemCount: 2,
+                  )
                   : TabBarView(
                     controller: controller,
                     children: [
@@ -673,7 +676,13 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
             ),
             const SliverFillRemaining(
               hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: GroupProfileTabSkeleton.box(
+                  variant: GroupProfileTabSkeletonVariant.member,
+                  itemCount: 2,
+                ),
+              ),
             ),
           ],
         ),
@@ -868,7 +877,10 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     await _openEventComposer(profile);
   }
 
-  Future<void> _onEditDraft(GroupProfile profile, GroupEventCmsItem item) async {
+  Future<void> _onEditDraft(
+    GroupProfile profile,
+    GroupEventCmsItem item,
+  ) async {
     if (!_canPublishPosts(profile)) return;
     await _openEventComposer(
       profile,
@@ -1288,9 +1300,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     final practicesState = ref.watch(groupPracticesProvider(profile.id));
 
     if (practicesState.isLoading && practicesState.practices.isEmpty) {
-      return GroupProfileNestedTabScrollView.centered(
+      return GroupProfileTabSkeleton(
         pageStorageKey: pageStorageKey,
-        child: const Center(child: CircularProgressIndicator()),
+        variant: GroupProfileTabSkeletonVariant.feed,
       );
     }
 
@@ -1368,13 +1380,13 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
       isEnrollingSeries:
           series != null ? _enrollingSeriesId == series.id : null,
       onSeriesTap:
-          series != null ? () => _navigateToSeriesDetail(profile, series) : null,
+          series != null
+              ? () => _navigateToSeriesDetail(profile, series)
+              : null,
       onSeriesJoinTap:
           series != null ? () => _onPracticeWithUsTap(profile, series) : null,
       isJoiningAccumulator:
-          accumulator != null
-              ? _joiningAccumulatorId == accumulator.id
-              : null,
+          accumulator != null ? _joiningAccumulatorId == accumulator.id : null,
       onAccumulatorTap:
           accumulator != null
               ? () => _navigateToAccumulatorDetail(accumulator.id)
@@ -1668,8 +1680,7 @@ class _GroupFollowButton extends ConsumerWidget {
       return _buildRequestSentButton(context);
     }
 
-    final isRemoved =
-        watchActiveGroupRemovalNotice(ref, profile.id) != null;
+    final isRemoved = watchActiveGroupRemovalNotice(ref, profile.id) != null;
 
     return _buildRequestToJoinButton(context, ref, isLoading, isRemoved);
   }

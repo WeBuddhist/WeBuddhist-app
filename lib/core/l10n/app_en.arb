@@ -636,6 +636,10 @@
   "settings_section_more": "MORE",
   "settings_section_account": "ACCOUNT",
   "settings_edit_profile": "Edit profile",
+  "settings_signed_in_with_google": "Signed in with Google",
+  "settings_signed_in_with_apple": "Signed in with Apple",
+  "settings_signed_in_with_phone": "Signed in with phone number",
+  "settings_signed_in_as": "Signed in as",
   "settings_theme": "Theme",
   "settings_notification_row": "Notifications",
   "settings_feedback_row": "Feedback",
@@ -979,6 +983,7 @@
   "group_change_practice_message": "You are already practicing this plan with another space. Would you like to change your practice space?",
   "group_join_to_contribute": "Join to contribute",
   "group_accumulator_join_error": "Unable to join accumulation. Please try again",
+  "group_accumulator_practice_unavailable": "This practice can't be opened right now.",
   "group_accumulator_join_before_practice": "Join this accumulation before adding it to your practices",
   "group_accumulator_participants": "{count} participants",
   "@group_accumulator_participants": {

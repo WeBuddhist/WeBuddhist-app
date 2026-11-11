@@ -2522,6 +2522,34 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get settings_signed_in_with_google => TolgeeBridge.get(
+    localeName,
+    'settings_signed_in_with_google',
+    () => _fallback.settings_signed_in_with_google,
+  );
+
+  @override
+  String get settings_signed_in_with_apple => TolgeeBridge.get(
+    localeName,
+    'settings_signed_in_with_apple',
+    () => _fallback.settings_signed_in_with_apple,
+  );
+
+  @override
+  String get settings_signed_in_with_phone => TolgeeBridge.get(
+    localeName,
+    'settings_signed_in_with_phone',
+    () => _fallback.settings_signed_in_with_phone,
+  );
+
+  @override
+  String get settings_signed_in_as => TolgeeBridge.get(
+    localeName,
+    'settings_signed_in_as',
+    () => _fallback.settings_signed_in_as,
+  );
+
+  @override
   String get settings_theme => TolgeeBridge.get(
     localeName,
     'settings_theme',
@@ -3879,6 +3907,13 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'group_accumulator_join_error',
     () => _fallback.group_accumulator_join_error,
+  );
+
+  @override
+  String get group_accumulator_practice_unavailable => TolgeeBridge.get(
+    localeName,
+    'group_accumulator_practice_unavailable',
+    () => _fallback.group_accumulator_practice_unavailable,
   );
 
   @override

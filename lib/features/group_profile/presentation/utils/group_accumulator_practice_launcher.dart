@@ -7,12 +7,106 @@ import 'package:flutter_pecha/features/group_profile/domain/entities/group_accum
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_accumulator_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_accumulator_session_complete_sheet.dart';
+import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_manager.dart';
 import 'package:flutter_pecha/features/plans/presentation/widgets/plan_navigation/plan_navigator.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+/// How a group accumulation's practice opens.
+enum GroupAccumulatorPracticeMode {
+  /// The linked text, in the reader.
+  reader,
+
+  /// The public preset's mala, with its carousel and personal-or-group switch.
+  preset,
+
+  /// The mala in single-accumulation mode, with the accumulation's own mantra
+  /// (a space mantra, or a mantra that differs from the linked preset's).
+  groupMantra,
+
+  /// Nothing to open.
+  unavailable,
+}
+
+/// Picks how [detail] opens. [catalogue] is the public preset list, or null
+/// while it has not loaded; then a mantra accumulation uses
+/// [GroupAccumulatorPracticeMode.groupMantra], which is always correct.
+GroupAccumulatorPracticeMode resolveGroupAccumulatorPracticeMode(
+  GroupAccumulator detail, {
+  List<Mantra>? catalogue,
+}) {
+  if (detail.hasTextContent) return GroupAccumulatorPracticeMode.reader;
+
+  final presetId = detail.presetAccumulatorId;
+  final mantraId = detail.mantra?.id ?? detail.mantraId;
+  if (presetId.isNotEmpty && catalogue != null) {
+    for (final preset in catalogue) {
+      if (preset.presetId != presetId) continue;
+      // A linked preset whose mantra is not the one in use must not open:
+      // it would show and count the wrong mantra.
+      if (mantraId == null || preset.mantraId == mantraId) {
+        return GroupAccumulatorPracticeMode.preset;
+      }
+      break;
+    }
+  }
+  if (detail.mantra != null) return GroupAccumulatorPracticeMode.groupMantra;
+  // Old data with a preset but no mantra in the response.
+  if (presetId.isNotEmpty) return GroupAccumulatorPracticeMode.preset;
+  return GroupAccumulatorPracticeMode.unavailable;
+}
+
+/// Opens the mala for a mantra accumulation: the preset's mala, or the
+/// single-accumulation mala for its own mantra. Returns false, after telling
+/// the user, when there is nothing to open.
+Future<bool> pushGroupAccumulatorMala(
+  BuildContext context,
+  WidgetRef ref,
+  GroupAccumulatorDetail detail, {
+  required bool ended,
+}) async {
+  final catalogue = ref
+      .read(malaCatalogueProvider)
+      .valueOrNull
+      ?.fold((_) => null, (list) => list);
+  final mode = resolveGroupAccumulatorPracticeMode(
+    detail,
+    catalogue: catalogue,
+  );
+  switch (mode) {
+    case GroupAccumulatorPracticeMode.preset:
+      await context.push(
+        '/mala',
+        extra: {
+          'presetId': detail.presetAccumulatorId,
+          'groupAccumulatorId': detail.id,
+          'groupAccumulatorEnded': ended,
+        },
+      );
+      return true;
+    case GroupAccumulatorPracticeMode.groupMantra:
+      await context.push(
+        '/mala',
+        extra: {
+          'groupAccumulator': detail,
+          'groupAccumulatorId': detail.id,
+          'groupAccumulatorEnded': ended,
+        },
+      );
+      return true;
+    case GroupAccumulatorPracticeMode.reader:
+    case GroupAccumulatorPracticeMode.unavailable:
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.group_accumulator_practice_unavailable),
+        ),
+      );
+      return false;
+  }
+}
 
 /// Opens a group accumulation practice directly (reader or mala), joining
 /// first when needed. Returns true when the user recited at least once.
@@ -68,17 +162,13 @@ Future<bool> openGroupAccumulatorPractice(
   final ended = isPastEndDate(detail.endDate, DateTime.now());
 
   if (!detail.hasTextContent) {
-    final presetId = detail.presetAccumulatorId;
-    if (presetId.isEmpty) return false;
-    await context.push(
-      '/mala',
-      extra: {
-        'presetId': presetId,
-        'groupAccumulatorId': detail.id,
-        'groupAccumulatorEnded': ended,
-      },
+    final opened = await pushGroupAccumulatorMala(
+      context,
+      ref,
+      detail,
+      ended: ended,
     );
-    if (!context.mounted) return false;
+    if (!opened || !context.mounted) return false;
     await _refreshAfterPractice(container, detail);
     return await _countIncreased(container, accumulatorId, countBefore);
   }

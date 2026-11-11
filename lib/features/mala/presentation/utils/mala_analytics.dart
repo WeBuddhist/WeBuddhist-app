@@ -47,15 +47,23 @@ class MalaAnalytics {
 
   /// Once per screen open, after the persisted selection has loaded so
   /// [mode] is the one the user will count into.
+  ///
+  /// A space mantra has no preset: [presetId] is null and
+  /// [groupAccumulatorId] / [mantraId] say what was opened instead.
   void screenOpened({
-    required String presetId,
+    required String? presetId,
+    String? groupAccumulatorId,
+    String? mantraId,
     required String mantraName,
     required MalaMode mode,
     String? groupId,
     String? source,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.malaScreenOpened, {
-      AnalyticsProperties.presetId: presetId,
+      if (presetId != null) AnalyticsProperties.presetId: presetId,
+      if (groupAccumulatorId != null)
+        AnalyticsProperties.groupAccumulatorId: groupAccumulatorId,
+      if (mantraId != null) AnalyticsProperties.mantraId: mantraId,
       AnalyticsProperties.mantraName: mantraName,
       AnalyticsProperties.mode: mode.name,
       if (groupId != null) AnalyticsProperties.groupId: groupId,
@@ -65,13 +73,18 @@ class MalaAnalytics {
 
   /// [startingTotal] is the accumulation's total before the first bead.
   void sessionStarted({
-    required String presetId,
+    required String? presetId,
+    String? groupAccumulatorId,
+    String? mantraId,
     required MalaMode mode,
     String? groupId,
     required int startingTotal,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.malaSessionStarted, {
-      AnalyticsProperties.presetId: presetId,
+      if (presetId != null) AnalyticsProperties.presetId: presetId,
+      if (groupAccumulatorId != null)
+        AnalyticsProperties.groupAccumulatorId: groupAccumulatorId,
+      if (mantraId != null) AnalyticsProperties.mantraId: mantraId,
       AnalyticsProperties.mode: mode.name,
       if (groupId != null) AnalyticsProperties.groupId: groupId,
       AnalyticsProperties.startingTotal: startingTotal,
@@ -81,7 +94,9 @@ class MalaAnalytics {
   /// [rounds] counts rounds in this session; [secondsSinceLastRound] is null
   /// for the first round of a session.
   void roundCompleted({
-    required String presetId,
+    required String? presetId,
+    String? groupAccumulatorId,
+    String? mantraId,
     required String mantraName,
     required int rounds,
     required MalaMode mode,
@@ -89,7 +104,10 @@ class MalaAnalytics {
     int? secondsSinceLastRound,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.malaRoundCompleted, {
-      AnalyticsProperties.presetId: presetId,
+      if (presetId != null) AnalyticsProperties.presetId: presetId,
+      if (groupAccumulatorId != null)
+        AnalyticsProperties.groupAccumulatorId: groupAccumulatorId,
+      if (mantraId != null) AnalyticsProperties.mantraId: mantraId,
       AnalyticsProperties.mantraName: mantraName,
       AnalyticsProperties.rounds: rounds,
       AnalyticsProperties.mode: mode.name,
@@ -101,7 +119,9 @@ class MalaAnalytics {
 
   /// [durationSeconds] runs from the first counted bead to the last.
   void sessionEnded({
-    required String presetId,
+    required String? presetId,
+    String? groupAccumulatorId,
+    String? mantraId,
     required MalaMode mode,
     String? groupId,
     required int durationSeconds,
@@ -110,7 +130,10 @@ class MalaAnalytics {
     required MalaInput input,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.malaSessionEnded, {
-      AnalyticsProperties.presetId: presetId,
+      if (presetId != null) AnalyticsProperties.presetId: presetId,
+      if (groupAccumulatorId != null)
+        AnalyticsProperties.groupAccumulatorId: groupAccumulatorId,
+      if (mantraId != null) AnalyticsProperties.mantraId: mantraId,
       AnalyticsProperties.mode: mode.name,
       if (groupId != null) AnalyticsProperties.groupId: groupId,
       AnalyticsProperties.durationSeconds: durationSeconds,
@@ -202,8 +225,12 @@ class MalaSessionTracker with WidgetsBindingObserver {
   }
 
   /// One counted bead; [total] is the accumulation's total after it landed.
+  /// A space mantra passes a null [presetId] with its [groupAccumulatorId]
+  /// and [mantraId], so its sessions are never counted as a preset's.
   void onBead({
-    required String presetId,
+    required String? presetId,
+    String? groupAccumulatorId,
+    String? mantraId,
     required String mantraName,
     required MalaMode mode,
     required String? groupId,
@@ -213,13 +240,16 @@ class MalaSessionTracker with WidgetsBindingObserver {
   }) {
     final now = _clock();
     var session = _session;
-    if (session != null && !session.matches(presetId, mode, groupId)) {
+    if (session != null &&
+        !session.matches(presetId, groupAccumulatorId, mode, groupId)) {
       end();
       session = null;
     }
     if (session == null) {
       session = _MalaSession(
         presetId: presetId,
+        groupAccumulatorId: groupAccumulatorId,
+        mantraId: mantraId,
         mode: mode,
         groupId: groupId,
         startedAt: now,
@@ -228,6 +258,8 @@ class MalaSessionTracker with WidgetsBindingObserver {
       _session = session;
       _analytics.sessionStarted(
         presetId: presetId,
+        groupAccumulatorId: groupAccumulatorId,
+        mantraId: mantraId,
         mode: mode,
         groupId: groupId,
         startingTotal: total - 1,
@@ -242,6 +274,8 @@ class MalaSessionTracker with WidgetsBindingObserver {
       session.lastRoundAt = now;
       _analytics.roundCompleted(
         presetId: presetId,
+        groupAccumulatorId: groupAccumulatorId,
+        mantraId: mantraId,
         mantraName: mantraName,
         rounds: session.rounds,
         mode: mode,
@@ -263,6 +297,8 @@ class MalaSessionTracker with WidgetsBindingObserver {
     _session = null;
     _analytics.sessionEnded(
       presetId: session.presetId,
+      groupAccumulatorId: session.groupAccumulatorId,
+      mantraId: session.mantraId,
       mode: session.mode,
       groupId: session.groupId,
       durationSeconds:
@@ -277,13 +313,17 @@ class MalaSessionTracker with WidgetsBindingObserver {
 class _MalaSession {
   _MalaSession({
     required this.presetId,
+    this.groupAccumulatorId,
+    this.mantraId,
     required this.mode,
     required this.groupId,
     required this.startedAt,
     required this.input,
   }) : lastBeadAt = startedAt;
 
-  final String presetId;
+  final String? presetId;
+  final String? groupAccumulatorId;
+  final String? mantraId;
   final MalaMode mode;
   final String? groupId;
   final DateTime startedAt;
@@ -293,8 +333,16 @@ class _MalaSession {
   int beads = 0;
   int rounds = 0;
 
-  bool matches(String presetId, MalaMode mode, String? groupId) =>
-      this.presetId == presetId && this.mode == mode && this.groupId == groupId;
+  bool matches(
+    String? presetId,
+    String? groupAccumulatorId,
+    MalaMode mode,
+    String? groupId,
+  ) =>
+      this.presetId == presetId &&
+      this.groupAccumulatorId == groupAccumulatorId &&
+      this.mode == mode &&
+      this.groupId == groupId;
 }
 
 final malaAnalyticsProvider = Provider<MalaAnalytics>((ref) {

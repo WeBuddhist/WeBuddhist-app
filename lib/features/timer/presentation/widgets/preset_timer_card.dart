@@ -98,7 +98,7 @@ class PresetTimerCard extends StatelessWidget {
                 ),
                 if (soundLabel != null) ...[
                   const SizedBox(height: 4),
-                  _SoundLabel(label: soundLabel!, color: mutedColor),
+                  TimerSoundLabel(label: soundLabel!, color: mutedColor),
                 ],
               ],
             ),
@@ -120,8 +120,9 @@ class PresetTimerCard extends StatelessWidget {
   }
 }
 
-class _SoundLabel extends StatelessWidget {
-  const _SoundLabel({required this.label, required this.color});
+/// Waveform icon and ambient sound name under a timer's duration.
+class TimerSoundLabel extends StatelessWidget {
+  const TimerSoundLabel({super.key, required this.label, required this.color});
 
   final String label;
   final Color color;

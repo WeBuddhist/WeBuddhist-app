@@ -4,6 +4,7 @@ import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/group_search_provider.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/group_search_result_card.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupSearchScreen extends ConsumerStatefulWidget {
@@ -83,7 +84,8 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
                       ref.read(groupSearchProvider.notifier).clear();
                       Navigator.of(context).pop();
                     },
-                    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                    tooltip:
+                        MaterialLocalizations.of(context).backButtonTooltip,
                     icon: const Icon(AppAssets.arrowLeft),
                   ),
                   Expanded(
@@ -107,9 +109,10 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
                             _searchController.text.isNotEmpty
                                 ? IconButton(
                                   onPressed: _onClear,
-                                  tooltip: MaterialLocalizations.of(
-                                    context,
-                                  ).deleteButtonTooltip,
+                                  tooltip:
+                                      MaterialLocalizations.of(
+                                        context,
+                                      ).deleteButtonTooltip,
                                   icon: Icon(
                                     AppAssets.x,
                                     size: 18,
@@ -161,7 +164,9 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
     if (searchState.query.trim().isEmpty) return const SizedBox.shrink();
 
     if (searchState.isLoading && searchState.results.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileTabSkeleton.box(
+        variant: GroupProfileTabSkeletonVariant.member,
+      );
     }
 
     if (searchState.error != null && searchState.results.isEmpty) {
