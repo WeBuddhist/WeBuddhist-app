@@ -215,6 +215,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
                   : source.firstSegmentId,
           segmentIds: source.segmentIds,
           navigationContext: ctx,
+          sourceLanguage: source.language,
         ),
     ];
   }

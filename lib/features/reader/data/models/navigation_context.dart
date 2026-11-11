@@ -112,6 +112,10 @@ class PlanSourceRef {
   final int? startMs;
   final int? endMs;
 
+  /// The text's own language when texts of different languages share a
+  /// page (an event's collection). Null uses the navigation's language.
+  final String? language;
+
   const PlanSourceRef({
     required this.textId,
     this.segmentIds,
@@ -120,6 +124,7 @@ class PlanSourceRef {
     this.audioUrl,
     this.startMs,
     this.endMs,
+    this.language,
   });
 
   String? get firstSegmentId =>
@@ -135,7 +140,8 @@ class PlanSourceRef {
           other.isCompleted == isCompleted &&
           other.audioUrl == audioUrl &&
           other.startMs == startMs &&
-          other.endMs == endMs;
+          other.endMs == endMs &&
+          other.language == language;
 
   @override
   int get hashCode => Object.hash(
@@ -146,6 +152,7 @@ class PlanSourceRef {
     audioUrl,
     startMs,
     endMs,
+    language,
   );
 }
 
