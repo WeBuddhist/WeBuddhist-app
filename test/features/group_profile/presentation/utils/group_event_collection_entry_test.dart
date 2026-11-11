@@ -12,6 +12,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/providers/grou
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_actions.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_collection_entry.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
+import 'package:flutter_pecha/features/reader/presentation/providers/reader_notifier.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -29,6 +30,18 @@ GroupRecitationCollectionItem _chant(String id, String textId, int order) =>
       type: 'chant',
       displayOrder: order,
     );
+
+extension on GroupRecitationCollectionItem {
+  GroupRecitationCollectionItem copyLanguage(String language) =>
+      GroupRecitationCollectionItem(
+        id: id,
+        textId: textId,
+        title: title,
+        language: language,
+        type: type,
+        displayOrder: displayOrder,
+      );
+}
 
 final _collection = GroupRecitationCollection(
   id: 'c1',
@@ -194,6 +207,37 @@ void main() {
         _context(liveTextId: 't2', liveSegmentId: 's9').targetSegmentId,
         isNull,
       );
+    });
+
+    test('each chant of a mixed collection loads in its own language', () {
+      final mixed = GroupRecitationCollection(
+        id: 'c1',
+        groupId: 'g1',
+        name: 'Mixed',
+        items: [
+          _chant('i1', 't1', 1).copyLanguage('bo'),
+          _chant('i2', 't2', 2),
+        ],
+      );
+      final ctx = groupEventCollectionNavigationContext(
+        eventId: 'e1',
+        key: _key,
+        collection: mixed,
+        completionState: const GroupRecitationCollectionCompletionState(),
+        isOnlineAttendee: false,
+      );
+      expect(ctx.language, 'bo');
+      final params = [
+        for (final source in ctx.currentItem!.sources)
+          ReaderParams(
+            textId: source.textId,
+            navigationContext: ctx,
+            sourceLanguage: source.language,
+          ),
+      ];
+      expect(params.map((p) => p.language), ['bo', 'en']);
+      // Without its own language, a text keeps the navigation's.
+      expect(ReaderParams(textId: 't2', navigationContext: ctx).language, 'bo');
     });
 
     test('read-only records nothing', () {

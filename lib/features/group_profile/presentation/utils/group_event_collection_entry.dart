@@ -32,6 +32,9 @@ NavigationContext groupEventCollectionNavigationContext({
           textId: chant.textId,
           subtaskId: chant.id,
           isCompleted: !readOnly && completionState.isCompleted(chant.id),
+          // Each chant keeps its own language; a mixed collection must not
+          // load later chants in the first one's language.
+          language: chant.language,
         ),
     ],
     title: collection.name,
