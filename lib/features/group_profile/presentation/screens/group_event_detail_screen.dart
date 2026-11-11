@@ -86,6 +86,27 @@ class GroupEventDetailScreen extends ConsumerStatefulWidget {
       _GroupEventDetailScreenState();
 }
 
+/// Space under the last control: the usual 32px gap, plus whatever is
+/// actually covering the bottom of the screen.
+///
+/// The page safe area skips the bottom. On some Android builds the 3-button
+/// bar (Back, Home, Recents) is not in [MediaQueryData.padding], so the Add
+/// recitations button ends up behind it. [MediaQueryData.viewPadding] and the
+/// gesture inset still describe that bar. When none of them are reported,
+/// leave room for a 48px bar anyway.
+double _eventScrollBottomPadding(BuildContext context) {
+  final media = MediaQuery.of(context);
+  var inset = media.viewPadding.bottom;
+  if (media.padding.bottom > inset) inset = media.padding.bottom;
+  if (media.systemGestureInsets.bottom > inset) {
+    inset = media.systemGestureInsets.bottom;
+  }
+  if (inset == 0 && Theme.of(context).platform == TargetPlatform.android) {
+    inset = 48;
+  }
+  return 32 + inset;
+}
+
 class _GroupEventDetailScreenState
     extends ConsumerState<GroupEventDetailScreen> {
   _EventTab? _selectedTab;
@@ -302,7 +323,12 @@ class _GroupEventDetailScreenState
     );
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 32),
+      padding: EdgeInsets.fromLTRB(
+        14,
+        8,
+        14,
+        _eventScrollBottomPadding(context),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1286,7 +1312,9 @@ class _EventGroupRow extends ConsumerWidget {
                 backgroundColor:
                     isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
                 backgroundImage:
-                    avatarUrl.isNotEmpty ? avatarUrl.cachedNetworkImageProvider : null,
+                    avatarUrl.isNotEmpty
+                        ? avatarUrl.cachedNetworkImageProvider
+                        : null,
                 onBackgroundImageError:
                     avatarUrl.isNotEmpty ? reportImageLoadError : null,
                 child:
@@ -1800,89 +1828,91 @@ class _EventAccumulatorPanelState
           ],
         ),
         const SizedBox(height: 16),
-        if (_showContributions)
+        if (_showContributions) ...[
           GroupAccumulatorMyContributionsList(
             detail: detail,
             isDark: isDark,
             embedded: true,
-          )
-        else
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child:
+                hasJoined && widget.isAttending
+                    ? OutlinedButton.icon(
+                      onPressed: () => _addRecitations(detail),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 50),
+                        backgroundColor:
+                            isDark
+                                ? AppColors.surfaceVariantDark
+                                : AppColors.grey100,
+                        foregroundColor: primaryColor,
+                        side: BorderSide(
+                          color: isDark ? AppColors.grey800 : AppColors.grey300,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      icon: const Icon(AppAssets.plusCircle, size: 20),
+                      label: Text(
+                        context.l10n.connect_event_add_recitations,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                    : ElevatedButton(
+                      onPressed:
+                          !widget.isAttending || _isJoining
+                              ? null
+                              : () => _join(detail),
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        minimumSize: const Size(0, 50),
+                        backgroundColor:
+                            isDark
+                                ? AppColors.surfaceWhite
+                                : AppColors.textPrimary,
+                        foregroundColor:
+                            isDark
+                                ? AppColors.textPrimary
+                                : AppColors.surfaceWhite,
+                        disabledBackgroundColor:
+                            isDark
+                                ? AppColors.surfaceVariantDark
+                                : AppColors.grey100,
+                        disabledForegroundColor: secondaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child:
+                          _isJoining
+                              ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Text(
+                                context.l10n.group_join_to_contribute,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                    ),
+          ),
+        ] else
           GroupAccumulatorLeaderboardList(
             accumulatorId: detail.id,
             isDark: isDark,
             embedded: true,
           ),
-        const SizedBox(height: 20),
-        SizedBox(
-          width: double.infinity,
-          child:
-              hasJoined && widget.isAttending
-                  ? OutlinedButton.icon(
-                    onPressed: () => _addRecitations(detail),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 50),
-                      backgroundColor:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.grey100,
-                      foregroundColor: primaryColor,
-                      side: BorderSide(
-                        color: isDark ? AppColors.grey800 : AppColors.grey300,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    icon: const Icon(AppAssets.plusCircle, size: 20),
-                    label: Text(
-                      context.l10n.connect_event_add_recitations,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  )
-                  : ElevatedButton(
-                    onPressed:
-                        !widget.isAttending || _isJoining
-                            ? null
-                            : () => _join(detail),
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0,
-                      minimumSize: const Size(0, 50),
-                      backgroundColor:
-                          isDark
-                              ? AppColors.surfaceWhite
-                              : AppColors.textPrimary,
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimary
-                              : AppColors.surfaceWhite,
-                      disabledBackgroundColor:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.grey100,
-                      disabledForegroundColor: secondaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    child:
-                        _isJoining
-                            ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : Text(
-                              context.l10n.group_join_to_contribute,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                  ),
-        ),
       ],
     );
   }
