@@ -9,6 +9,7 @@ import 'package:flutter_pecha/features/practice/data/utils/routine_time_utils.da
 import 'package:flutter_pecha/core/widgets/destructive_confirmation_dialog.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/practice_chant_list_tile.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/routine_item_card.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/routine_timer_tile.dart';
 
 class RoutineTimeBlock extends StatefulWidget {
   final TimeOfDay time;
@@ -290,6 +291,10 @@ class _RoutineTimeBlockState extends State<RoutineTimeBlock> {
         showTrailingCaret: false,
         trailing: dragHandle,
       );
+    }
+
+    if (item.type == RoutineItemType.timer) {
+      return RoutineTimerTile(item: item, trailing: dragHandle);
     }
 
     return Container(

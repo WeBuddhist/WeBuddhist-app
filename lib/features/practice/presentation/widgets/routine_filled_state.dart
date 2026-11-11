@@ -19,6 +19,7 @@ import 'package:flutter_pecha/features/practice/presentation/providers/routine_a
 import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/practice_chant_list_tile.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/routine_item_card.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/routine_timer_tile.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -706,6 +707,13 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
       return PracticeChantListTile(
         recitation: recitationModelFromRoutineItem(item),
         includeOuterPadding: false,
+        onTap: () => _onItemTap(context, ref, item),
+      );
+    }
+
+    if (item.type == RoutineItemType.timer) {
+      return RoutineTimerTile(
+        item: item,
         onTap: () => _onItemTap(context, ref, item),
       );
     }
