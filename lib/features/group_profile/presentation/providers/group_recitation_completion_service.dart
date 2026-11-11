@@ -72,12 +72,19 @@ class GroupRecitationCompletionService {
       groupId: groupId,
       collectionId: collectionId,
     );
-    await Future.wait(
+    final results = await Future.wait(
       pending.map((source) => _completeChant(key, navContext, source)),
     );
+
+    // Reported once, after the whole batch: chants completed together could
+    // each see the collection as done and report it more than once.
+    if (results.any((completed) => completed)) {
+      _trackCollectionIfCompleted(key, navContext);
+    }
   }
 
-  Future<void> _completeChant(
+  /// True when the API confirmed [source] as newly completed.
+  Future<bool> _completeChant(
     GroupRecitationCollectionKey key,
     NavigationContext navContext,
     PlanSourceRef source,
@@ -94,7 +101,10 @@ class GroupRecitationCompletionService {
       switch (result) {
         case GroupChantCompletionResult.completed:
           _logger.info('Marked chant $chantId as complete');
-          if (!wasCompleted) _trackCompleted(key, navContext, source.textId);
+          if (!wasCompleted) {
+            _trackChantCompleted(key, navContext, source.textId);
+            return true;
+          }
           break;
         case GroupChantCompletionResult.membershipRequired:
           _logger.warning('Chant completion requires group membership');
@@ -109,35 +119,48 @@ class GroupRecitationCompletionService {
       _logger.error('Failed to complete chant $chantId', e);
       _completedChantIds.remove(chantId);
     }
+    return false;
   }
 
-  /// Reports the confirmed chant, and the collection once every chant is
-  /// done.
-  void _trackCompleted(
+  /// Every chant id of the collection in [navContext].
+  List<String> _collectionChantIds(NavigationContext navContext) => [
+    for (final item in navContext.planTextItems ?? const <PlanTextItem>[])
+      ...item.subtaskIds,
+  ];
+
+  /// Reports one confirmed chant.
+  void _trackChantCompleted(
     GroupRecitationCollectionKey key,
     NavigationContext navContext,
     String textId,
   ) {
-    final chantIds = [
-      for (final item in navContext.planTextItems ?? const <PlanTextItem>[])
-        ...item.subtaskIds,
-    ];
+    final chantIds = _collectionChantIds(navContext);
     final state = _ref.read(groupRecitationCollectionCompletionProvider(key));
-    final completedCount = chantIds.where(state.isCompleted).length;
-    final analytics = _ref.read(groupAnalyticsProvider);
-    analytics.recitationCollectionItemCompleted(
-      collectionId: key.collectionId,
-      groupId: key.groupId,
-      textId: textId,
-      completedCount: completedCount,
-      itemCount: chantIds.length,
-    );
-    if (completedCount == chantIds.length) {
-      analytics.recitationCollectionCompleted(
-        collectionId: key.collectionId,
-        groupId: key.groupId,
-      );
-    }
+    _ref
+        .read(groupAnalyticsProvider)
+        .recitationCollectionItemCompleted(
+          collectionId: key.collectionId,
+          groupId: key.groupId,
+          textId: textId,
+          completedCount: chantIds.where(state.isCompleted).length,
+          itemCount: chantIds.length,
+        );
+  }
+
+  /// Reports the collection when every chant in it is now done.
+  void _trackCollectionIfCompleted(
+    GroupRecitationCollectionKey key,
+    NavigationContext navContext,
+  ) {
+    final chantIds = _collectionChantIds(navContext);
+    final state = _ref.read(groupRecitationCollectionCompletionProvider(key));
+    if (chantIds.isEmpty || !chantIds.every(state.isCompleted)) return;
+    _ref
+        .read(groupAnalyticsProvider)
+        .recitationCollectionCompleted(
+          collectionId: key.collectionId,
+          groupId: key.groupId,
+        );
   }
 
   /// Drops yesterday's claims so the same chant can be completed again today.
@@ -153,5 +176,5 @@ class GroupRecitationCompletionService {
 
 final groupRecitationCompletionProvider =
     Provider<GroupRecitationCompletionService>(
-  (ref) => GroupRecitationCompletionService(ref),
-);
+      (ref) => GroupRecitationCompletionService(ref),
+    );

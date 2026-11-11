@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter_pecha/core/analytics/analytics_events.dart';
 import 'package:flutter_pecha/core/analytics/analytics_providers.dart';
 import 'package:flutter_pecha/core/analytics/analytics_service.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
@@ -77,13 +80,23 @@ class _SignedInAuth extends StateNotifier<AuthState> implements AuthNotifier {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _SilentAnalytics implements AnalyticsService {
+class _RecordingAnalytics implements AnalyticsService {
+  final events = <String>[];
+
+  @override
+  Future<void> track(String event, {Map<String, Object?>? properties}) async {
+    events.add(event);
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 class _FakeRepository extends Fake implements GroupProfileRepositoryInterface {
   final completedCalls = <String>[];
+
+  /// When set, every completion waits for it, so the answers land together.
+  Completer<void>? gate;
 
   @override
   Future<Either<Failure, Set<String>>> getTodayRecitationCollectionCompletions({
@@ -96,6 +109,7 @@ class _FakeRepository extends Fake implements GroupProfileRepositoryInterface {
     required String chantId,
   }) async {
     completedCalls.add(chantId);
+    await gate?.future;
     return const Right(null);
   }
 }
@@ -151,18 +165,15 @@ void main() {
         eventFormat: 'hybrid',
         groupRecitationCollection: _collectionRef,
       );
-      expect(
-        groupEventActionsFor(event, isAttending: false, isPast: false),
-        [
-          GroupEventAction.viewInPerson,
-          GroupEventAction.viewOnline,
-          GroupEventAction.join,
-        ],
-      );
-      expect(
-        groupEventActionsFor(event, isAttending: true, isPast: false),
-        [GroupEventAction.practiceInPerson, GroupEventAction.practiceOnline],
-      );
+      expect(groupEventActionsFor(event, isAttending: false, isPast: false), [
+        GroupEventAction.viewInPerson,
+        GroupEventAction.viewOnline,
+        GroupEventAction.join,
+      ]);
+      expect(groupEventActionsFor(event, isAttending: true, isPast: false), [
+        GroupEventAction.practiceInPerson,
+        GroupEventAction.practiceOnline,
+      ]);
     });
   });
 
@@ -249,15 +260,17 @@ void main() {
 
   group('GroupRecitationCompletionService on a stacked collection', () {
     late _FakeRepository repository;
+    late _RecordingAnalytics analytics;
     late ProviderContainer container;
 
     setUp(() {
       repository = _FakeRepository();
+      analytics = _RecordingAnalytics();
       container = ProviderContainer(
         overrides: [
           authProvider.overrideWith((ref) => _SignedInAuth()),
           groupProfileRepositoryProvider.overrideWithValue(repository),
-          analyticsServiceProvider.overrideWithValue(_SilentAnalytics()),
+          analyticsServiceProvider.overrideWithValue(analytics),
         ],
       );
       addTearDown(container.dispose);
@@ -279,6 +292,30 @@ void main() {
       );
       expect(state.isCompleted('i2'), isTrue);
       expect(state.isCompleted('i3'), isTrue);
+    });
+
+    test('finishing the last chants reports the collection once', () async {
+      // The server answers every chant at the same moment.
+      repository.gate = Completer<void>();
+      final finish = container
+          .read(groupRecitationCompletionProvider)
+          .completeCurrent(_context());
+      await Future<void>.delayed(Duration.zero);
+      repository.gate!.complete();
+      await finish;
+      expect(repository.completedCalls, unorderedEquals(['i1', 'i2', 'i3']));
+      expect(
+        analytics.events.where(
+          (e) => e == AnalyticsEvents.recitationCollectionItemCompleted,
+        ),
+        hasLength(3),
+      );
+      expect(
+        analytics.events.where(
+          (e) => e == AnalyticsEvents.recitationCollectionCompleted,
+        ),
+        hasLength(1),
+      );
     });
 
     test('read-only completes nothing', () async {
