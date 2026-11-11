@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_time_utils.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
+import 'package:flutter_pecha/features/timer/data/models/preset_timer_model.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 import 'package:uuid/uuid.dart';
 
@@ -44,6 +45,11 @@ class RoutineItem {
   /// Original API `session_type` for [RoutineItemType.unknown] items.
   final String? rawSessionType;
 
+  /// For [RoutineItemType.timer] items: the saved timer (user-created or
+  /// preset) this item plays. Its id is what timer stops are reported
+  /// against. Null for older items stored as a bare duration.
+  final PresetTimerModel? timer;
+
   const RoutineItem({
     required this.id,
     required this.title,
@@ -58,6 +64,7 @@ class RoutineItem {
     this.firstSegment,
     this.itemCount,
     this.rawSessionType,
+    this.timer,
   });
 
   /// Smallest cover URL — legacy persistence and notifications.
@@ -87,6 +94,7 @@ class RoutineItem {
     if (firstSegment != null) 'firstSegment': firstSegment!.toJson(),
     if (itemCount != null) 'itemCount': itemCount,
     if (rawSessionType != null) 'rawSessionType': rawSessionType,
+    if (timer != null) 'timer': timer!.toJson(),
   };
 
   /// Safely parses a [RoutineItem] from JSON with null checks and fallbacks.
@@ -115,6 +123,10 @@ class RoutineItem {
       firstSegment: _parseFirstSegment(json),
       itemCount: (json['itemCount'] as num?)?.toInt(),
       rawSessionType: json['rawSessionType'] as String?,
+      timer:
+          json['timer'] is Map<String, dynamic>
+              ? PresetTimerModel.fromJson(json['timer'] as Map<String, dynamic>)
+              : null,
     );
   }
 

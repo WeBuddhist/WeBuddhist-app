@@ -26,6 +26,7 @@ import 'package:flutter_pecha/features/recitation/data/models/my_recitation_list
 import 'package:flutter_pecha/features/practice/data/models/routine_model.dart';
 import 'package:flutter_pecha/features/practice/data/models/session_selection.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
+import 'package:flutter_pecha/features/timer/data/models/preset_timer_model.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_api_mapper.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_time_utils.dart';
@@ -283,6 +284,9 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
     title: '',
     type: RoutineItemType.timer,
     durationMs: timer.durationMs,
+    // Links the item to this timer on the API (sent as source_id), so stops
+    // are reported against the timer's real id.
+    timer: PresetTimerModel.fromEntity(timer),
   );
 
   _EditableBlock? _injectInitialTimer(PresetTimer timer) {

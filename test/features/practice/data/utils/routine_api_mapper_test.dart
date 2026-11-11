@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/features/practice/data/models/routine_api_models.dart';
 import 'package:flutter_pecha/features/practice/data/models/routine_model.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_api_mapper.dart';
+import 'package:flutter_pecha/features/timer/data/models/preset_timer_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -210,6 +211,90 @@ void main() {
           'display_order': 4,
         },
       ]);
+    });
+  });
+
+  group('linked TIMER sessions', () {
+    test('sends the saved timer id as source_id', () {
+      final inputBlock = RoutineBlock(
+        time: const TimeOfDay(hour: 6, minute: 0),
+        items: const [
+          RoutineItem(
+            id: 'local-uuid',
+            title: '',
+            type: RoutineItemType.timer,
+            durationMs: 900000,
+            timer: PresetTimerModel(
+              id: 'timer-abc',
+              name: 'Study',
+              durationMs: 900000,
+            ),
+          ),
+        ],
+      );
+
+      expect(routineBlockToRequest(inputBlock).toJson()['sessions'], [
+        {
+          'session_type': 'TIMER',
+          'source_id': 'timer-abc',
+          'display_order': 0,
+          'duration_ms': 900000,
+        },
+      ]);
+    });
+
+    test('reads the linked timer back with its id and settings', () {
+      final session = SessionDTO.fromJson({
+        'id': 'session-row-1',
+        'session_type': 'TIMER',
+        'source_id': 'timer-abc',
+        'title': 'Study',
+        'duration_ms': 900000,
+        'display_order': 0,
+        'timer': {
+          'id': 'timer-abc',
+          'type': 'user_created',
+          'name': 'Study',
+          'duration': 900000,
+          'ambient_sound_id': 'sound-1',
+          'bell_at_start': false,
+          'bell_at_end': true,
+          'created_at': '2026-11-11T10:00:00Z',
+        },
+      });
+
+      final item = routineItemFromSessionDto(session);
+
+      expect(item.id, 'timer-abc');
+      expect(item.timer?.id, 'timer-abc');
+      expect(item.timer?.ambientSoundId, 'sound-1');
+      expect(item.timer?.bellAtStart, isFalse);
+
+      // Survives the local cache round-trip.
+      final cached = RoutineItem.fromJson(item.toJson());
+      expect(cached.timer?.id, 'timer-abc');
+      expect(cached.timer?.ambientSoundId, 'sound-1');
+    });
+
+    test('a bare duration has no linked timer and re-sends without source_id',
+        () {
+      final session = SessionDTO.fromJson({
+        'id': 'session-row-2',
+        'session_type': 'TIMER',
+        'duration_ms': 600000,
+        'display_order': 0,
+      });
+      final item = routineItemFromSessionDto(session);
+
+      expect(item.timer, isNull);
+      // The row id must never be sent back as a timer id.
+      final json = routineBlockToRequest(
+        RoutineBlock(
+          time: const TimeOfDay(hour: 6, minute: 0),
+          items: [item],
+        ),
+      ).toJson()['sessions'] as List;
+      expect((json.single as Map).containsKey('source_id'), isFalse);
     });
   });
 
