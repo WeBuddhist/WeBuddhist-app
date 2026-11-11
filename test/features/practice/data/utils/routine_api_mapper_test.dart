@@ -265,7 +265,8 @@ void main() {
 
       final item = routineItemFromSessionDto(session);
 
-      expect(item.id, 'timer-abc');
+      // The item keeps its row id so two copies of one timer stay distinct.
+      expect(item.id, 'session-row-1');
       expect(item.timer?.id, 'timer-abc');
       expect(item.timer?.ambientSoundId, 'sound-1');
       expect(item.timer?.bellAtStart, isFalse);

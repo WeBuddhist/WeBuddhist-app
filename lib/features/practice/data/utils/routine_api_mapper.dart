@@ -23,7 +23,9 @@ RoutineBlock routineBlockFromDto(TimeBlockDTO tb) {
 
 RoutineItem routineItemFromSessionDto(SessionDTO s) {
   return RoutineItem(
-    id: s.sourceId,
+    // A block may hold the same timer twice, so a timer item keeps its own
+    // session row id; the saved timer's id lives on [RoutineItem.timer].
+    id: s.sessionType == SessionType.timer ? s.id : s.sourceId,
     title: s.title,
     coverImage: s.coverImage,
     type: switch (s.sessionType) {
