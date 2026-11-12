@@ -19,6 +19,7 @@ import 'package:flutter_pecha/features/practice/presentation/providers/routine_a
 import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/practice_chant_list_tile.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/routine_item_card.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/routine_timer_tile.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -180,11 +181,7 @@ class _RoutineFilledStateState extends ConsumerState<RoutineFilledState> {
                 : '${durationMs ~/ 60000} min session';
         context.push(
           '/home/timers/active',
-          extra: PresetTimer(
-            id: pendingNav.itemId,
-            name: name,
-            durationMs: durationMs,
-          ),
+          extra: _routineTimer(item, name: name, durationMs: durationMs),
         );
       }
       return;
@@ -561,7 +558,7 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
     final name = routineItemDisplayTitle(item, context.l10n);
     context.push(
       '/home/timers/active',
-      extra: PresetTimer(id: item.id, name: name, durationMs: durationMs),
+      extra: _routineTimer(item, name: name, durationMs: durationMs),
     );
     return true;
   }
@@ -714,6 +711,13 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
       );
     }
 
+    if (item.type == RoutineItemType.timer) {
+      return RoutineTimerTile(
+        item: item,
+        onTap: () => _onItemTap(context, ref, item),
+      );
+    }
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isCollection =
         item.type == RoutineItemType.groupRecitationCollection ||
@@ -748,6 +752,36 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
       ),
     );
   }
+}
+
+/// The timer a routine timer item plays. A linked item plays its saved timer
+/// (sound, bells, and the id stops are reported against). A bare duration has
+/// no saved timer, so it gets an empty id and its stop is not reported.
+PresetTimer _routineTimer(
+  RoutineItem? item, {
+  required String name,
+  required int durationMs,
+}) {
+  final linked = item?.timer;
+  if (linked != null && linked.id.isNotEmpty) {
+    final timer = linked.toEntity();
+    return PresetTimer(
+      id: timer.id,
+      name: name,
+      durationMs: durationMs,
+      userId: timer.userId,
+      groupId: timer.groupId,
+      type: timer.type,
+      description: timer.description,
+      ambientSoundId: timer.ambientSoundId,
+      bellAtStart: timer.bellAtStart,
+      bellAtEnd: timer.bellAtEnd,
+      parentPresetId: timer.parentPresetId,
+      createdAt: timer.createdAt,
+      updatedAt: timer.updatedAt,
+    );
+  }
+  return PresetTimer(id: '', name: name, durationMs: durationMs);
 }
 
 RoutineItem? _findRoutineItem(RoutineData routineData, String itemId) {

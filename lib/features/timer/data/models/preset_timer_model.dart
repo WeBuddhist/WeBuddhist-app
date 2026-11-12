@@ -65,6 +65,24 @@ class PresetTimerModel {
     if (updatedAt != null) 'updated_at': updatedAt!.toIso8601String(),
   };
 
+  factory PresetTimerModel.fromEntity(PresetTimer timer) {
+    return PresetTimerModel(
+      id: timer.id,
+      name: timer.name,
+      durationMs: timer.durationMs,
+      userId: timer.userId,
+      groupId: timer.groupId,
+      type: timer.type,
+      description: timer.description,
+      ambientSoundId: timer.ambientSoundId,
+      bellAtStart: timer.bellAtStart,
+      bellAtEnd: timer.bellAtEnd,
+      parentPresetId: timer.parentPresetId,
+      createdAt: timer.createdAt,
+      updatedAt: timer.updatedAt,
+    );
+  }
+
   PresetTimer toEntity() {
     return PresetTimer(
       id: id,

@@ -1,5 +1,6 @@
 import 'package:flutter_pecha/features/plans/data/models/plans_model.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
+import 'package:flutter_pecha/features/timer/data/models/preset_timer_model.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 
 enum SessionType {
@@ -48,6 +49,8 @@ enum SessionType {
 
 class SessionRequest {
   final SessionType sessionType;
+
+  /// For TIMER sessions: the saved timer's id, or empty for a bare duration.
   final String sourceId;
   final int displayOrder;
 
@@ -74,7 +77,7 @@ class SessionRequest {
       'accumulator_id': sourceId
     else if (sessionType == SessionType.groupAccumulator)
       'group_accumulator_id': sourceId
-    else if (sessionType != SessionType.timer)
+    else if (sessionType != SessionType.timer || sourceId.isNotEmpty)
       'source_id': sourceId,
     'display_order': displayOrder,
     if (durationMs != null) 'duration_ms': durationMs,
@@ -133,6 +136,10 @@ class SessionDTO {
   /// [sessionType] is [SessionType.unknown], to echo it back on re-sync.
   final String? rawSessionType;
 
+  /// TIMER sessions linked to a saved timer: that timer with its current
+  /// name, sound and bells. Null for a bare duration.
+  final PresetTimerModel? timer;
+
   const SessionDTO({
     required this.id,
     required this.sessionType,
@@ -149,6 +156,7 @@ class SessionDTO {
     this.firstSegment,
     this.itemCount,
     this.rawSessionType,
+    this.timer,
   });
 
   String? get imageUrl => image?.displayUrl;
@@ -190,6 +198,10 @@ class SessionDTO {
       itemCount: (json['item_count'] as num?)?.toInt(),
       rawSessionType:
           sessionType == SessionType.unknown ? rawSessionType : null,
+      timer:
+          json['timer'] is Map<String, dynamic>
+              ? PresetTimerModel.fromJson(json['timer'] as Map<String, dynamic>)
+              : null,
     );
   }
 

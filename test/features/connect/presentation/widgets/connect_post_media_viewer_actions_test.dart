@@ -301,6 +301,137 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  group('viewer', () {
+    /// Opens the viewer straight away, with [onComment] wired to the footer.
+    Future<void> pumpViewer(
+      WidgetTester tester, {
+      VoidCallback? onComment,
+      int commentCount = 3,
+    }) async {
+      final post = _post('a').copyWith(commentCount: commentCount);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authProvider.overrideWith((ref) => _SignedInAuth()),
+            connectRepositoryProvider.overrideWithValue(repository),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder:
+                  (context) => Scaffold(
+                    body: TextButton(
+                      onPressed:
+                          () => ConnectPostMediaViewer.show(
+                            context,
+                            media: post.media,
+                            actions: ConnectPostMediaViewerActions(
+                              post: post,
+                              onComment: onComment,
+                            ),
+                          ),
+                      child: const Text('open'),
+                    ),
+                  ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ConnectPostMediaViewer), findsOneWidget);
+    }
+
+    Finder viewerIcon(IconData icon) => find.descendant(
+      of: find.byType(ConnectPostMediaViewerActions),
+      matching: find.byIcon(icon),
+    );
+
+    testWidgets('comment button shows the count and closes the viewer', (
+      tester,
+    ) async {
+      var comments = 0;
+      await pumpViewer(tester, onComment: () => comments++);
+
+      expect(viewerIcon(AppAssets.chatCircle), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ConnectPostMediaViewerActions),
+          matching: find.text('3'),
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(viewerIcon(AppAssets.chatCircle));
+      await tester.pumpAndSettle();
+
+      expect(comments, 1);
+      expect(find.byType(ConnectPostMediaViewer), findsNothing);
+    });
+
+    testWidgets('no comment button without a handler', (tester) async {
+      await pumpViewer(tester);
+      expect(viewerIcon(AppAssets.chatCircle), findsNothing);
+    });
+
+    testWidgets('the feed card opens its viewer with a comment button', (
+      tester,
+    ) async {
+      await pumpCardAndOpenViewer(tester);
+      expect(viewerIcon(AppAssets.chatCircle), findsOneWidget);
+    });
+
+    testWidgets('swiping down closes the viewer', (tester) async {
+      await pumpViewer(tester);
+
+      await tester.drag(find.byType(PageView), const Offset(0, 300));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConnectPostMediaViewer), findsNothing);
+    });
+
+    testWidgets('a short drag down springs back', (tester) async {
+      await pumpViewer(tester);
+
+      await tester.timedDrag(
+        find.byType(PageView),
+        const Offset(0, 60),
+        const Duration(seconds: 1),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConnectPostMediaViewer), findsOneWidget);
+      final translate = tester.widget<Transform>(
+        find
+            .ancestor(
+              of: find.byType(PageView),
+              matching: find.byType(Transform),
+            )
+            .first,
+      );
+      expect(translate.transform.getTranslation().y, 0);
+    });
+
+    testWidgets('dragging a zoomed photo does not close the viewer', (
+      tester,
+    ) async {
+      await pumpViewer(tester);
+
+      final photo = find.byType(InteractiveViewer);
+      await tester.tap(photo);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(photo);
+      await tester.pumpAndSettle();
+
+      await tester.drag(photo, const Offset(0, 300));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConnectPostMediaViewer), findsOneWidget);
+    });
+  });
+
   group('post tracking', () {
     const placement = ConnectPostPlacement(
       surface: ConnectPostSurface.communityFeed,

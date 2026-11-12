@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pecha/core/analytics/share_analytics.dart';
@@ -10,6 +12,7 @@ import 'package:flutter_pecha/core/widgets/destructive_confirmation_dialog.dart'
 import 'package:flutter_pecha/features/practice/data/datasource/bookmark_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/presentation/controllers/bookmark_controller.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
+import 'package:flutter_pecha/features/practice/presentation/providers/routine_refresh.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/domain/usecases/delete_user_timer_usecase.dart';
 import 'package:flutter_pecha/features/timer/presentation/providers/timers_providers.dart';
@@ -119,10 +122,18 @@ class _TimerMoreBottomSheetState extends ConsumerState<TimerMoreBottomSheet> {
             DeleteUserTimerParams(timerId: widget.timer.id),
           );
 
-          return deleteResult.fold((failure) {
-            failureMessage = failure.message;
-            return false;
-          }, (_) => true);
+          return deleteResult.fold(
+            (failure) {
+              failureMessage = failure.message;
+              return false;
+            },
+            (_) {
+              // The server also removed this timer from the routine (and any
+              // block it left empty), so reload the routine to match.
+              unawaited(refreshRoutineFromServer(ref));
+              return true;
+            },
+          );
         } catch (_) {
           failureMessage = l10n.something_went_wrong;
           return false;
