@@ -19,6 +19,7 @@ import 'package:flutter_pecha/features/connect/presentation/widgets/connect_post
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_comment_composer.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_post_media_grid.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_post_media_viewer.dart';
+import 'package:flutter_pecha/features/connect/presentation/widgets/connect_comments_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_pecha/core/utils/network_image_utils.dart';
@@ -207,6 +208,10 @@ class _ConnectPostDetailPanelState
         includeUnfollowed: widget.includeUnfollowed,
         groupId: widget.groupId,
         onLikeChanged: _onViewerLikeChanged,
+        // The comments are already on this screen; jump to the input.
+        onComment: () {
+          if (mounted) _commentFocusNode.requestFocus();
+        },
       ),
     );
   }
@@ -347,7 +352,12 @@ class _ConnectPostDetailPanelState
     int commentCount,
   ) {
     if (commentsState.isLoading && commentsState.comments.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return ConnectCommentsSkeleton(
+        showPostPreview: widget.showPostPreview,
+        postCard: widget.showPostPreview
+            ? _buildPostCard(context, isDark, commentCount)
+            : null,
+      );
     }
 
     if (commentsState.error != null && commentsState.comments.isEmpty) {

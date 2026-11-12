@@ -7,9 +7,8 @@ import 'package:flutter_pecha/features/timer/presentation/widgets/timer_duration
 
 /// One timer in the presets / your-timers list: duration, sound, and actions.
 ///
-/// Preset rows sit inside a grouped card with a ⋮ icon and a play button.
-/// User-created rows are standalone cards with a circled ⋮; tapping the
-/// card starts the session.
+/// Every row has a ⋮ menu and a play button. Preset rows sit inside one
+/// grouped card; user-created rows are standalone cards.
 class PresetTimerCard extends StatelessWidget {
   const PresetTimerCard({
     super.key,
@@ -28,7 +27,7 @@ class PresetTimerCard extends StatelessWidget {
   final VoidCallback? onPlay;
   final VoidCallback? onMoreTap;
 
-  /// True for "Your timers" cards: own white surface, circled ⋮, no play.
+  /// True for "Your timers" cards, which get their own card surface.
   final bool standalone;
 
   @override
@@ -62,7 +61,7 @@ class PresetTimerCard extends StatelessWidget {
         TimerDurationText(durationMs: timer.durationMs, color: textColor),
         if (soundLabel != null) ...[
           const SizedBox(height: 2),
-          _SoundLabel(label: soundLabel!, color: mutedColor),
+          TimerSoundLabel(label: soundLabel!, color: mutedColor),
         ],
       ],
     );
@@ -77,31 +76,23 @@ class PresetTimerCard extends StatelessWidget {
           Expanded(
             child: standalone ? info : InkWell(onTap: onPlay, child: info),
           ),
-          if (standalone)
-            _CircleIconButton(
-              isDark: isDark,
-              icon: AppAssets.dotsThreeVertical,
-              onPressed: onMoreTap,
-            )
-          else ...[
-            if (onMoreTap != null)
-              SizedBox(
-                width: 24,
-                height: 40,
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints.expand(),
-                  icon: Icon(
-                    AppAssets.dotsThreeVertical,
-                    color: textColor,
-                    size: 24,
-                  ),
-                  onPressed: onMoreTap,
+          if (onMoreTap != null)
+            SizedBox(
+              width: 24,
+              height: 40,
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints.expand(),
+                icon: Icon(
+                  AppAssets.dotsThreeVertical,
+                  color: textColor,
+                  size: 24,
                 ),
+                onPressed: onMoreTap,
               ),
-            const SizedBox(width: 16),
-            _PlayButton(isDark: isDark, onPressed: onPlay),
-          ],
+            ),
+          const SizedBox(width: 16),
+          _PlayButton(isDark: isDark, onPressed: onPlay),
         ],
       ),
     );
@@ -118,8 +109,9 @@ class PresetTimerCard extends StatelessWidget {
   }
 }
 
-class _SoundLabel extends StatelessWidget {
-  const _SoundLabel({required this.label, required this.color});
+/// Waveform icon and ambient sound name under a timer's duration.
+class TimerSoundLabel extends StatelessWidget {
+  const TimerSoundLabel({super.key, required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -139,41 +131,6 @@ class _SoundLabel extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({
-    required this.isDark,
-    required this.icon,
-    this.onPressed,
-  });
-
-  final bool isDark;
-  final IconData icon;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final iconColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final fill = isDark ? AppColors.surfaceDark : AppColors.surfaceWhite;
-
-    return InkWell(
-      onTap: onPressed,
-      customBorder: const CircleBorder(),
-      child: Ink(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: fill,
-          shape: BoxShape.circle,
-          border: Border.all(color: borderColor),
-        ),
-        child: Icon(icon, size: 24, color: iconColor),
-      ),
     );
   }
 }

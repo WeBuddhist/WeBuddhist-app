@@ -1162,6 +1162,23 @@ class AppLocalizationsMn extends AppLocalizations {
       'Ачаалах боломжгүй. Холболтоо шалгаад дахин оролдоно уу';
 
   @override
+  String get reader_not_translated => 'Орчуулаагүй';
+
+  @override
+  String get error_offline_title => 'Холболт алга';
+
+  @override
+  String get error_server_title => 'Одоогоор ачаалах боломжгүй';
+
+  @override
+  String get reader_error_server_message =>
+      'Энэ эхийг одоогоор ачаалах боломжгүй. Дараа дахин оролдоно уу.';
+
+  @override
+  String get chants_error_server_message =>
+      'Магтаалуудыг одоогоор ачаалах боломжгүй. Дараа дахин оролдоно уу.';
+
+  @override
   String get somethingWrong =>
       'Алдаа гарлаа. Холболтоо шалгаад дахин оролдоно уу';
 
@@ -1302,6 +1319,18 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get settings_edit_profile => 'Профайл засах';
+
+  @override
+  String get settings_signed_in_with_google => 'Signed in with Google';
+
+  @override
+  String get settings_signed_in_with_apple => 'Signed in with Apple';
+
+  @override
+  String get settings_signed_in_with_phone => 'Signed in with phone number';
+
+  @override
+  String get settings_signed_in_as => 'Signed in as';
 
   @override
   String get settings_theme => 'Загвар';
@@ -1539,6 +1568,69 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get calendar_title => 'Хуанли';
+
+  @override
+  String get calendar_today => 'Today';
+
+  @override
+  String get calendar_no_events => 'No events';
+
+  @override
+  String get calendar_source_lunar => 'Lunar calendar';
+
+  @override
+  String get calendar_add_event => 'Add event';
+
+  @override
+  String get calendar_event_name => 'Event name';
+
+  @override
+  String get calendar_event_name_hint => 'Add an event to your calendar';
+
+  @override
+  String get calendar_repeat => 'Repeat';
+
+  @override
+  String get calendar_does_not_repeat => 'Does not repeat';
+
+  @override
+  String get calendar_repeat_weekly => 'Weekly';
+
+  @override
+  String get calendar_repeat_monthly => 'Monthly';
+
+  @override
+  String get calendar_repeat_yearly => 'Yearly';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return 'Monthly ($day lunar)';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+
+  @override
+  String get calendar_delete_event => 'Delete event';
+
+  @override
+  String get calendar_delete_event_title => 'Delete event?';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => 'Delete repeating event?';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_event_deleted => 'Event deleted';
 
   @override
   String get calendar_upcoming_events => 'Удахгүй болох арга хэмжээ';
@@ -1915,6 +2007,10 @@ class AppLocalizationsMn extends AppLocalizations {
   @override
   String get group_accumulator_join_error =>
       'Хуримтлалд нэгдэх боломжгүй байна. Дахин оролдоно уу';
+
+  @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
 
   @override
   String get group_accumulator_join_before_practice =>
@@ -3932,7 +4028,7 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get timer_duplicate_setup =>
-      'A timer with this duration and sound already exists.';
+      'A timer with this duration, sound, and title already exists.';
 
   @override
   String get splash_tagline_1 => 'We Buddhists practice together';

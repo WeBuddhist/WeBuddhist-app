@@ -18,6 +18,7 @@ import 'package:flutter_pecha/features/group_profile/domain/entities/group_accum
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_accumulator_screen.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_collection_live_screen.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_detail_screen.dart';
 import 'package:flutter_pecha/features/home/presentation/utils/home_live_event_entry.dart';
 import 'package:flutter_pecha/features/feedback/domain/entities/help_topic.dart';
@@ -471,6 +472,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 },
               ),
               GoRoute(
+                path: "events/:eventId/collection",
+                name: "home-group-event-collection",
+                parentNavigatorKey: rootNavigatorKey,
+                builder: (context, state) {
+                  final extra = state.extra;
+                  if (extra is GroupEventCollectionLiveArgs) {
+                    return GroupEventCollectionLiveScreen(args: extra);
+                  }
+                  // Restored or deep-linked without the prepared reader:
+                  // the event page can open it again.
+                  return GroupEventDetailScreen(
+                    eventId: state.pathParameters['eventId'] ?? '',
+                  );
+                },
+              ),
+              GoRoute(
                 path: "poems",
                 name: "home-poems",
                 parentNavigatorKey: rootNavigatorKey,
@@ -596,6 +613,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: "mala",
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
+          // A group accumulation with its own mantra (e.g. a space mantra)
+          // opens in single-accumulation mode.
+          final groupAccumulator = extra?['groupAccumulator'];
+          if (groupAccumulator is GroupAccumulator &&
+              groupAccumulator.mantra != null) {
+            return MalaScreen(singleAccumulation: groupAccumulator);
+          }
           return MalaScreen(
             initialPresetId: extra?['presetId'] as String?,
             initialGroupAccumulatorId: extra?['groupAccumulatorId'] as String?,

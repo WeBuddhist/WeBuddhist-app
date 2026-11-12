@@ -11,11 +11,12 @@ import 'package:flutter_pecha/core/localization/app_language.dart';
 import 'package:flutter_pecha/core/localization/languages_providers.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/theme/theme_notifier.dart';
-import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/shared/widgets/app_toggle_switch.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/widgets/login_drawer.dart';
 import 'package:flutter_pecha/features/feedback/presentation/screens/help_contact_screen.dart';
+import 'package:flutter_pecha/features/feedback/presentation/utils/help_contact_analytics.dart';
+import 'package:flutter_pecha/features/more/presentation/providers/sign_in_account_provider.dart';
 import 'package:flutter_pecha/features/notifications/presentation/notification_settings_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -65,23 +66,12 @@ class MoreScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           children: [
-            if (authState.isLoggedIn && !authState.isGuest) ...[
-              _buildProfileCard(context, ref),
-              const SizedBox(height: 24),
-            ],
             // Personalisation Section
             _buildSectionHeader(
               context,
               localizations.settings_section_personalisation,
             ),
             const SizedBox(height: 12),
-            if (authState.isLoggedIn && !authState.isGuest)
-              _buildSettingsRow(
-                context,
-                icon: AppAssets.profile,
-                title: localizations.settings_edit_profile,
-                onTap: () => context.push(AppRoutes.profile),
-              ),
             _buildLanguageRow(context, ref, contentLanguageCode),
             _buildNotificationRow(context, localizations),
             _buildThemeToggleRow(context, ref, isDarkMode, localizations),
@@ -106,7 +96,12 @@ class MoreScreen extends ConsumerWidget {
               context,
               icon: AppAssets.feedback,
               title: localizations.settings_help_contact_row,
-              onTap: () => HelpContactScreen.open(context, ref),
+              onTap:
+                  () => HelpContactScreen.open(
+                    context,
+                    ref,
+                    source: HelpContactSource.settings,
+                  ),
             ),
             const SizedBox(height: 24),
 
@@ -126,6 +121,7 @@ class MoreScreen extends ConsumerWidget {
                         LoginDrawer.show(context, ref, useRootNavigator: true),
               ),
             ] else ...[
+              const _SignInAccountRow(),
               _buildSettingsRow(
                 context,
                 icon: AppAssets.signOut,
@@ -165,99 +161,6 @@ class MoreScreen extends ConsumerWidget {
               .read(themeModeProvider.notifier)
               .setTheme(value ? ThemeMode.dark : ThemeMode.light);
         },
-      ),
-    );
-  }
-
-  /// Signed-in user's avatar, username and email. Tapping opens Edit profile.
-  /// Email is omitted when there is none, e.g. phone sign-in.
-  Widget _buildProfileCard(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(userProvider.select((s) => s.user));
-    if (user == null) return const SizedBox.shrink();
-
-    final textTheme = Theme.of(context).textTheme;
-    final avatarUrl = user.avatarUrl ?? '';
-    final username = user.username?.trim() ?? '';
-    final email = user.email?.trim() ?? '';
-    const avatarSize = 56.0;
-    final placeholderIcon = Icon(
-      AppAssets.profile,
-      size: 28,
-      color: AppColors.grey600,
-    );
-
-    return InkWell(
-      onTap: () => context.push(AppRoutes.profile),
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            SizedBox(
-              width: avatarSize,
-              height: avatarSize,
-              child: ClipOval(
-                child:
-                    avatarUrl.isNotEmpty
-                        ? CachedNetworkImageWidget(
-                          imageUrl: avatarUrl,
-                          width: avatarSize,
-                          height: avatarSize,
-                          fit: BoxFit.cover,
-                          placeholder: const ColoredBox(
-                            color: AppColors.grey300,
-                          ),
-                          errorWidget: ColoredBox(
-                            color: AppColors.grey300,
-                            child: placeholderIcon,
-                          ),
-                        )
-                        : DecoratedBox(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.grey300,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: placeholderIcon,
-                        ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              // Personal details stay hidden in Clarity recordings.
-              child: ClarityMask(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (username.isNotEmpty)
-                      Text(
-                        username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    if (email.isNotEmpty) ...[
-                      if (username.isNotEmpty) const SizedBox(height: 2),
-                      Text(
-                        email,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: AppColors.grey600,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-            Icon(AppAssets.caretRight, size: 24, color: AppColors.grey600),
-          ],
-        ),
       ),
     );
   }
@@ -582,6 +485,64 @@ class _ThemeToggle extends StatelessWidget {
       onChanged: onChanged,
       thumbOnColor: AppColors.surfaceWhite,
       thumbOffColor: AppColors.surfaceWhite,
+    );
+  }
+}
+
+/// Shows which account is signed in (email or phone number and how it signed
+/// in) so people know what they are logging out of. Not tappable.
+class _SignInAccountRow extends ConsumerWidget {
+  const _SignInAccountRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final account = ref.watch(signInAccountProvider).valueOrNull;
+    if (account == null) return const SizedBox.shrink();
+
+    final localizations = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+    final label = switch (account.method) {
+      SignInMethod.google => localizations.settings_signed_in_with_google,
+      SignInMethod.apple => localizations.settings_signed_in_with_apple,
+      SignInMethod.phone => localizations.settings_signed_in_with_phone,
+      null => localizations.settings_signed_in_as,
+    };
+    final icon =
+        account.method == SignInMethod.phone
+            ? AppAssets.deviceMobile
+            : AppAssets.userCircle;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 24, color: Theme.of(context).iconTheme.color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.grey600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // Personal details stay hidden in Clarity recordings.
+                ClarityMask(
+                  child: Text(
+                    account.identifier,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.bodyLarge,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

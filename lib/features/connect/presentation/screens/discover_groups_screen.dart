@@ -4,6 +4,7 @@ import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/discover_group_card.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class DiscoverGroupsScreen extends ConsumerStatefulWidget {
@@ -74,7 +75,10 @@ class _DiscoverGroupsScreenState extends ConsumerState<DiscoverGroupsScreen> {
     List<GroupProfile> groups,
   ) {
     if ((groupsState.isLoading || !groupsState.hasLoaded) && groups.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const GroupProfileTabSkeleton.box(
+        variant: GroupProfileTabSkeletonVariant.member,
+        avatarSize: 48,
+      );
     }
 
     if (groupsState.error != null && groups.isEmpty) {

@@ -590,6 +590,10 @@ class _ActiveTimerScreenState extends ConsumerState<ActiveTimerScreen>
   }
 
   void _reportTimerStop() {
+    // A practice-block timer saved as a bare duration has no saved timer
+    // behind it; the API would reject the stop as "Timer not found".
+    if (widget.presetTimer.id.isEmpty) return;
+
     final elapsedMs = _elapsedMs;
 
     // Pausing already reports the session; a Finish immediately after would

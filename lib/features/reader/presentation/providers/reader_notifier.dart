@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
+import 'package:flutter_pecha/core/error/load_error_kind.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/reader/constants/reader_constants.dart';
 import 'package:flutter_pecha/features/reader/data/models/flattened_content.dart';
@@ -38,18 +39,24 @@ class ReaderParams {
   final List<String>? segmentIds;
   final NavigationContext? navigationContext;
 
+  /// This text's own language on a page of several texts; wins over the
+  /// navigation's [NavigationContext.language].
+  final String? sourceLanguage;
+
   const ReaderParams({
     required this.textId,
     this.segmentId,
     this.segmentIds,
     this.navigationContext,
+    this.sourceLanguage,
   });
 
   /// True when only [segmentIds] are shown, loaded forward from the first.
   bool get isCollapsed => segmentIds != null && segmentIds!.isNotEmpty;
 
-  /// Language requested by navigation (e.g. the All chants picker).
-  String? get language => navigationContext?.language;
+  /// Language requested by navigation (e.g. the All chants picker), or the
+  /// text's own on a page of several texts.
+  String? get language => sourceLanguage ?? navigationContext?.language;
 
   /// Key of this reader's dual-layout settings: the text in the context it
   /// was opened from (library, event, chant or plan).
@@ -248,6 +255,7 @@ class ReaderNotifier extends StateNotifier<ReaderState>
       state = state.copyWith(
         status: ReaderStatus.error,
         errorMessage: e.toString(),
+        errorKind: loadErrorKindOf(e),
       );
     }
   }

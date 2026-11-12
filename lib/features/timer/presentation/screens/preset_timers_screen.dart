@@ -3,7 +3,6 @@ import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
-import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/bookmark_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
@@ -13,6 +12,7 @@ import 'package:flutter_pecha/features/timer/presentation/providers/timers_provi
 import 'package:flutter_pecha/features/timer/presentation/widgets/custom_timer_card.dart';
 import 'package:flutter_pecha/features/timer/presentation/widgets/preset_timer_card.dart';
 import 'package:flutter_pecha/features/timer/presentation/widgets/timer_more_bottom_sheet.dart';
+import 'package:flutter_pecha/features/timer/presentation/widgets/timer_section_title.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
@@ -168,7 +168,7 @@ class _TimersContent extends ConsumerWidget {
         24,
       ),
       children: [
-        _SectionTitle(title: l10n.timer_your_timers),
+        TimerSectionTitle(title: l10n.timer_your_timers),
         const SizedBox(height: 8),
         CustomTimerCard(
           title: l10n.timer_create_custom,
@@ -186,7 +186,7 @@ class _TimersContent extends ConsumerWidget {
         ],
         if (presetTimers.isNotEmpty) ...[
           const SizedBox(height: PresetTimersScreen._sectionSpacing),
-          _SectionTitle(title: l10n.preset_timers),
+          TimerSectionTitle(title: l10n.preset_timers),
           const SizedBox(height: 8),
           _TimerGroup(
             children: [
@@ -235,33 +235,6 @@ class _TimerGroup extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final isTibetan = AppFontConfig.isTibetanLanguage(
-      Localizations.localeOf(context).languageCode,
-    );
-    final color =
-        Theme.of(context).brightness == Brightness.dark
-            ? AppColors.textTertiaryDark
-            : AppColors.grey800;
-
-    return Text(
-      isTibetan ? title : title.toUpperCase(),
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        letterSpacing: isTibetan ? 0 : 0.72,
-        color: color,
-      ),
-    );
-  }
-}
-
 class _TimersContentSkeleton extends StatelessWidget {
   const _TimersContentSkeleton();
 
@@ -279,11 +252,11 @@ class _TimersContentSkeleton extends StatelessWidget {
           24,
         ),
         children: [
-          _SectionTitle(title: l10n.timer_your_timers),
+          TimerSectionTitle(title: l10n.timer_your_timers),
           const SizedBox(height: 8),
           const _RowSkeleton(),
           const SizedBox(height: PresetTimersScreen._sectionSpacing),
-          _SectionTitle(title: l10n.preset_timers),
+          TimerSectionTitle(title: l10n.preset_timers),
           const SizedBox(height: 8),
           const _TimerGroup(
             children: [

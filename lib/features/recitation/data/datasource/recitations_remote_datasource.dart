@@ -27,6 +27,11 @@ abstract class RecitationsRemoteDatasource {
     RecitationsQueryParams? queryParams,
   });
 
+  /// Extra [ScreenCacheKey] params that tell stored chant lists apart when
+  /// the datasource filters them (e.g. by the user's traditions). Empty when
+  /// every caller gets the same catalogue.
+  List<String> get cacheKeyParams => const [];
+
   Future<List<RecitationModel>> fetchRecitations({
     RecitationsQueryParams? queryParams,
   }) async {

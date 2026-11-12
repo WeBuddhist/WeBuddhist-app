@@ -23,7 +23,9 @@ RoutineBlock routineBlockFromDto(TimeBlockDTO tb) {
 
 RoutineItem routineItemFromSessionDto(SessionDTO s) {
   return RoutineItem(
-    id: s.sourceId,
+    // A block may hold the same timer twice, so a timer item keeps its own
+    // session row id; the saved timer's id lives on [RoutineItem.timer].
+    id: s.sessionType == SessionType.timer ? s.id : s.sourceId,
     title: s.title,
     coverImage: s.coverImage,
     type: switch (s.sessionType) {
@@ -49,6 +51,7 @@ RoutineItem routineItemFromSessionDto(SessionDTO s) {
     firstSegment: s.firstSegment,
     itemCount: s.itemCount,
     rawSessionType: s.rawSessionType,
+    timer: s.sessionType == SessionType.timer ? s.timer : null,
   );
 }
 
@@ -79,7 +82,12 @@ List<SessionRequest> _sessionsForBlock(RoutineBlock block) {
           RoutineItemType.groupAccumulator => SessionType.groupAccumulator,
           RoutineItemType.unknown => SessionType.unknown,
         },
-        sourceId: item.id,
+        // A timer links by its saved timer's id. For a bare duration item.id
+        // is the session row id, which the API would reject as a timer.
+        sourceId:
+            item.type == RoutineItemType.timer
+                ? (item.timer?.id ?? '')
+                : item.id,
         displayOrder: i,
         durationMs: item.durationMs,
         rawSessionType: item.rawSessionType,

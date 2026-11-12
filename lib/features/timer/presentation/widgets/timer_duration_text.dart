@@ -91,14 +91,9 @@ class TimerDurationText extends StatelessWidget {
   }) {
     final value = TextSpan(text: '${part.value}', style: valueStyle);
     final unitSpan = TextSpan(text: unit, style: unitStyle);
-    final gap =
-        compound
-            ? null
-            : const WidgetSpan(
-              alignment: PlaceholderAlignment.baseline,
-              baseline: TextBaseline.alphabetic,
-              child: SizedBox(width: 4),
-            );
+    // A real space (not a spacer widget) so screen readers and text finders
+    // read "1 min", not "1\uFFFCmin".
+    final gap = compound ? null : TextSpan(text: ' ', style: unitStyle);
     if (isTibetan) {
       return gap == null ? [unitSpan, value] : [unitSpan, gap, value];
     }

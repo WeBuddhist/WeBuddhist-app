@@ -7,7 +7,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/utils/group_ev
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What "enter the live event" opened, carried on `group_event_live_entered`.
-enum GroupEventLiveTarget { series, plan }
+enum GroupEventLiveTarget { series, plan, collection }
 
 /// Product analytics for group events: one method per tracked action, so the
 /// event names and their property keys live in one place. Every call fires
@@ -98,10 +98,19 @@ class GroupEventAnalytics {
     });
   }
 
-  void eventLeft({required String eventId, required String groupId}) {
+  /// [planId] and [seriesId] name the practice the event is tied to. Leaving
+  /// ends only the RSVP and chat room, so any enrollment in it stays.
+  void eventLeft({
+    required String eventId,
+    required String groupId,
+    String? planId,
+    String? seriesId,
+  }) {
     _analytics.trackInBackground(AnalyticsEvents.groupEventLeft, {
       AnalyticsProperties.eventId: eventId,
       AnalyticsProperties.groupId: groupId,
+      AnalyticsProperties.planId: planId,
+      AnalyticsProperties.seriesId: seriesId,
     });
   }
 

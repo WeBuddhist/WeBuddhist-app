@@ -137,5 +137,57 @@ void main() {
       );
       expect(timer1.sameSetup(timer2), isTrue);
     });
+    test(
+      'same duration and sound with different titles is not a duplicate',
+      () {
+        const morning = PresetTimer(
+          id: '1',
+          name: '20 minutes',
+          description: 'Morning',
+          durationMs: 1200000,
+          type: kPresetTimerTypeUserCreated,
+        );
+        const evening = PresetTimer(
+          id: '2',
+          name: '20 minutes',
+          description: 'Evening',
+          durationMs: 1200000,
+          type: kPresetTimerTypeUserCreated,
+        );
+        expect(morning.sameSetup(evening), isFalse);
+      },
+    );
+
+    test('blank and null titles match, and titles are trimmed', () {
+      const untitled = PresetTimer(
+        id: '1',
+        name: '20 minutes',
+        durationMs: 1200000,
+        type: kPresetTimerTypeUserCreated,
+      );
+      const blank = PresetTimer(
+        id: '2',
+        name: '20 minutes',
+        description: '  ',
+        durationMs: 1200000,
+        type: kPresetTimerTypeUserCreated,
+      );
+      const padded = PresetTimer(
+        id: '3',
+        name: '20 minutes',
+        description: ' Morning ',
+        durationMs: 1200000,
+        type: kPresetTimerTypeUserCreated,
+      );
+      const trimmed = PresetTimer(
+        id: '4',
+        name: '20 minutes',
+        description: 'Morning',
+        durationMs: 1200000,
+        type: kPresetTimerTypeUserCreated,
+      );
+      expect(untitled.sameSetup(blank), isTrue);
+      expect(padded.sameSetup(trimmed), isTrue);
+    });
   });
 }

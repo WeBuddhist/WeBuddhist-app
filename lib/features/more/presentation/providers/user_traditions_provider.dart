@@ -3,16 +3,18 @@ import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/onboarding/data/datasource/onboarding_remote_datasource.dart';
 import 'package:flutter_pecha/features/onboarding/data/models/tradition_models.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/providers/onboarding_datasource_providers.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final _logger = AppLogger('UserTraditionsNotifier');
 
-final userTraditionsProvider =
-    AsyncNotifierProvider.autoDispose<UserTraditionsNotifier, List<UserTradition>>(
-      UserTraditionsNotifier.new,
-    );
+final userTraditionsProvider = AsyncNotifierProvider.autoDispose<
+  UserTraditionsNotifier,
+  List<UserTradition>
+>(UserTraditionsNotifier.new);
 
-class UserTraditionsNotifier extends AutoDisposeAsyncNotifier<List<UserTradition>> {
+class UserTraditionsNotifier
+    extends AutoDisposeAsyncNotifier<List<UserTradition>> {
   late final OnboardingRemoteDatasource _remoteDatasource;
 
   @override
@@ -35,18 +37,21 @@ class UserTraditionsNotifier extends AutoDisposeAsyncNotifier<List<UserTradition
       () => _remoteDatasource.fetchUserTraditions(language: language),
     );
     if (state.hasError) {
-      _logger.error('Failed to refresh user traditions', state.error, state.stackTrace);
+      _logger.error(
+        'Failed to refresh user traditions',
+        state.error,
+        state.stackTrace,
+      );
     }
   }
 
   Future<bool> removeTradition(String userTraditionId) async {
     final previous = state.valueOrNull ?? const <UserTradition>[];
-    state = AsyncData(
-      previous.where((t) => t.id != userTraditionId).toList(),
-    );
+    state = AsyncData(previous.where((t) => t.id != userTraditionId).toList());
 
     try {
       await _remoteDatasource.deleteUserTradition(userTraditionId);
+      ref.invalidate(traditionTagFilterProvider);
       return true;
     } catch (e, stackTrace) {
       _logger.error('Failed to delete user tradition', e, stackTrace);
@@ -59,9 +64,8 @@ class UserTraditionsNotifier extends AutoDisposeAsyncNotifier<List<UserTradition
     final current = state.valueOrNull ?? const <UserTradition>[];
     final currentCodes = current.map((t) => t.traditionCode).toSet();
     final codesToAdd = selectedCodes.difference(currentCodes);
-    final traditionsToRemove = current
-        .where((t) => !selectedCodes.contains(t.traditionCode))
-        .toList();
+    final traditionsToRemove =
+        current.where((t) => !selectedCodes.contains(t.traditionCode)).toList();
 
     if (codesToAdd.isEmpty && traditionsToRemove.isEmpty) {
       return true;
@@ -92,6 +96,10 @@ class UserTraditionsNotifier extends AutoDisposeAsyncNotifier<List<UserTradition
         _logger.error('Failed to save tradition $code', e, stackTrace);
       }
     }
+
+    // Chant lists are narrowed by these traditions; whatever was saved
+    // (even on partial failure) is what they should now reflect.
+    ref.invalidate(traditionTagFilterProvider);
 
     final language = ref.read(contentLanguageProvider);
     state = await AsyncValue.guard(

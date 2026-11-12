@@ -190,11 +190,13 @@ class PresetTimer {
   /// See [hasUnitForMs].
   bool get hasUnit => hasUnitForMs(durationMs);
 
-  /// Checks if another timer has the same duration and ambient sound.
-  /// Null and blank ambientSoundId are treated as equal.
+  /// True when [other] has the same duration, ambient sound, and title.
+  /// Null and blank sounds or titles count as equal, so two untitled timers
+  /// with the same length and sound match, but "Morning" and "Evening" don't.
   bool sameSetup(PresetTimer other) {
-    final sound1 = ambientSoundId?.trim() ?? '';
-    final sound2 = other.ambientSoundId?.trim() ?? '';
-    return durationMs == other.durationMs && sound1 == sound2;
+    String norm(String? v) => v?.trim() ?? '';
+    return durationMs == other.durationMs &&
+        norm(ambientSoundId) == norm(other.ambientSoundId) &&
+        norm(description) == norm(other.description);
   }
 }

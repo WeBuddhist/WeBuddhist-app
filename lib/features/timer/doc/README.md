@@ -10,7 +10,7 @@ Preset meditation timers with countdown, pause/resume, lock-screen display, sess
 
 - Browse preset timers + user-created ("Your timers") (authenticated)
 - Create a custom timer (duration, ambient sound) via the "Create a custom timer" card, which stays at the top of "Your timers"
-- Your timers are separate cards (circled ⋮; tap the card to start). Presets sit in one grouped card (⋮ + play)
+- Your timers are separate cards; presets sit in one grouped card. Every row has ⋮ + play
 - Edit or delete your own timers from the card's ⋮ menu
 - 3-second countdown (Cancel leaves immediately) → running phase
 - Pause/resume with **wall-clock** remaining time (survives backgrounding)
@@ -38,6 +38,7 @@ timer/
 |------|-------|
 | Presets + Your timers | `presentation/screens/preset_timers_screen.dart` |
 | Create / edit custom timer | `presentation/screens/new_timer_screen.dart` |
+| Shared cards / headings (also used by the practice "Add to session" picker's Timers tab) | `presentation/widgets/{preset_timer_card,timer_picker_card,timer_section_title}.dart` |
 | Duration / Ambient sound sheets | `presentation/widgets/{duration_picker_sheet,ambient_sound_sheet}.dart` |
 | Ambient sound playback (preview + session) | `presentation/services/ambient_sound_player.dart` |
 | Active session | `presentation/screens/active_timer_screen.dart` |
@@ -114,9 +115,11 @@ or hours are present) so the stored name stays truthful, but **only when the
 duration actually changed**: the picker saves exact hours, minutes, and
 seconds. List labels use the same split (`1 min`, `1hr 24min`,
 `1hr 24min 23sec`) with leftover-second numbers drawn smaller. Duplicate
-setups with the exact same duration and ambient sound (treating null and
-blank as equal) are blocked from both creation and editing, returning a
-ValidationFailure (`code: timer_duplicate_setup`) and a snackbar from
+setups with the exact same duration, ambient sound, and title (treating null
+and blank as equal) are blocked from both creation and editing, returning a
+ValidationFailure (`code: timer_duplicate_setup`). The check runs once, in
+`TimersRepository`, against the cached list, and an edit that keeps the
+timer's own setup is never blocked (so older duplicates can still be edited) and a snackbar from
 `timer_duplicate_setup` (ARB fallback, Tolgee override per language). An edit that touches
 just the sound must resend the stored `durationMs` (and stored name) verbatim
 rather than a re-derived value, which would quietly change e.g. a 90s timer. `ambient_sound_id` is **always** in the body,
@@ -179,8 +182,8 @@ offering an undo it cannot honour.
 
 An empty timer list is **not** an empty state. "Your timers" always starts
 with the "Create a custom timer" card, and timers the user has created are
-listed under it as separate cards (circled ⋮; tap to start). Presets share
-one grouped card with ⋮ and play on each row. A timer with no
+listed under it as separate cards. Presets share one grouped card. Every
+row has ⋮ and play. A timer with no
 `ambient_sound_id` is labeled "Default (no sound)".
 
 The bundled `assets/audios/meditation.wav` bell (`TimerSoundPlayer`) always

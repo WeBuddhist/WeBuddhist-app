@@ -7,6 +7,7 @@ import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +45,10 @@ class MyGroupsScreen extends ConsumerWidget {
       body: myGroupsAsync.when(
         loading: () {
           if (groups.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const GroupProfileTabSkeleton.box(
+              variant: GroupProfileTabSkeletonVariant.member,
+              avatarSize: 48,
+            );
           }
           return _buildGroupsList(groups, isDark);
         },

@@ -36,6 +36,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      # Caches the Gradle distribution and dependency caches between runs, so
+      # a release does not depend on downloading Gradle from GitHub each time.
+      - name: 🐘 Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@v2
         with:

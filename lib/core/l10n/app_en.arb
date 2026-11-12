@@ -225,8 +225,8 @@
   "notification_row_chants": "Chants",
   "notification_row_mala": "Mala & accumulations",
   "notification_row_timer": "Timer",
-  "notification_row_group_posts": "Space posts",
-  "notification_row_group_chats": "Space chats",
+  "notification_row_group_posts": "Group posts",
+  "notification_row_group_chats": "Group chats",
   "notification_row_my_prayer_requests": "My prayer requests",
   "notification_row_others_prayer_requests": "Other people's prayer requests",
   "profile_default_bio": "Welcome to WeBuddhist",
@@ -541,6 +541,11 @@
   "anonymous": "Anonymous",
   "noContentAvailable": "No content available",
   "unableToLoad": "Unable to load. Check your connection and try again",
+  "reader_not_translated": "Not translated",
+  "error_offline_title": "No connection",
+  "error_server_title": "Can't load right now",
+  "reader_error_server_message": "This text can't be loaded right now. Please try again later.",
+  "chants_error_server_message": "Chants can't be loaded right now. Please try again later.",
   "somethingWrong": "Something went wrong. Check your connection and try again",
   "source": "Source",
   "noTasks": "No tasks available",
@@ -631,6 +636,10 @@
   "settings_section_more": "MORE",
   "settings_section_account": "ACCOUNT",
   "settings_edit_profile": "Edit profile",
+  "settings_signed_in_with_google": "Signed in with Google",
+  "settings_signed_in_with_apple": "Signed in with Apple",
+  "settings_signed_in_with_phone": "Signed in with phone number",
+  "settings_signed_in_as": "Signed in as",
   "settings_theme": "Theme",
   "settings_notification_row": "Notifications",
   "settings_feedback_row": "Feedback",
@@ -721,6 +730,49 @@
   "legal_privacy_policy": "Privacy policy",
   "follow": "Follow",
   "calendar_title": "Calendar",
+  "calendar_today": "Today",
+  "calendar_no_events": "No events",
+  "calendar_source_lunar": "Lunar calendar",
+  "calendar_add_event": "Add event",
+  "calendar_event_name": "Event name",
+  "calendar_event_name_hint": "Add an event to your calendar",
+  "calendar_repeat": "Repeat",
+  "calendar_does_not_repeat": "Does not repeat",
+  "calendar_repeat_weekly": "Weekly",
+  "calendar_repeat_monthly": "Monthly",
+  "calendar_repeat_yearly": "Yearly",
+  "calendar_repeat_monthly_lunar": "Monthly ({day} lunar)",
+  "@calendar_repeat_monthly_lunar": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_repeat_yearly_lunar": "Yearly (lunar date)",
+  "calendar_delete_event": "Delete event",
+  "calendar_delete_event_title": "Delete event?",
+  "calendar_delete_event_body": "\"{title}\" will be removed from your calendar. This can’t be undone.",
+  "@calendar_delete_event_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_delete_repeating_title": "Delete repeating event?",
+  "calendar_delete_repeating_body": "Every date of \"{title}\" ({repeat}) will be removed from your calendar. This can’t be undone.",
+  "@calendar_delete_repeating_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "repeat": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_event_deleted": "Event deleted",
   "calendar_upcoming_events": "Upcoming events",
   "calendar_day_short": "DAY",
   "calendar_day_label": "Day",
@@ -931,6 +983,7 @@
   "group_change_practice_message": "You are already practicing this plan with another space. Would you like to change your practice space?",
   "group_join_to_contribute": "Join to contribute",
   "group_accumulator_join_error": "Unable to join accumulation. Please try again",
+  "group_accumulator_practice_unavailable": "This practice can't be opened right now.",
   "group_accumulator_join_before_practice": "Join this accumulation before adding it to your practices",
   "group_accumulator_participants": "{count} participants",
   "@group_accumulator_participants": {
@@ -1956,7 +2009,7 @@
   "timer_delete_title": "Delete timer?",
   "timer_delete_message": "This timer will be removed from your timers.",
   "timer_duration_must_be_greater_than_error": "Duration must be greater than 0",
-  "timer_duplicate_setup": "A timer with this duration and sound already exists.",
+  "timer_duplicate_setup": "A timer with this duration, sound, and title already exists.",
   "splash_tagline_1": "We Buddhists practice together",
   "splash_tagline_2": "We Buddhists practice daily",
   "timer_create_custom": "Create a custom timer",

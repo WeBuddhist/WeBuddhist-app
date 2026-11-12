@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/features/practice/presentation/providers/routine_refresh.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/ambient_sound.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/domain/usecases/create_user_timer_usecase.dart';
@@ -146,32 +149,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     return failure.message;
   }
 
-  void _showDuplicateSetupSnackBar() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(context.l10n.timer_duplicate_setup)));
-  }
-
   Future<PresetTimer?> _createTimer() async {
-    final currentTimer = PresetTimer(
-      id: '',
-      name: _timerName,
-      durationMs: _durationMs,
-      ambientSoundId: _ambientSoundId,
-      type: kPresetTimerTypeUserCreated,
-    );
-    final timersEither = ref.read(presetTimersFutureProvider).value;
-    if (timersEither != null) {
-      final timers = timersEither.fold((_) => <PresetTimer>[], (list) => list);
-      final isDuplicate = timers.any(
-        (t) => t.isUserCreated && currentTimer.sameSetup(t),
-      );
-      if (isDuplicate) {
-        _showDuplicateSetupSnackBar();
-        return null;
-      }
-    }
-
     setState(() => _isSubmitting = true);
     final useCase = ref.read(createUserTimerUseCaseProvider);
     final result = await useCase(
@@ -201,29 +179,6 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
 
   Future<void> _onSaveChanges() async {
     if (_isSubmitting) return;
-
-    final currentTimer = PresetTimer(
-      id: widget.timer!.id,
-      name: _timerName,
-      durationMs: _durationMs,
-      ambientSoundId: _ambientSoundId,
-      type: kPresetTimerTypeUserCreated,
-    );
-    final timersEither = ref.read(presetTimersFutureProvider).value;
-    if (timersEither != null) {
-      final timers = timersEither.fold((_) => <PresetTimer>[], (list) => list);
-      final isDuplicate = timers.any(
-        (t) =>
-            t.isUserCreated &&
-            t.id != widget.timer!.id &&
-            currentTimer.sameSetup(t),
-      );
-      if (isDuplicate) {
-        _showDuplicateSetupSnackBar();
-        return;
-      }
-    }
-
     setState(() => _isSubmitting = true);
     final result = await ref.read(updateUserTimerUseCaseProvider)(
       UpdateUserTimerParams(
@@ -237,11 +192,18 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
-    result.fold((failure) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(_failureMessage(failure))));
-    }, (_) => context.pop());
+    result.fold(
+      (failure) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(_failureMessage(failure))));
+      },
+      (_) {
+        // Routine blocks show this timer's name, length and sound.
+        unawaited(refreshRoutineFromServer(ref));
+        context.pop();
+      },
+    );
   }
 
   Future<void> _onBeginSession() async {

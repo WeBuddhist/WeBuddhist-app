@@ -1,6 +1,7 @@
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_key.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_providers.dart';
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_pecha/features/recitation/data/datasource/recitations_remote_datasource.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitations_page_response.dart';
@@ -17,6 +18,12 @@ class _FixedContentLanguage extends StateNotifier<String>
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// A guest's filter: resolved at once, no traditions.
+class _NoTagFilter extends TraditionTagFilterNotifier {
+  @override
+  List<String> build() => const [];
 }
 
 class _FakeRemote extends RecitationsRemoteDatasource {
@@ -50,6 +57,7 @@ void main() {
       overrides: [
         screenCacheStoreProvider.overrideWithValue(store),
         recitationsRemoteDatasourceProvider.overrideWithValue(remote),
+        traditionTagFilterProvider.overrideWith(_NoTagFilter.new),
         contentLanguageProvider.overrideWith((ref) => _FixedContentLanguage()),
       ],
     );

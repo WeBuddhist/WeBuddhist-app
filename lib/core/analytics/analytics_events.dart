@@ -47,6 +47,11 @@ abstract final class AnalyticsEvents {
       'recitation_collection_item_completed';
   static const String recitationCollectionCompleted =
       'recitation_collection_completed';
+  static const String groupTabViewed = 'group_tab_viewed';
+  static const String postViewed = 'post_viewed';
+  static const String postOpened = 'post_opened';
+  static const String postLinkOpened = 'post_link_opened';
+  static const String groupPostCreated = 'group_post_created';
 
   // Entry points (plan §5.1)
   static const String deepLinkOpened = 'deep_link_opened';
@@ -74,8 +79,12 @@ abstract final class AnalyticsEvents {
 
   // Home (§5.4)
   static const String homeViewed = 'home_viewed';
+  static const String tabViewed = 'tab_viewed';
   static const String seriesEnrolled = 'series_enrolled';
   static const String seriesUnenrolled = 'series_unenrolled';
+
+  // Me page
+  static const String meItemTapped = 'me_item_tapped';
 
   // Sharing, cross-cutting (§5.15): one event, `surface` says what was shared
   static const String contentShared = 'content_shared';
@@ -127,6 +136,17 @@ abstract final class AnalyticsEvents {
   static const String groupMessageReacted = 'group_message_reacted';
   static const String groupMessageReplied = 'group_message_replied';
   static const String groupMessageReported = 'group_message_reported';
+
+  // Prayer requests
+  static const String prayerRequestCreated = 'prayer_request_created';
+  static const String prayerRequestPrayed = 'prayer_request_prayed';
+  static const String prayerRequestCompleted = 'prayer_request_completed';
+  static const String prayerSupportersViewed = 'prayer_supporters_viewed';
+  static const String prayerRandomOpened = 'prayer_random_opened';
+
+  // Help & contact, which is also where feedback is sent from
+  static const String helpContactOpened = 'help_contact_opened';
+  static const String helpMessageSent = 'help_message_sent';
 }
 
 /// Shared analytics property keys.
@@ -134,6 +154,8 @@ abstract final class AnalyticsProperties {
   // Auth
   static const String method = 'method';
   static const String reason = 'reason';
+  static const String reasonCode = 'reason_code';
+  static const String reasonDetail = 'reason_detail';
   static const String isGuest = 'is_guest';
 
   // Plans
@@ -157,6 +179,13 @@ abstract final class AnalyticsProperties {
   static const String emoji = 'emoji';
   static const String action = 'action';
   static const String source = 'source';
+
+  // Prayer requests
+  static const String prayerCount = 'prayer_count';
+
+  // Help & contact
+  static const String topic = 'topic';
+  static const String imageCount = 'image_count';
 
   // Series
   static const String seriesId = 'series_id';
@@ -206,6 +235,10 @@ abstract final class AnalyticsProperties {
   static const String streakCurrent = 'streak_current';
   static const String surface = 'surface';
   static const String format = 'format';
+  static const String tab = 'tab';
+
+  // Me page
+  static const String item = 'item';
 
   // Routine
   static const String itemType = 'item_type';
@@ -246,6 +279,8 @@ abstract final class AnalyticsProperties {
 
   // Mala
   static const String presetId = 'preset_id';
+  static const String groupAccumulatorId = 'group_accumulator_id';
+  static const String mantraId = 'mantra_id';
   static const String mantraName = 'mantra_name';
   static const String mode = 'mode';
   static const String startingTotal = 'starting_total';
@@ -279,6 +314,9 @@ abstract final class AnalyticsProperties {
   static const String collectionId = 'collection_id';
   static const String completedCount = 'completed_count';
   static const String accumulatorId = 'accumulator_id';
+  static const String postId = 'post_id';
+  static const String position = 'position';
+  static const String hasMedia = 'has_media';
 
   /// PostHog's per-event group map, e.g. `{sangha: <group id>}`.
   static const String groups = r'$groups';

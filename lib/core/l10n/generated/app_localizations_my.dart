@@ -1166,6 +1166,23 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဖွင့်၍ မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ';
 
   @override
+  String get reader_not_translated => 'ဘာသာမပြန်ရသေးပါ';
+
+  @override
+  String get error_offline_title => 'အင်တာနက် ချိတ်ဆက်မှု မရှိပါ';
+
+  @override
+  String get error_server_title => 'ယခု ဖွင့်၍ မရပါ';
+
+  @override
+  String get reader_error_server_message =>
+      'ဤစာကို ယခု ဖွင့်၍ မရပါ။ နောက်မှ ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get chants_error_server_message =>
+      'ရွတ်ဆိုရန်စာများကို ယခု ဖွင့်၍ မရပါ။ နောက်မှ ထပ်ကြိုးစားပါ။';
+
+  @override
   String get somethingWrong =>
       'တစ်ခုခု မှားယွင်းသွားပါသည်။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ';
 
@@ -1306,6 +1323,18 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get settings_edit_profile => 'ပရိုဖိုင် ပြင်ဆင်ရန်';
+
+  @override
+  String get settings_signed_in_with_google => 'Signed in with Google';
+
+  @override
+  String get settings_signed_in_with_apple => 'Signed in with Apple';
+
+  @override
+  String get settings_signed_in_with_phone => 'Signed in with phone number';
+
+  @override
+  String get settings_signed_in_as => 'Signed in as';
 
   @override
   String get settings_theme => 'အပြင်အဆင်';
@@ -1542,6 +1571,69 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get calendar_title => 'ပြက္ခဒိန်';
+
+  @override
+  String get calendar_today => 'Today';
+
+  @override
+  String get calendar_no_events => 'No events';
+
+  @override
+  String get calendar_source_lunar => 'Lunar calendar';
+
+  @override
+  String get calendar_add_event => 'Add event';
+
+  @override
+  String get calendar_event_name => 'Event name';
+
+  @override
+  String get calendar_event_name_hint => 'Add an event to your calendar';
+
+  @override
+  String get calendar_repeat => 'Repeat';
+
+  @override
+  String get calendar_does_not_repeat => 'Does not repeat';
+
+  @override
+  String get calendar_repeat_weekly => 'Weekly';
+
+  @override
+  String get calendar_repeat_monthly => 'Monthly';
+
+  @override
+  String get calendar_repeat_yearly => 'Yearly';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return 'Monthly ($day lunar)';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+
+  @override
+  String get calendar_delete_event => 'Delete event';
+
+  @override
+  String get calendar_delete_event_title => 'Delete event?';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => 'Delete repeating event?';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+  }
+
+  @override
+  String get calendar_event_deleted => 'Event deleted';
 
   @override
   String get calendar_upcoming_events => 'လာမည့် ပွဲများ';
@@ -1922,6 +2014,10 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get group_accumulator_join_error =>
       'စုဆောင်းမှုတွင် ပါဝင်၍ မရပါ။ ထပ်ကြိုးစားပါ';
+
+  @override
+  String get group_accumulator_practice_unavailable =>
+      'This practice can\'t be opened right now.';
 
   @override
   String get group_accumulator_join_before_practice =>
@@ -3961,7 +4057,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get timer_duplicate_setup =>
-      'A timer with this duration and sound already exists.';
+      'A timer with this duration, sound, and title already exists.';
 
   @override
   String get splash_tagline_1 =>

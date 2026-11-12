@@ -5,10 +5,12 @@ import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/widgets/destructive_confirmation_dialog.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/connect_post.dart';
+import 'package:flutter_pecha/features/connect/presentation/utils/connect_analytics.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_feed_card_layout.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_post_card.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_post_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_nested_tab_scroll_view.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupProfilePostsTab extends ConsumerWidget {
@@ -22,6 +24,9 @@ class GroupProfilePostsTab extends ConsumerWidget {
   final VoidCallback onCreatePost;
   final ValueChanged<ConnectPost> onEditPost;
 
+  /// The page's own posts-viewed list; see [ConnectPostPlacement.visitId].
+  final String postViewVisitId;
+
   const GroupProfilePostsTab({
     super.key,
     required this.groupId,
@@ -30,6 +35,7 @@ class GroupProfilePostsTab extends ConsumerWidget {
     required this.canPost,
     required this.onCreatePost,
     required this.onEditPost,
+    required this.postViewVisitId,
     this.lineHeight,
   });
 
@@ -40,9 +46,9 @@ class GroupProfilePostsTab extends ConsumerWidget {
 
     if (state.posts.isEmpty) {
       if (!state.hasLoaded) {
-        return GroupProfileNestedTabScrollView.centered(
+        return GroupProfileTabSkeleton(
           pageStorageKey: pageStorageKey,
-          child: const Center(child: CircularProgressIndicator()),
+          variant: GroupProfileTabSkeletonVariant.feed,
         );
       }
 
@@ -115,6 +121,11 @@ class GroupProfilePostsTab extends ConsumerWidget {
                       includeUnfollowed: true,
                       showGroupLink: false,
                       groupId: groupId,
+                      placement: ConnectPostPlacement(
+                        surface: ConnectPostSurface.space,
+                        position: index,
+                        visitId: postViewVisitId,
+                      ),
                       onEdit: canPost ? () => onEditPost(post) : null,
                       onDelete:
                           canPost

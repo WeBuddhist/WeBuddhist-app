@@ -22,9 +22,11 @@ import 'package:flutter_pecha/features/home/presentation/providers/use_case_prov
     show getSeriesByIdUseCaseProvider;
 import 'package:flutter_pecha/features/plans/plans.dart';
 import 'package:flutter_pecha/features/practice/data/models/my_recitation_collection_models.dart';
+import 'package:flutter_pecha/features/recitation/data/models/my_recitation_list_collection_model.dart';
 import 'package:flutter_pecha/features/practice/data/models/routine_model.dart';
 import 'package:flutter_pecha/features/practice/data/models/session_selection.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
+import 'package:flutter_pecha/features/timer/data/models/preset_timer_model.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_api_mapper.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_time_utils.dart';
@@ -56,10 +58,7 @@ ResponsiveImage? _collectionCoverImage(GroupRecitationCollection collection) {
   return ResponsiveImage.uniform(url);
 }
 
-ResponsiveImage? _myCollectionCoverImage(
-  MyRecitationCollectionDetailModel collection,
-) {
-  final url = collection.imgUrl;
+ResponsiveImage? _myCollectionCoverImage(String? url) {
   if (url == null || url.trim().isEmpty) return null;
   return ResponsiveImage.uniform(url);
 }
@@ -285,6 +284,9 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
     title: '',
     type: RoutineItemType.timer,
     durationMs: timer.durationMs,
+    // Links the item to this timer on the API (sent as source_id), so stops
+    // are reported against the timer's real id.
+    timer: PresetTimerModel.fromEntity(timer),
   );
 
   _EditableBlock? _injectInitialTimer(PresetTimer timer) {
@@ -367,6 +369,14 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
     return resolved.target;
   }
 
+  bool _routineHasMyCollection(String collectionId) => _blocks.any(
+    (b) => b.items.any(
+      (item) =>
+          item.id == collectionId &&
+          item.type == RoutineItemType.myRecitationCollection,
+    ),
+  );
+
   /// Adds [collection] into the routine as a personal chant-collection session.
   ///
   /// Personal and group chant collections are distinct client-side because
@@ -375,21 +385,14 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
   _EditableBlock? _injectInitialMyCollection(
     MyRecitationCollectionDetailModel collection,
   ) {
-    final alreadyInRoutine = _blocks.any(
-      (b) => b.items.any(
-        (item) =>
-            item.id == collection.id &&
-            item.type == RoutineItemType.myRecitationCollection,
-      ),
-    );
-    if (alreadyInRoutine) return null;
+    if (_routineHasMyCollection(collection.id)) return null;
 
     final resolved = _resolveInjectionTarget();
     resolved.target.items.add(
       RoutineItem(
         id: collection.id,
         title: collection.name,
-        coverImage: _myCollectionCoverImage(collection),
+        coverImage: _myCollectionCoverImage(collection.imgUrl),
         type: RoutineItemType.myRecitationCollection,
         itemCount: collection.items.length,
         enrolledAt: DateTime.now(),
@@ -1351,6 +1354,8 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
           await _addPlanToBlock(blockIndex, plan);
         case RecitationSessionSelection(:final recitation):
           await _addRecitationToBlock(blockIndex, recitation);
+        case MyRecitationCollectionSessionSelection(:final collection):
+          await _addMyCollectionToBlock(blockIndex, collection);
         case SeriesSessionSelection(:final series):
           await _addSeriesToBlock(blockIndex, series);
         case TimerSessionSelection(:final timer):
@@ -1443,6 +1448,39 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
       language: recitation.language,
       firstSegment: recitation.firstSegment,
     );
+    setState(() => block.items.add(newItem));
+
+    try {
+      await _syncBlock(block);
+    } catch (e) {
+      if (mounted) {
+        setState(() => block.items.remove(newItem));
+        _showErrorSnackBar(_mapError(e));
+      }
+    }
+  }
+
+  /// The backend allows a collection only once per routine, so a collection
+  /// already in any block is refused rather than synced and rejected.
+  Future<void> _addMyCollectionToBlock(
+    int blockIndex,
+    MyRecitationListCollectionModel collection,
+  ) async {
+    if (blockIndex < 0 || blockIndex >= _blocks.length) return;
+    if (_routineHasMyCollection(collection.collectionId)) {
+      _showCollectionAlreadyAddedSnackBar();
+      return;
+    }
+
+    final newItem = RoutineItem(
+      id: collection.collectionId,
+      title: collection.name,
+      coverImage: _myCollectionCoverImage(collection.imageUrl),
+      type: RoutineItemType.myRecitationCollection,
+      itemCount: collection.itemCount,
+      enrolledAt: DateTime.now(),
+    );
+    final block = _blocks[blockIndex];
     setState(() => block.items.add(newItem));
 
     try {

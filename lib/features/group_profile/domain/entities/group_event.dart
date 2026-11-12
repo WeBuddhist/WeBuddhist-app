@@ -252,8 +252,21 @@ class GroupEvent {
     this.prayerRequestCount = 0,
   });
 
-  /// A plan or a series (never both) marks the event as a puja to enter.
-  bool get hasPuja => plan != null || series != null;
+  /// A plan, a series or a recitation collection marks the event as a puja
+  /// to enter.
+  bool get hasPuja =>
+      plan != null || series != null || practiceCollectionId != null;
+
+  /// The recitation collection the event's practice opens in the reader.
+  /// Null when a plan or series is attached: those win, so an event that
+  /// has both keeps opening its plan.
+  String? get practiceCollectionId {
+    if (plan != null || series != null) return null;
+    if (planId != null || seriesId != null) return null;
+    final id =
+        (groupRecitationCollection?.id ?? groupRecitationCollectionId)?.trim();
+    return id == null || id.isEmpty ? null : id;
+  }
 
   List<GroupEventAccumulation> get allAccumulations {
     if (accumulations.isNotEmpty) return accumulations;
