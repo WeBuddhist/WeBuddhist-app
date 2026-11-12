@@ -88,13 +88,13 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   airbridge-ios-sdk: 6049688ddcfafa85da5ab35b943430c3309ca97b
-  airbridge_flutter_sdk: 31632f81cacf04d55acc4e6ef17f536e389a8d0c
+  airbridge_flutter_sdk: 79d47074aae010182e265e9bdac9c904d9a01f4d
   Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
-  auth0_flutter: 031042ca6cf84f1b21611062b33ea7ec4bf3bc52
-  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
-  flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
-  flutter_inappwebview_ios: b89ba3482b96fb25e00c967aae065701b66e9b99
-  image_gallery_saver_plus: e597bf65a7846979417a3eae0763b71b6dfec6c3
+  auth0_flutter: 0f4846524696ef8441bcb96ceab7bfdbe31b8a05
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  flutter_image_compress_common: ec1d45c362c9d30a3f6a0426c297f47c52007e3e
+  flutter_inappwebview_ios: 6f63631e2c62a7c350263b13fa5427aedefe81d4
+  image_gallery_saver_plus: 782ade975fe6a4600b53e7c1983e3a2979d1e9e5
   JWTDecode: 7dae24cb9bf9b608eae61e5081029ec169bb5527
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d

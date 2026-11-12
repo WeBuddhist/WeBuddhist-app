@@ -49,6 +49,15 @@ jobs:
           flutter-version: 3.41.9
           cache: true
 
+      - name: 📦 Enable Swift Package Manager
+        run: |
+          # The Xcode project is integrated with Flutter's SwiftPM support:
+          # plugins come through FlutterGeneratedPluginSwiftPackage and the
+          # committed Podfile.lock only lists pods SwiftPM cannot provide.
+          # Building with this off re-adds every Firebase pod and rewrites
+          # Podfile.lock, so it must match the developer setting.
+          flutter config --enable-swift-package-manager
+
       - name: 📝 Create .env files
         env:
           DEV_BASE_API_URL:       ${{ secrets.DEV_BASE_API_URL }}
@@ -236,9 +245,14 @@ jobs:
         if: ${{ inputs.upload_to_store }}
         run: |
           # The in-Xcode "upload-crashlytics-symbols" build phase is guarded to
-          # never fail the archive; we upload dSYMs deliberately here, where the
-          # CocoaPods run/upload-symbols tooling reliably exists.
-          UPLOAD=ios/Pods/FirebaseCrashlytics/upload-symbols
+          # never fail the archive; we upload dSYMs deliberately here.
+          # Firebase comes in through Swift Package Manager, so upload-symbols
+          # lives in Xcode's SwiftPM checkout under DerivedData, not in Pods.
+          # The Pods path is kept as a fallback for a CocoaPods-only build.
+          UPLOAD=$(find "$HOME/Library/Developer/Xcode/DerivedData" \
+            -path '*/SourcePackages/checkouts/firebase-ios-sdk/Crashlytics/upload-symbols' \
+            -type f 2>/dev/null | head -n 1)
+          [ -n "$UPLOAD" ] || UPLOAD=ios/Pods/FirebaseCrashlytics/upload-symbols
           GSP=ios/Runner/GoogleService-Info.plist
           # Upload every dSYM in the archive (Runner, App/Flutter frameworks,
           # TimerWidget, embedded frameworks). Crashlytics needs all of them
