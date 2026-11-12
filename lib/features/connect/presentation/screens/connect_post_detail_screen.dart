@@ -208,10 +208,6 @@ class _ConnectPostDetailPanelState
         includeUnfollowed: widget.includeUnfollowed,
         groupId: widget.groupId,
         onLikeChanged: _onViewerLikeChanged,
-        // The comments are already on this screen; jump to the input.
-        onComment: () {
-          if (mounted) _commentFocusNode.requestFocus();
-        },
       ),
     );
   }

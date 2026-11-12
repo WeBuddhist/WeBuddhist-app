@@ -328,10 +328,6 @@ class _ConnectPostCardState extends ConsumerState<ConnectPostCard> {
         includeUnfollowed: widget.includeUnfollowed,
         groupId: widget.groupId,
         onLikeChanged: _onViewerLikeChanged,
-        // The card may have left the feed while the viewer was open.
-        onComment: () {
-          if (mounted) _openDetail();
-        },
       ),
     );
   }
