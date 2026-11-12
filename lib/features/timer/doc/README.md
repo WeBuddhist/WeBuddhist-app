@@ -9,7 +9,8 @@ Preset meditation timers with countdown, pause/resume, lock-screen display, sess
 ## User-facing functionality
 
 - Browse preset timers + user-created ("Your timers") (authenticated)
-- Create a custom timer (duration, ambient sound) via the dashed "Create a custom timer" row, which stays at the top of "Your timers"
+- Create a custom timer (duration, ambient sound) via the "Create a custom timer" card, which stays at the top of "Your timers"
+- Your timers are separate cards (circled ⋮; tap the card to start). Presets sit in one grouped card (⋮ + play)
 - Edit or delete your own timers from the card's ⋮ menu
 - 3-second countdown (Cancel leaves immediately) → running phase
 - Pause/resume with **wall-clock** remaining time (survives backgrounding)
@@ -77,10 +78,12 @@ timer/
 
 `POST /timers/user` (`TimersRemoteDatasource.createUserTimer`) intentionally
 **never sends** `group_id` or `parent_preset_id` — no app concept for either
-yet. `name` is still derived: `"{n} minutes"` (`"{n} seconds"` under one
-minute). The optional title on the New Timer screen is stored in
-`description` (trimmed, 40 characters max, `""` when blank) and shown above
-the duration on user-created cards in "Your timers".
+yet. `name` is still derived from the duration: `"{n} seconds"` under one
+minute, `"{n} minutes"` or `"{n} hours"` for a single whole unit, and the
+short compound form (`1hr 24min 23sec`) when hours/minutes/seconds mix. The
+optional title on the New Timer screen is stored in `description` (trimmed,
+40 characters max, `""` when blank) and shown above the duration on
+user-created cards in "Your timers".
 Start/end bells are always on (backend default); the create flow does not
 expose or accept them as user-configurable params. After a
 successful create (and after a successful edit or delete) the repository
@@ -105,11 +108,14 @@ button, and routes through `UpdateUserTimerUseCase`. Route:
 
 `name`, `description`, `duration`, and `ambient_sound_id` are sent.
 `description` is always in the body, including as `""`, which clears the
-title. The name keeps tracking the duration (`"{n} minutes"`)
-so the stored name stays truthful, but **only when the duration actually
-changed**: the picker saves exact hours, minutes, and seconds, while the
-label and the derived name are rounded to whole minutes (or shown in seconds
-under one minute, so a short timer never reads "0 min"). An edit that touches
+title. The name keeps tracking the duration (`"{n} minutes"` / `"{n} seconds"`
+/ `"{n} hours"`, or split units like `1hr 24min 23sec` when leftover seconds
+or hours are present) so the stored name stays truthful, but **only when the
+duration actually changed**: the picker saves exact hours, minutes, and
+seconds. List labels use the same split (`1 min`, `1hr 24min`,
+`1hr 24min 23sec`) with leftover-second numbers drawn smaller. Duplicate
+setups with the exact same duration and ambient sound (treating null and
+blank as equal) are blocked from both creation and editing. An edit that touches
 just the sound must resend the stored `durationMs` (and stored name) verbatim
 rather than a re-derived value, which would quietly change e.g. a 90s timer. `ambient_sound_id` is **always** in the body,
 including as `null`, which is how "Default (no sound)" clears an existing
@@ -170,9 +176,10 @@ offering an undo it cannot honour.
 ### Empty list
 
 An empty timer list is **not** an empty state. "Your timers" always starts
-with the dashed "Create a custom timer" row, and timers the user has created
-are listed under it in the same row layout as the presets (play and the ⋮
-menu). A timer with no `ambient_sound_id` is labeled "Default (no sound)".
+with the "Create a custom timer" card, and timers the user has created are
+listed under it as separate cards (circled ⋮; tap to start). Presets share
+one grouped card with ⋮ and play on each row. A timer with no
+`ambient_sound_id` is labeled "Default (no sound)".
 
 The bundled `assets/audios/meditation.wav` bell (`TimerSoundPlayer`) always
 plays at session start and completion, and the scheduled start/completion

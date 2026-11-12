@@ -21,11 +21,10 @@ import 'package:go_router/go_router.dart';
 /// optional title are editable. The API `name` still follows the duration.
 ///
 /// `group_id` and `parent_preset_id` are never sent (no app concept for
-/// either yet). `name` is "{n} minutes" from the duration rounded to whole
-/// minutes ("{n} seconds" under one minute). The title the user types is
-/// stored in `description` — trimmed, at most [_maxTitleLength] characters,
-/// and `""` when left blank. The saved duration keeps hours, minutes, and
-/// seconds.
+/// either yet). `name` follows the duration (`20 seconds`, `21 minutes`,
+/// `1hr 24min 23sec`). The title the user types is stored in `description`
+/// — trimmed, at most [_maxTitleLength] characters, and `""` when left
+/// blank. The saved duration keeps hours, minutes, and seconds.
 class NewTimerScreen extends ConsumerStatefulWidget {
   const NewTimerScreen({super.key, this.timer});
 
@@ -40,9 +39,9 @@ class NewTimerScreen extends ConsumerStatefulWidget {
 }
 
 class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
-  /// What gets saved, including seconds. Labels use this rounded to whole
-  /// minutes, or in seconds under one minute. An edit that only changes the ambient sound resends this value
-  /// unchanged.
+  /// What gets saved, including seconds. Labels split hours, minutes, and
+  /// leftover seconds. An edit that only changes the ambient sound resends
+  /// this value unchanged.
   late int _durationMs;
   late String? _ambientSoundId;
   late final TextEditingController _titleController;
@@ -90,9 +89,11 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
     return id == null ? null : soundsById[id]?.name;
   }
 
-  bool get _labelsInSeconds => PresetTimer.labelsInSeconds(_durationMs);
-
-  int get _labelValue => PresetTimer.labelValueFromMs(_durationMs);
+  String get _durationRowValue => PresetTimer.formatLabel(
+    _durationMs,
+    minutes: context.l10n.timer_min,
+    seconds: context.l10n.timer_duration_sec,
+  );
 
   Future<void> _pickDuration() async {
     final selected = await DurationPickerSheet.show(
@@ -126,19 +127,46 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   }
 
   /// The name tracks the duration, but an untouched duration keeps the stored
-  /// name so a timer of e.g. 90s isn't renamed to "1 minutes" by an edit that
-  /// only changed the ambient sound.
+  /// name so a timer of e.g. 90s isn't renamed by an edit that only changed
+  /// the ambient sound.
   String get _timerName =>
       _didChangeDuration
-          ? '$_labelValue ${_labelsInSeconds ? 'seconds' : 'minutes'}'
+          ? PresetTimer.apiNameFromMs(_durationMs)
           : widget.timer!.name;
 
-  String _failureMessage(Failure failure) =>
-      failure is ValidationFailure && _durationMs <= 0
-          ? context.l10n.timer_duration_must_be_greater_than_error
-          : failure.message;
+  String _failureMessage(Failure failure) {
+    if (failure is ValidationFailure && _durationMs <= 0) {
+      return context.l10n.timer_duration_must_be_greater_than_error;
+    }
+    return failure.message;
+  }
 
   Future<PresetTimer?> _createTimer() async {
+    final currentTimer = PresetTimer(
+      id: '',
+      name: _timerName,
+      durationMs: _durationMs,
+      ambientSoundId: _ambientSoundId,
+      type: kPresetTimerTypeUserCreated,
+    );
+    final timersEither = ref.read(presetTimersFutureProvider).value;
+    if (timersEither != null) {
+      final timers = timersEither.fold((_) => <PresetTimer>[], (list) => list);
+      final isDuplicate = timers.any(
+        (t) => t.isUserCreated && currentTimer.sameSetup(t),
+      );
+      if (isDuplicate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'A timer with this duration and sound already exists.',
+            ),
+          ),
+        );
+        return null;
+      }
+    }
+
     setState(() => _isSubmitting = true);
     final useCase = ref.read(createUserTimerUseCaseProvider);
     final result = await useCase(
@@ -168,6 +196,35 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
 
   Future<void> _onSaveChanges() async {
     if (_isSubmitting) return;
+
+    final currentTimer = PresetTimer(
+      id: widget.timer!.id,
+      name: _timerName,
+      durationMs: _durationMs,
+      ambientSoundId: _ambientSoundId,
+      type: kPresetTimerTypeUserCreated,
+    );
+    final timersEither = ref.read(presetTimersFutureProvider).value;
+    if (timersEither != null) {
+      final timers = timersEither.fold((_) => <PresetTimer>[], (list) => list);
+      final isDuplicate = timers.any(
+        (t) =>
+            t.isUserCreated &&
+            t.id != widget.timer!.id &&
+            currentTimer.sameSetup(t),
+      );
+      if (isDuplicate) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'A timer with this duration and sound already exists.',
+            ),
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _isSubmitting = true);
     final result = await ref.read(updateUserTimerUseCaseProvider)(
       UpdateUserTimerParams(
@@ -217,8 +274,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
                   const SizedBox(height: 12),
                   _SettingsRow(
                     label: context.l10n.timer_duration_label,
-                    value:
-                        '$_labelValue ${_labelsInSeconds ? context.l10n.timer_duration_sec : context.l10n.timer_min}',
+                    value: _durationRowValue,
                     onTap: _pickDuration,
                   ),
                   const SizedBox(height: 12),

@@ -147,6 +147,24 @@ class TimersRepository implements TimersRepositoryInterface {
       return const Left(AuthenticationFailure('Not authenticated'));
     }
 
+    final cached = local.readPresetTimers(userId, skip: 0, limit: kTimersPageLimit);
+    if (cached != null) {
+      final tempTimer = PresetTimer(
+        id: '',
+        name: name,
+        durationMs: durationMs,
+        ambientSoundId: ambientSoundId,
+        type: kPresetTimerTypeUserCreated,
+      );
+      final isDuplicate = cached.any((t) => t.type == kPresetTimerTypeUserCreated && tempTimer.sameSetup(t.toEntity()));
+      if (isDuplicate) {
+        return const Left(ValidationFailure(
+          'A timer with this duration and sound already exists.',
+          code: 'timer_duplicate_setup',
+        ));
+      }
+    }
+
     final PresetTimerModel created;
     try {
       created = await remote.createUserTimer(
@@ -188,6 +206,24 @@ class TimersRepository implements TimersRepositoryInterface {
     final userId = await local.currentUserId();
     if (userId == null || userId.isEmpty) {
       return const Left(AuthenticationFailure('Not authenticated'));
+    }
+
+    final cached = local.readPresetTimers(userId, skip: 0, limit: kTimersPageLimit);
+    if (cached != null) {
+      final tempTimer = PresetTimer(
+        id: timerId,
+        name: name,
+        durationMs: durationMs,
+        ambientSoundId: ambientSoundId,
+        type: kPresetTimerTypeUserCreated,
+      );
+      final isDuplicate = cached.any((t) => t.type == kPresetTimerTypeUserCreated && t.id != timerId && tempTimer.sameSetup(t.toEntity()));
+      if (isDuplicate) {
+        return const Left(ValidationFailure(
+          'A timer with this duration and sound already exists.',
+          code: 'timer_duplicate_setup',
+        ));
+      }
     }
 
     final PresetTimerModel updated;

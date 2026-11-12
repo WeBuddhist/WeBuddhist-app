@@ -20,8 +20,8 @@ import 'package:skeletonizer/skeletonizer.dart';
 class PresetTimersScreen extends ConsumerWidget {
   const PresetTimersScreen({super.key});
 
-  static const _horizontalPadding = 16.0;
-  static const _sectionSpacing = 28.0;
+  static const _horizontalPadding = 20.0;
+  static const _sectionSpacing = 24.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,7 +62,6 @@ class PresetTimersScreen extends ConsumerWidget {
                   child: _TimersContent(
                     presetTimers: presetTimers,
                     customTimers: customTimers,
-                    minLabel: l10n.timer_min,
                   ),
                 );
               },
@@ -106,12 +105,10 @@ class _TimersContent extends ConsumerWidget {
   const _TimersContent({
     required this.presetTimers,
     required this.customTimers,
-    required this.minLabel,
   });
 
   final List<PresetTimer> presetTimers;
   final List<PresetTimer> customTimers;
-  final String minLabel;
 
   void _openMoreSheet(BuildContext context, WidgetRef ref, PresetTimer timer) {
     showTimerMoreBottomSheet(
@@ -142,8 +139,8 @@ class _TimersContent extends ConsumerWidget {
 
     return PresetTimerCard(
       timer: timer,
-      minLabel: minLabel,
       soundLabel: soundLabel,
+      standalone: timer.isUserCreated,
       onPlay: () => context.push('/home/timers/active', extra: timer),
       onMoreTap: () => _openMoreSheet(context, ref, timer),
     );
@@ -166,36 +163,31 @@ class _TimersContent extends ConsumerWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         PresetTimersScreen._horizontalPadding,
-        20,
+        16,
         PresetTimersScreen._horizontalPadding,
         24,
       ),
       children: [
         _SectionTitle(title: l10n.timer_your_timers),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         CustomTimerCard(
           title: l10n.timer_create_custom,
           onTap: () => context.push('/home/timers/new'),
         ),
-        if (customTimers.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _TimerGroup(
-            children: [
-              for (final timer in customTimers)
-                _buildTimerCard(
-                  timer: timer,
-                  ambientSoundsById: ambientSoundsById,
-                  noSoundLabel: l10n.timer_ambient_sound_none,
-                  context: context,
-                  ref: ref,
-                ),
-            ],
+        for (final timer in customTimers) ...[
+          const SizedBox(height: 8),
+          _buildTimerCard(
+            timer: timer,
+            ambientSoundsById: ambientSoundsById,
+            noSoundLabel: l10n.timer_ambient_sound_none,
+            context: context,
+            ref: ref,
           ),
         ],
         if (presetTimers.isNotEmpty) ...[
           const SizedBox(height: PresetTimersScreen._sectionSpacing),
           _SectionTitle(title: l10n.preset_timers),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           _TimerGroup(
             children: [
               for (final timer in presetTimers)
@@ -222,26 +214,22 @@ class _TimerGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey100;
+    final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
     return Material(
       color: isDark ? AppColors.surfaceDark : AppColors.surfaceWhite,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                thickness: 1,
-                indent: 20,
-                endIndent: 20,
-                color: dividerColor,
-              ),
-            children[i],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) Divider(height: 1, thickness: 1, color: dividerColor),
+              children[i],
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -257,16 +245,17 @@ class _SectionTitle extends StatelessWidget {
     final isTibetan = AppFontConfig.isTibetanLanguage(
       Localizations.localeOf(context).languageCode,
     );
-    final color = Theme.of(
-      context,
-    ).colorScheme.onSurface.withValues(alpha: 0.45);
+    final color =
+        Theme.of(context).brightness == Brightness.dark
+            ? AppColors.textTertiaryDark
+            : AppColors.grey800;
 
     return Text(
       isTibetan ? title : title.toUpperCase(),
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        letterSpacing: isTibetan ? 0 : 1.1,
+        letterSpacing: isTibetan ? 0 : 0.72,
         color: color,
       ),
     );
@@ -285,17 +274,17 @@ class _TimersContentSkeleton extends StatelessWidget {
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(
           PresetTimersScreen._horizontalPadding,
-          20,
+          16,
           PresetTimersScreen._horizontalPadding,
           24,
         ),
         children: [
           _SectionTitle(title: l10n.timer_your_timers),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const _RowSkeleton(),
           const SizedBox(height: PresetTimersScreen._sectionSpacing),
           _SectionTitle(title: l10n.preset_timers),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           const _TimerGroup(
             children: [
               _RowSkeleton(),
@@ -316,20 +305,20 @@ class _RowSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.fromLTRB(20, 18, 20, 18),
+      padding: EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Bone(width: 96, height: 28),
+                Bone(width: 96, height: 32),
                 SizedBox(height: 8),
-                Bone(width: 140, height: 14),
+                Bone(width: 140, height: 13),
               ],
             ),
           ),
-          Bone.circle(size: 48),
+          Bone.circle(size: 40),
         ],
       ),
     );
