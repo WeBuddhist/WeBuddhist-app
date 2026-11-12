@@ -17,6 +17,15 @@ void main() {
       expect(converter.detectScript(''), isNull);
     });
 
+    test('reads Roman chants that use Devanagari dandas as Roman', () {
+      expect(
+        converter.detectScript('Namo tassa bhagavato arahato । ॥ १'),
+        'ro',
+      );
+      expect(converter.detectScript('। ॥ १२३ ॰'), isNull);
+      expect(converter.detectScript('नमो तस्स भगवतो ।'), 'hi');
+    });
+
     test('picks the majority script of mixed text', () {
       expect(converter.detectScript('अरहं सम्मासम्बुद्धो (a)'), 'hi');
     });

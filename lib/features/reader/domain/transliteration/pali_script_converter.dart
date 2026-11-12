@@ -70,8 +70,13 @@ class PaliScriptConverter extends ScriptConverter {
       id: psc.Scripts.hi,
       name: 'Devanagari',
       nativeName: 'देवनागरी',
+      // Letters and signs only. Danda (।), double danda (॥), the digits and
+      // the abbreviation sign (U+0964-0970) are left out: Roman Pali chants
+      // often end verses with a danda, and letting it vote made them detect
+      // as Devanagari, so the picker showed Devanagari for Roman text.
       codePointRanges: [
-        [0x0900, 0x097F],
+        [0x0900, 0x0963],
+        [0x0971, 0x097F],
       ],
     ),
     TransliterationScript(
