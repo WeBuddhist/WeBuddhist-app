@@ -34,7 +34,10 @@ class TodayEventMetadataModel {
 
 class TodayEventModel {
   final String id;
-  final TodayEventMetadataModel metadata;
+
+  /// One entry per translation. The API sends a list, older responses and
+  /// cached entries a single object; both parse into this.
+  final List<TodayEventMetadataModel> metadata;
   final DateTime? startDate;
   final DateTime? endDate;
   final String? timezone;
@@ -56,9 +59,7 @@ class TodayEventModel {
   factory TodayEventModel.fromJson(Map<String, dynamic> json) {
     return TodayEventModel(
       id: (json['id'] as String?) ?? '',
-      metadata: TodayEventMetadataModel.fromJson(
-        json['metadata'] as Map<String, dynamic>? ?? const {},
-      ),
+      metadata: _parseMetadata(json['metadata']),
       startDate: _parseDate(json['start_date']),
       endDate: _parseDate(json['end_date']),
       timezone: json['timezone'] as String?,
@@ -71,7 +72,7 @@ class TodayEventModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'metadata': metadata.toJson(),
+      'metadata': [for (final m in metadata) m.toJson()],
       'start_date': startDate?.toIso8601String(),
       'end_date': endDate?.toIso8601String(),
       'timezone': timezone,
@@ -81,11 +82,15 @@ class TodayEventModel {
     };
   }
 
-  TodayEvent toEntity() {
+  /// [language] is the content language (`en`, `bo`, ...). Without a
+  /// translation in it, the event keeps its name in another language rather
+  /// than showing blank.
+  TodayEvent toEntity({String? language}) {
+    final chosen = metadataFor(language);
     return TodayEvent(
       id: id,
-      name: metadata.name,
-      description: metadata.description,
+      name: chosen?.name ?? '',
+      description: chosen?.description,
       startDate: startDate,
       endDate: endDate,
       timezone: timezone,
@@ -93,6 +98,40 @@ class TodayEventModel {
       endTime: endTime,
       groupAvatarUrl: groupAvatarUrl,
     );
+  }
+
+  /// The named translation in [language], else English, else the first one
+  /// with a name. Null when no translation has a name.
+  TodayEventMetadataModel? metadataFor(String? language) {
+    final named = metadata.where((m) => m.name.trim().isNotEmpty).toList();
+    if (named.isEmpty) return null;
+    TodayEventMetadataModel? inLanguage(String code) {
+      final wanted = code.trim().toUpperCase();
+      for (final m in named) {
+        if (m.language.trim().toUpperCase() == wanted) return m;
+      }
+      return null;
+    }
+
+    return (language == null ? null : inLanguage(language)) ??
+        inLanguage('EN') ??
+        named.first;
+  }
+
+  static List<TodayEventMetadataModel> _parseMetadata(Object? value) {
+    if (value is Map) {
+      return [
+        TodayEventMetadataModel.fromJson(Map<String, dynamic>.from(value)),
+      ];
+    }
+    if (value is List) {
+      return [
+        for (final item in value)
+          if (item is Map)
+            TodayEventMetadataModel.fromJson(Map<String, dynamic>.from(item)),
+      ];
+    }
+    return const [];
   }
 
   static DateTime? _parseDate(Object? value) {
@@ -119,6 +158,6 @@ class TodayEventsResponseModel {
     );
   }
 
-  List<TodayEvent> toEntities() =>
-      events.map((event) => event.toEntity()).toList();
+  List<TodayEvent> toEntities({String? language}) =>
+      events.map((event) => event.toEntity(language: language)).toList();
 }
