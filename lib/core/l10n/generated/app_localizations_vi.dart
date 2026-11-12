@@ -4018,6 +4018,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Thời lượng phải lớn hơn 0';
 
   @override
+  String get timer_duplicate_setup =>
+      'A timer with this duration, sound, and title already exists.';
+
+  @override
   String get splash_tagline_1 => 'Phật tử chúng ta cùng nhau tu tập';
 
   @override
@@ -4031,6 +4035,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get timer_duration_hours => 'giờ';
+
+  @override
+  String get timer_duration_hr => 'hr';
 
   @override
   String get timer_duration_sec => 'giây';

@@ -11,6 +11,24 @@ const String kPresetTimerTypePreset = 'preset';
 /// /timers/user`) and are shown in the "Your timers" section.
 const String kPresetTimerTypeUserCreated = 'user_created';
 
+enum TimerDurationUnit { hours, minutes, seconds }
+
+/// One hours / minutes / seconds run in a timer list label.
+///
+/// [compact] is true for leftover seconds in a compound label, which the
+/// list renders at a smaller number size than hours and minutes.
+class TimerDurationPart {
+  const TimerDurationPart({
+    required this.value,
+    required this.unit,
+    this.compact = false,
+  });
+
+  final int value;
+  final TimerDurationUnit unit;
+  final bool compact;
+}
+
 class PresetTimer {
   const PresetTimer({
     required this.id,
@@ -71,16 +89,114 @@ class PresetTimer {
   static bool labelsInSeconds(int durationMs) =>
       durationMs < Duration.millisecondsPerMinute;
 
-  /// The number shown in labels: seconds under one minute, otherwise minutes
-  /// rounded to the nearest whole one. The session itself keeps [durationMs].
-  static int labelValueFromMs(int durationMs) =>
-      labelsInSeconds(durationMs)
-          ? (durationMs / Duration.millisecondsPerSecond).round()
-          : (durationMs / Duration.millisecondsPerMinute).round();
+  /// English short hours unit, used only for the API `name` and tests. UI
+  /// labels pass the localized `timer_duration_hr` instead.
+  static const hoursUnit = 'hr';
+
+  /// Hours, minutes, and leftover seconds for list labels, split from
+  /// truncated whole seconds the same way the duration picker reads the
+  /// wheels. Zero units are omitted (`1hr 23sec`, not `1hr 0min 23sec`).
+  static List<TimerDurationPart> durationPartsFromMs(int durationMs) {
+    final totalSeconds = durationMs ~/ Duration.millisecondsPerSecond;
+    if (totalSeconds < 60) {
+      return [
+        TimerDurationPart(value: totalSeconds, unit: TimerDurationUnit.seconds),
+      ];
+    }
+
+    final hours = totalSeconds ~/ 3600;
+    final minutes = (totalSeconds % 3600) ~/ 60;
+    final seconds = totalSeconds % 60;
+    final parts = <TimerDurationPart>[];
+
+    if (hours > 0) {
+      parts.add(TimerDurationPart(value: hours, unit: TimerDurationUnit.hours));
+    }
+    if (minutes > 0) {
+      parts.add(
+        TimerDurationPart(value: minutes, unit: TimerDurationUnit.minutes),
+      );
+    }
+    if (seconds > 0) {
+      parts.add(
+        TimerDurationPart(
+          value: seconds,
+          unit: TimerDurationUnit.seconds,
+          compact: parts.isNotEmpty,
+        ),
+      );
+    }
+    return parts;
+  }
+
+  /// English short-unit label for tests and callers that cannot take l10n:
+  /// `20 sec`, `1 min`, `2 hr`, `1hr 24min`, `1hr 24min 23sec`.
+  static String formatDisplayValue(int durationMs) =>
+      formatLabel(durationMs, hours: hoursUnit, minutes: 'min', seconds: 'sec');
+
+  /// Joins [durationPartsFromMs] with the given unit strings.
+  ///
+  /// A single unit keeps a space (`1 min`). Compound labels concatenate
+  /// each number to its unit (`1hr 24min 23sec`).
+  static String formatLabel(
+    int durationMs, {
+    required String hours,
+    required String minutes,
+    required String seconds,
+  }) {
+    final parts = durationPartsFromMs(durationMs);
+    final compound = parts.length > 1;
+    return parts
+        .map((part) {
+          final unit = switch (part.unit) {
+            TimerDurationUnit.hours => hours,
+            TimerDurationUnit.minutes => minutes,
+            TimerDurationUnit.seconds => seconds,
+          };
+          return compound ? '${part.value}$unit' : '${part.value} $unit';
+        })
+        .join(' ');
+  }
+
+  /// API `name` when the user changes duration: `20 seconds`, `21 minutes`,
+  /// `2 hours`, or the compound short form `1hr 24min 23sec`.
+  static String apiNameFromMs(int durationMs) {
+    final parts = durationPartsFromMs(durationMs);
+    if (parts.length == 1) {
+      final part = parts.first;
+      return switch (part.unit) {
+        TimerDurationUnit.seconds => '${part.value} seconds',
+        TimerDurationUnit.minutes => '${part.value} minutes',
+        TimerDurationUnit.hours => '${part.value} hours',
+      };
+    }
+    return formatDisplayValue(durationMs);
+  }
+
+  /// True when the label is a single unit (seconds under a minute, or whole
+  /// minutes / hours with no leftover). Compound labels omit a trailing unit.
+  static bool hasUnitForMs(int durationMs) =>
+      durationPartsFromMs(durationMs).length == 1;
 
   /// See [labelsInSeconds].
   bool get displaysSeconds => labelsInSeconds(durationMs);
 
-  /// See [labelValueFromMs].
-  int get displayValue => labelValueFromMs(durationMs);
+  /// See [formatDisplayValue].
+  String get displayValue => formatDisplayValue(durationMs);
+
+  /// See [durationPartsFromMs].
+  List<TimerDurationPart> get durationParts => durationPartsFromMs(durationMs);
+
+  /// See [hasUnitForMs].
+  bool get hasUnit => hasUnitForMs(durationMs);
+
+  /// True when [other] has the same duration, ambient sound, and title.
+  /// Null and blank sounds or titles count as equal, so two untitled timers
+  /// with the same length and sound match, but "Morning" and "Evening" don't.
+  bool sameSetup(PresetTimer other) {
+    String norm(String? v) => v?.trim() ?? '';
+    return durationMs == other.durationMs &&
+        norm(ambientSoundId) == norm(other.ambientSoundId) &&
+        norm(description) == norm(other.description);
+  }
 }

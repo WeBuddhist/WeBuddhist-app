@@ -47,7 +47,6 @@ class PracticeTimersSection extends ConsumerWidget {
                       height: 100,
                       child: PracticeTimerCard(
                         timer: timer,
-                        minLabel: l10n.timer_min,
                         onTap: () => _navigateToTimer(context, ref, timer),
                       ),
                     );

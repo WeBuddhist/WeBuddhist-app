@@ -401,9 +401,10 @@ class _ChantsTab extends ConsumerWidget {
       practiceRecitationsPaginatedProvider(languageCode),
     );
 
-    Future<void> onRefresh() => ref
-        .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
-        .refresh();
+    Future<void> onRefresh() =>
+        ref
+            .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
+            .refresh();
 
     if (recitationsState.isLoading && recitationsState.isEmpty) {
       return const RecitationListSkeleton(
@@ -744,10 +745,7 @@ class _SessionCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: child,
-        ),
+        child: Padding(padding: const EdgeInsets.all(12), child: child),
       ),
     );
   }
@@ -796,11 +794,11 @@ class _CircularImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = imageUrl?.trim();
-    
+
     if (url != null && url.isNotEmpty && _isValidNetworkUrl(url)) {
       final dpr = MediaQuery.of(context).devicePixelRatio;
       final cachePx = _toCachePx(size, dpr);
-      
+
       return ClipOval(
         child: CachedNetworkImage(
           imageUrl: url,
@@ -817,7 +815,9 @@ class _CircularImage extends StatelessWidget {
           placeholder: (_, __) => _placeholder(),
           errorWidget: (context, url, error) {
             final sanitizedUrl = stableNetworkImageCacheKey(url);
-            _logger.warning('Failed to load mala image: $sanitizedUrl, error: $error');
+            _logger.warning(
+              'Failed to load mala image: $sanitizedUrl, error: $error',
+            );
             return _placeholder();
           },
         ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/presentation/widgets/preset_timer_card.dart';
+import 'package:flutter_pecha/features/timer/presentation/widgets/timer_duration_text.dart';
 
 /// One tappable timer in the "Add to session" picker: the duration with its
 /// ambient sound underneath and, for a timer the user created, its title on
@@ -33,42 +33,18 @@ class TimerPickerCard extends StatelessWidget {
     final isTibetan = AppFontConfig.isTibetanLanguage(
       Localizations.localeOf(context).languageCode,
     );
-    final lineHeight = isTibetan ? AppFontConfig.tibetanCompactLineHeight : 1.0;
     final leading = isTibetan ? AppFontConfig.tibetanLeadingDistribution : null;
-
-    final value = TextSpan(
-      text: '${timer.displayValue}',
-      style: TextStyle(
-        fontSize: 34,
-        fontWeight: FontWeight.w300,
-        height: lineHeight,
-        leadingDistribution: leading,
-        color: textColor,
-      ),
-    );
-    final unit = TextSpan(
-      text:
-          timer.displaysSeconds
-              ? context.l10n.timer_duration_sec
-              : context.l10n.timer_min,
-      style: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w300,
-        height: lineHeight,
-        leadingDistribution: leading,
-        color: textColor,
-      ),
-    );
-    const gap = TextSpan(text: ' ');
 
     final duration = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text.rich(
-          TextSpan(
-            children: isTibetan ? [unit, gap, value] : [value, gap, unit],
-          ),
+        TimerDurationText(
+          durationMs: timer.durationMs,
+          valueFontSize: 34,
+          compactValueFontSize: 20,
+          unitFontSize: 20,
+          color: textColor,
         ),
         if (soundLabel != null) ...[
           const SizedBox(height: 6),

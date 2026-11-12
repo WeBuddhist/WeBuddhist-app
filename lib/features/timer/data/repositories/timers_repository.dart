@@ -135,6 +135,37 @@ class TimersRepository implements TimersRepositoryInterface {
     }
   }
 
+  /// Blocks saving a timer whose duration, sound, and title match another of
+  /// the user's timers in the cached list. An edit that keeps the timer's
+  /// own setup is never blocked, so timers duplicated before this rule
+  /// existed can still be renamed or re-saved. Best-effort: with no cache
+  /// the save goes through.
+  ValidationFailure? _duplicateSetupFailure(String userId, PresetTimer timer) {
+    final cached = local.readPresetTimers(
+      userId,
+      skip: 0,
+      limit: kTimersPageLimit,
+    );
+    if (cached == null) return null;
+
+    final userTimers = cached
+        .where((t) => t.type == kPresetTimerTypeUserCreated)
+        .map((t) => t.toEntity());
+    final unchanged = userTimers.any(
+      (t) => t.id == timer.id && t.sameSetup(timer),
+    );
+    if (unchanged) return null;
+
+    final isDuplicate = userTimers.any(
+      (t) => t.id != timer.id && t.sameSetup(timer),
+    );
+    if (!isDuplicate) return null;
+    return const ValidationFailure(
+      'A timer with this duration, sound, and title already exists.',
+      code: 'timer_duplicate_setup',
+    );
+  }
+
   @override
   Future<Either<Failure, PresetTimer>> createUserTimer({
     required String name,
@@ -146,6 +177,19 @@ class TimersRepository implements TimersRepositoryInterface {
     if (userId == null || userId.isEmpty) {
       return const Left(AuthenticationFailure('Not authenticated'));
     }
+
+    final duplicate = _duplicateSetupFailure(
+      userId,
+      PresetTimer(
+        id: '',
+        name: name,
+        description: description,
+        durationMs: durationMs,
+        ambientSoundId: ambientSoundId,
+        type: kPresetTimerTypeUserCreated,
+      ),
+    );
+    if (duplicate != null) return Left(duplicate);
 
     final PresetTimerModel created;
     try {
@@ -189,6 +233,19 @@ class TimersRepository implements TimersRepositoryInterface {
     if (userId == null || userId.isEmpty) {
       return const Left(AuthenticationFailure('Not authenticated'));
     }
+
+    final duplicate = _duplicateSetupFailure(
+      userId,
+      PresetTimer(
+        id: timerId,
+        name: name,
+        description: description,
+        durationMs: durationMs,
+        ambientSoundId: ambientSoundId,
+        type: kPresetTimerTypeUserCreated,
+      ),
+    );
+    if (duplicate != null) return Left(duplicate);
 
     final PresetTimerModel updated;
     try {
