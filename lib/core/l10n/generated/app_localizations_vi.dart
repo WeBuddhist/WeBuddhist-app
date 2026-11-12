@@ -4037,6 +4037,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get timer_duration_hours => 'giờ';
 
   @override
+  String get timer_duration_hr => 'hr';
+
+  @override
   String get timer_duration_sec => 'giây';
 
   @override

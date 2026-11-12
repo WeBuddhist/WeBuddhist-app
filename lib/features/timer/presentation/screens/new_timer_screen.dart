@@ -94,6 +94,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
 
   String get _durationRowValue => PresetTimer.formatLabel(
     _durationMs,
+    hours: context.l10n.timer_duration_hr,
     minutes: context.l10n.timer_min,
     seconds: context.l10n.timer_duration_sec,
   );

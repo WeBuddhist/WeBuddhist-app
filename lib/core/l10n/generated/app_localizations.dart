@@ -7015,6 +7015,12 @@ abstract class AppLocalizations {
   /// **'hours'**
   String get timer_duration_hours;
 
+  /// No description provided for @timer_duration_hr.
+  ///
+  /// In en, this message translates to:
+  /// **'hr'**
+  String get timer_duration_hr;
+
   /// No description provided for @timer_duration_sec.
   ///
   /// In en, this message translates to:

@@ -89,8 +89,8 @@ class PresetTimer {
   static bool labelsInSeconds(int durationMs) =>
       durationMs < Duration.millisecondsPerMinute;
 
-  /// Compact hours unit from the Figma list (`hr`). Not an l10n key —
-  /// `timer_duration_hours` is the full word used by the duration picker.
+  /// English short hours unit, used only for the API `name` and tests. UI
+  /// labels pass the localized `timer_duration_hr` instead.
   static const hoursUnit = 'hr';
 
   /// Hours, minutes, and leftover seconds for list labels, split from
@@ -132,7 +132,7 @@ class PresetTimer {
   /// English short-unit label for tests and callers that cannot take l10n:
   /// `20 sec`, `1 min`, `2 hr`, `1hr 24min`, `1hr 24min 23sec`.
   static String formatDisplayValue(int durationMs) =>
-      formatLabel(durationMs, minutes: 'min', seconds: 'sec');
+      formatLabel(durationMs, hours: hoursUnit, minutes: 'min', seconds: 'sec');
 
   /// Joins [durationPartsFromMs] with the given unit strings.
   ///
@@ -140,7 +140,7 @@ class PresetTimer {
   /// each number to its unit (`1hr 24min 23sec`).
   static String formatLabel(
     int durationMs, {
-    String hours = hoursUnit,
+    required String hours,
     required String minutes,
     required String seconds,
   }) {

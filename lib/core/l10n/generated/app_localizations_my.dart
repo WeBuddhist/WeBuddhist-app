@@ -4077,6 +4077,9 @@ class AppLocalizationsMy extends AppLocalizations {
   String get timer_duration_hours => 'နာရီ';
 
   @override
+  String get timer_duration_hr => 'hr';
+
+  @override
   String get timer_duration_sec => 'စက္ကန့်';
 
   @override

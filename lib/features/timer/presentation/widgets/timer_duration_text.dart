@@ -55,7 +55,7 @@ class TimerDurationText extends StatelessWidget {
     );
 
     String unitFor(TimerDurationPart part) => switch (part.unit) {
-      TimerDurationUnit.hours => PresetTimer.hoursUnit,
+      TimerDurationUnit.hours => l10n.timer_duration_hr,
       TimerDurationUnit.minutes => l10n.timer_min,
       TimerDurationUnit.seconds => l10n.timer_duration_sec,
     };

@@ -4050,6 +4050,9 @@ class AppLocalizationsNe extends AppLocalizations {
   String get timer_duration_hours => 'hours';
 
   @override
+  String get timer_duration_hr => 'hr';
+
+  @override
   String get timer_duration_sec => 'sec';
 
   @override

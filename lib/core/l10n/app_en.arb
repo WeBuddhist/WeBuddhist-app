@@ -2015,6 +2015,7 @@
   "timer_create_custom": "Create a custom timer",
   "timer_starting": "Starting...",
   "timer_duration_hours": "hours",
+  "timer_duration_hr": "hr",
   "timer_duration_sec": "sec",
   "reader_display_title": "Display",
   "text_size": "Text size",
