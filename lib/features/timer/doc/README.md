@@ -115,7 +115,9 @@ duration actually changed**: the picker saves exact hours, minutes, and
 seconds. List labels use the same split (`1 min`, `1hr 24min`,
 `1hr 24min 23sec`) with leftover-second numbers drawn smaller. Duplicate
 setups with the exact same duration and ambient sound (treating null and
-blank as equal) are blocked from both creation and editing. An edit that touches
+blank as equal) are blocked from both creation and editing, returning a
+ValidationFailure (`code: timer_duplicate_setup`) and a snackbar from
+`timer_duplicate_setup` (ARB fallback, Tolgee override per language). An edit that touches
 just the sound must resend the stored `durationMs` (and stored name) verbatim
 rather than a re-derived value, which would quietly change e.g. a 90s timer. `ambient_sound_id` is **always** in the body,
 including as `null`, which is how "Default (no sound)" clears an existing

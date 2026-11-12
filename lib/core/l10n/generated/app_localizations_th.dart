@@ -3875,6 +3875,10 @@ class AppLocalizationsTh extends AppLocalizations {
       'ระยะเวลาต้องมากกว่า 0';
 
   @override
+  String get timer_duplicate_setup =>
+      'A timer with this duration and sound already exists.';
+
+  @override
   String get splash_tagline_1 => 'พวกเราชาวพุทธปฏิบัติร่วมกัน';
 
   @override

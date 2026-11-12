@@ -135,10 +135,21 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
           : widget.timer!.name;
 
   String _failureMessage(Failure failure) {
-    if (failure is ValidationFailure && _durationMs <= 0) {
-      return context.l10n.timer_duration_must_be_greater_than_error;
+    if (failure is ValidationFailure) {
+      if (_durationMs <= 0) {
+        return context.l10n.timer_duration_must_be_greater_than_error;
+      }
+      if (failure.code == 'timer_duplicate_setup') {
+        return context.l10n.timer_duplicate_setup;
+      }
     }
     return failure.message;
+  }
+
+  void _showDuplicateSetupSnackBar() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.timer_duplicate_setup)));
   }
 
   Future<PresetTimer?> _createTimer() async {
@@ -156,13 +167,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
         (t) => t.isUserCreated && currentTimer.sameSetup(t),
       );
       if (isDuplicate) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'A timer with this duration and sound already exists.',
-            ),
-          ),
-        );
+        _showDuplicateSetupSnackBar();
         return null;
       }
     }
@@ -214,13 +219,7 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
             currentTimer.sameSetup(t),
       );
       if (isDuplicate) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'A timer with this duration and sound already exists.',
-            ),
-          ),
-        );
+        _showDuplicateSetupSnackBar();
         return;
       }
     }

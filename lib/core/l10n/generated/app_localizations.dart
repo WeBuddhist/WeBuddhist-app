@@ -6805,6 +6805,12 @@ abstract class AppLocalizations {
   /// **'Duration must be greater than 0'**
   String get timer_duration_must_be_greater_than_error;
 
+  /// No description provided for @timer_duplicate_setup.
+  ///
+  /// In en, this message translates to:
+  /// **'A timer with this duration and sound already exists.'**
+  String get timer_duplicate_setup;
+
   /// No description provided for @splash_tagline_1.
   ///
   /// In en, this message translates to:

@@ -3960,6 +3960,10 @@ class AppLocalizationsMy extends AppLocalizations {
       'ကြာချိန်သည် 0 ထက် ကြီးရပါမည်';
 
   @override
+  String get timer_duplicate_setup =>
+      'A timer with this duration and sound already exists.';
+
+  @override
   String get splash_tagline_1 =>
       'ဗုဒ္ဓဘာသာဝင် ကျွန်ုပ်တို့ အတူတကွ ကျင့်ကြံကြသည်';
 
