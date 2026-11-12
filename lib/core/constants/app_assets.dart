@@ -144,6 +144,12 @@ class AppAssets {
   static const IconData listBullets = PhosphorIconsRegular.listBullets;
   static const IconData listNumbers = PhosphorIconsRegular.listNumbers;
 
+  // ========== CHANTS PAGE ICONS ==========
+  /// Marks a chant or chant book that has recordings.
+  static const IconData chantAudio = PhosphorIconsBold.waveform;
+  static const IconData search = PhosphorIconsRegular.magnifyingGlass;
+  static const IconData requestText = PhosphorIconsRegular.filePlus;
+
   // ========== TIMER ICONS ==========
   static const IconData timerAmbientSound = PhosphorIconsRegular.waveform;
   static const IconData speakerSimpleHigh =

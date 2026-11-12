@@ -59,13 +59,24 @@ class MyRecitationCollectionsRemoteDatasource {
   }
 
   /// GET /users/me/recitation-collections
+  ///
+  /// [scope] defaults to the server's `own`; [search] matches the collection
+  /// name (and the owner name with [RecitationCollectionScope.public]).
   Future<MyRecitationCollectionsPageResponse> fetchCollections({
     int skip = 0,
     int limit = 20,
+    RecitationCollectionScope? scope,
+    String? search,
   }) async {
+    final query = search?.trim() ?? '';
     final response = await dio.get(
       '/users/me/recitation-collections',
-      queryParameters: {'skip': skip, 'limit': limit},
+      queryParameters: {
+        'skip': skip,
+        'limit': limit,
+        if (scope != null) 'scope': scope.apiValue,
+        if (query.isNotEmpty) 'search': query,
+      },
     );
     final data = response.data;
     if (data is! Map<String, dynamic>) {

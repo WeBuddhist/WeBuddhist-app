@@ -4176,4 +4176,62 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'Versions';
+
+  @override
+  String get chants_filter_all => 'All';
+
+  @override
+  String get chants_chant_books => 'Chant books';
+
+  @override
+  String get chants_filter_single_chants => 'Single chants';
+
+  @override
+  String get chants_my_chant_books => 'My chantbooks';
+
+  @override
+  String get chants_text_only => 'Text-only chants';
+
+  @override
+  String get chants_from_your_spaces => 'From your spaces';
+
+  @override
+  String get chants_explore_more => 'Explore more';
+
+  @override
+  String get chants_create_chant_book => 'Chant book';
+
+  @override
+  String get chants_open_chant => 'Open chant';
+
+  @override
+  String get chants_your_spaces => 'Your spaces';
+
+  @override
+  String get chants_other_spaces => 'Other spaces';
+
+  @override
+  String get chants_search_hint => 'Search chants and chantbooks';
+
+  @override
+  String get chants_cant_find => 'Can\'t find the text you\'re looking for?';
+
+  @override
+  String get chants_request_text => 'Request text';
+
+  @override
+  String get chants_request_done => 'Requested';
+
+  @override
+  String get chants_request_sent => 'Thanks. We\'ve received your request.';
+
+  @override
+  String get chants_request_limit =>
+      'You\'ve sent a lot of requests today. Please try again later.';
+
+  @override
+  String get chants_with_audio => 'Chants with audio';
+
+  @override
+  String get chants_audio_chants => 'Audio chants';
 }

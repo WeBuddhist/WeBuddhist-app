@@ -2095,5 +2095,24 @@
     }
   },
   "reader_tab_commentary": "Commentary",
-  "reader_tab_versions": "Versions"
+  "reader_tab_versions": "Versions",
+  "chants_filter_all": "All",
+  "chants_chant_books": "Chant books",
+  "chants_filter_single_chants": "Single chants",
+  "chants_my_chant_books": "My chantbooks",
+  "chants_text_only": "Text-only chants",
+  "chants_from_your_spaces": "From your spaces",
+  "chants_explore_more": "Explore more",
+  "chants_create_chant_book": "Chant book",
+  "chants_open_chant": "Open chant",
+  "chants_your_spaces": "Your spaces",
+  "chants_other_spaces": "Other spaces",
+  "chants_search_hint": "Search chants and chantbooks",
+  "chants_cant_find": "Can't find the text you're looking for?",
+  "chants_request_text": "Request text",
+  "chants_request_done": "Requested",
+  "chants_request_sent": "Thanks. We've received your request.",
+  "chants_request_limit": "You've sent a lot of requests today. Please try again later.",
+  "chants_with_audio": "Chants with audio",
+  "chants_audio_chants": "Audio chants"
 }

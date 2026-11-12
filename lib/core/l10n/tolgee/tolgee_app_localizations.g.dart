@@ -8182,4 +8182,137 @@ class TolgeeAppLocalizations extends AppLocalizations {
     'reader_tab_versions',
     () => _fallback.reader_tab_versions,
   );
+
+  @override
+  String get chants_filter_all => TolgeeBridge.get(
+    localeName,
+    'chants_filter_all',
+    () => _fallback.chants_filter_all,
+  );
+
+  @override
+  String get chants_chant_books => TolgeeBridge.get(
+    localeName,
+    'chants_chant_books',
+    () => _fallback.chants_chant_books,
+  );
+
+  @override
+  String get chants_filter_single_chants => TolgeeBridge.get(
+    localeName,
+    'chants_filter_single_chants',
+    () => _fallback.chants_filter_single_chants,
+  );
+
+  @override
+  String get chants_my_chant_books => TolgeeBridge.get(
+    localeName,
+    'chants_my_chant_books',
+    () => _fallback.chants_my_chant_books,
+  );
+
+  @override
+  String get chants_text_only => TolgeeBridge.get(
+    localeName,
+    'chants_text_only',
+    () => _fallback.chants_text_only,
+  );
+
+  @override
+  String get chants_from_your_spaces => TolgeeBridge.get(
+    localeName,
+    'chants_from_your_spaces',
+    () => _fallback.chants_from_your_spaces,
+  );
+
+  @override
+  String get chants_explore_more => TolgeeBridge.get(
+    localeName,
+    'chants_explore_more',
+    () => _fallback.chants_explore_more,
+  );
+
+  @override
+  String get chants_create_chant_book => TolgeeBridge.get(
+    localeName,
+    'chants_create_chant_book',
+    () => _fallback.chants_create_chant_book,
+  );
+
+  @override
+  String get chants_open_chant => TolgeeBridge.get(
+    localeName,
+    'chants_open_chant',
+    () => _fallback.chants_open_chant,
+  );
+
+  @override
+  String get chants_your_spaces => TolgeeBridge.get(
+    localeName,
+    'chants_your_spaces',
+    () => _fallback.chants_your_spaces,
+  );
+
+  @override
+  String get chants_other_spaces => TolgeeBridge.get(
+    localeName,
+    'chants_other_spaces',
+    () => _fallback.chants_other_spaces,
+  );
+
+  @override
+  String get chants_search_hint => TolgeeBridge.get(
+    localeName,
+    'chants_search_hint',
+    () => _fallback.chants_search_hint,
+  );
+
+  @override
+  String get chants_cant_find => TolgeeBridge.get(
+    localeName,
+    'chants_cant_find',
+    () => _fallback.chants_cant_find,
+  );
+
+  @override
+  String get chants_request_text => TolgeeBridge.get(
+    localeName,
+    'chants_request_text',
+    () => _fallback.chants_request_text,
+  );
+
+  @override
+  String get chants_request_done => TolgeeBridge.get(
+    localeName,
+    'chants_request_done',
+    () => _fallback.chants_request_done,
+  );
+
+  @override
+  String get chants_request_sent => TolgeeBridge.get(
+    localeName,
+    'chants_request_sent',
+    () => _fallback.chants_request_sent,
+  );
+
+  @override
+  String get chants_request_limit => TolgeeBridge.get(
+    localeName,
+    'chants_request_limit',
+    () => _fallback.chants_request_limit,
+  );
+
+  @override
+  String get chants_with_audio => TolgeeBridge.get(
+    localeName,
+    'chants_with_audio',
+    () => _fallback.chants_with_audio,
+  );
+
+  @override
+  String get chants_audio_chants => TolgeeBridge.get(
+    localeName,
+    'chants_audio_chants',
+    () => _fallback.chants_audio_chants,
+  );
 }

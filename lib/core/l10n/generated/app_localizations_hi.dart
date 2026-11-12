@@ -4131,4 +4131,62 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'संस्करण';
+
+  @override
+  String get chants_filter_all => 'सभी';
+
+  @override
+  String get chants_chant_books => 'जप पुस्तकें';
+
+  @override
+  String get chants_filter_single_chants => 'एकल जप';
+
+  @override
+  String get chants_my_chant_books => 'मेरी जप पुस्तकें';
+
+  @override
+  String get chants_text_only => 'केवल पाठ वाले जप';
+
+  @override
+  String get chants_from_your_spaces => 'आपके स्पेस से';
+
+  @override
+  String get chants_explore_more => 'और देखें';
+
+  @override
+  String get chants_create_chant_book => 'जप पुस्तक';
+
+  @override
+  String get chants_open_chant => 'जप खोलें';
+
+  @override
+  String get chants_your_spaces => 'आपके स्पेस';
+
+  @override
+  String get chants_other_spaces => 'अन्य स्पेस';
+
+  @override
+  String get chants_search_hint => 'जप और जप पुस्तकें खोजें';
+
+  @override
+  String get chants_cant_find => 'जो पाठ आप ढूँढ रहे हैं वह नहीं मिला?';
+
+  @override
+  String get chants_request_text => 'पाठ का अनुरोध करें';
+
+  @override
+  String get chants_request_done => 'अनुरोध भेजा गया';
+
+  @override
+  String get chants_request_sent => 'धन्यवाद। हमें आपका अनुरोध मिल गया है।';
+
+  @override
+  String get chants_request_limit =>
+      'आज आप कई अनुरोध भेज चुके हैं। कृपया बाद में फिर कोशिश करें।';
+
+  @override
+  String get chants_with_audio => 'ऑडियो वाले जप';
+
+  @override
+  String get chants_audio_chants => 'ऑडियो जप';
 }

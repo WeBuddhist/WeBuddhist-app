@@ -3,6 +3,8 @@
 //
 // Separate from group-scoped collections (`GroupRecitationCollectionModel`).
 
+import 'package:flutter_pecha/core/utils/audio_url.dart';
+
 /// Request body for `POST /users/me/recitation-collections`.
 class CreateMyRecitationCollectionRequest {
   final String name;
@@ -107,33 +109,77 @@ class MyRecitationCollectionImageUploadResponse {
   }
 }
 
+/// `scope` of `GET /users/me/recitation-collections`.
+enum RecitationCollectionScope {
+  /// The user's own collections (server default).
+  own('own'),
+
+  /// Own collections plus the ones the user imported.
+  withImports('with_imports'),
+
+  /// PUBLIC collections the user can import.
+  public('public');
+
+  const RecitationCollectionScope(this.apiValue);
+  final String apiValue;
+}
+
 /// Response from `POST /users/me/recitation-collections` (201).
 class MyRecitationCollectionModel {
   final String id;
   final String name;
   final String? imgUrl;
   final int itemCount;
+
+  /// Chants that have at least one recording. Not sent yet; requested from
+  /// the backend (Q2), so it reads 0 until then.
+  final int audioItemCount;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  /// Who made the collection: the source's owner for an import
+  /// (`reference.owner`), else `owner` (sent for `scope=public`). Null for
+  /// the user's own collections.
+  final String? ownerName;
+
+  /// True when the user imported this collection by reference.
+  final bool isImported;
 
   const MyRecitationCollectionModel({
     required this.id,
     required this.name,
     this.imgUrl,
     this.itemCount = 0,
+    this.audioItemCount = 0,
     this.createdAt,
     this.updatedAt,
+    this.ownerName,
+    this.isImported = false,
   });
 
+  bool get hasAudio => audioItemCount > 0;
+
   factory MyRecitationCollectionModel.fromJson(Map<String, dynamic> json) {
+    final reference = json['reference'];
+    final referenceOwner =
+        reference is Map<String, dynamic> ? reference['owner'] : null;
     return MyRecitationCollectionModel(
       id: json['id'] as String? ?? json['collection_id'] as String? ?? '',
       name: json['name'] as String? ?? '',
       imgUrl: json['img_url'] as String?,
       itemCount: (json['item_count'] as num?)?.toInt() ?? 0,
+      audioItemCount: (json['audio_item_count'] as num?)?.toInt() ?? 0,
       createdAt: _parseDate(json['created_at']),
       updatedAt: _parseDate(json['updated_at']),
+      ownerName: _ownerName(referenceOwner) ?? _ownerName(json['owner']),
+      isImported: reference is Map<String, dynamic>,
     );
+  }
+
+  static String? _ownerName(Object? owner) {
+    if (owner is! Map<String, dynamic>) return null;
+    final name = (owner['name'] as String?)?.trim() ?? '';
+    return name.isEmpty ? null : name;
   }
 
   static DateTime? _parseDate(Object? value) =>
@@ -279,6 +325,51 @@ class MyRecitationCollectionCompletionDaysCountResponse {
   }
 }
 
+/// One recording attached to a personal collection chant (`ItemAudioDTO`).
+class MyRecitationCollectionItemAudioModel {
+  final String id;
+  final String title;
+  final String url;
+  final int? durationMs;
+  final int displayOrder;
+
+  /// Not sent yet; requested from the backend (Q3).
+  final String? reciterName;
+
+  /// Not sent yet; requested from the backend (Q3).
+  final String? imageUrl;
+
+  const MyRecitationCollectionItemAudioModel({
+    required this.id,
+    required this.title,
+    required this.url,
+    this.durationMs,
+    this.displayOrder = 0,
+    this.reciterName,
+    this.imageUrl,
+  });
+
+  factory MyRecitationCollectionItemAudioModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return MyRecitationCollectionItemAudioModel(
+      id: json['id'] as String? ?? '',
+      title: (json['title'] as String?)?.trim() ?? '',
+      url: json['url'] as String? ?? '',
+      durationMs: (json['duration_ms'] as num?)?.toInt(),
+      displayOrder: (json['display_order'] as num?)?.toInt() ?? 0,
+      reciterName: _blankToNull(json['reciter_name']),
+      imageUrl: _blankToNull(json['image_url']),
+    );
+  }
+
+  static String? _blankToNull(Object? value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+}
+
 /// A chant row returned after adding items to a collection.
 class MyRecitationCollectionItemModel {
   final String id;
@@ -288,6 +379,9 @@ class MyRecitationCollectionItemModel {
   final String? type;
   final double displayOrder;
 
+  /// Playable recordings in their display order.
+  final List<MyRecitationCollectionItemAudioModel> audio;
+
   const MyRecitationCollectionItemModel({
     required this.id,
     required this.textId,
@@ -295,7 +389,10 @@ class MyRecitationCollectionItemModel {
     this.language,
     this.type,
     this.displayOrder = 0,
+    this.audio = const [],
   });
+
+  bool get hasAudio => audio.isNotEmpty;
 
   factory MyRecitationCollectionItemModel.fromJson(Map<String, dynamic> json) {
     return MyRecitationCollectionItemModel(
@@ -305,7 +402,19 @@ class MyRecitationCollectionItemModel {
       language: json['language'] as String?,
       type: json['type'] as String?,
       displayOrder: (json['display_order'] as num?)?.toDouble() ?? 0,
+      audio: _parseAudio(json['audio']),
     );
+  }
+
+  /// Drops recordings without a playable URL, then sorts by display order.
+  static List<MyRecitationCollectionItemAudioModel> _parseAudio(Object? raw) {
+    if (raw is! List) return const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(MyRecitationCollectionItemAudioModel.fromJson)
+        .where((audio) => hasPlayableAudio(audio.url))
+        .toList()
+      ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
   }
 }
 
