@@ -1,23 +1,5 @@
 PODS:
-  - airbridge-ios-sdk (4.9.3)
-  - airbridge_flutter_sdk (4.9.0):
-    - airbridge-ios-sdk (= 4.9.3)
-    - Flutter
-  - Auth0 (2.10.0):
-    - JWTDecode (= 3.2.0)
-    - SimpleKeychain (= 1.2.0)
-  - auth0_flutter (1.14.0):
-    - Auth0 (= 2.10.0)
-    - Flutter
-    - FlutterMacOS
-    - JWTDecode (= 3.2.0)
-    - SimpleKeychain (= 1.2.0)
   - Flutter (1.0.0)
-  - flutter_image_compress_common (1.0.0):
-    - Flutter
-    - Mantle
-    - SDWebImage
-    - SDWebImageWebPCoder
   - flutter_inappwebview_ios (0.0.1):
     - Flutter
     - flutter_inappwebview_ios/Core (= 0.0.1)
@@ -25,83 +7,26 @@ PODS:
   - flutter_inappwebview_ios/Core (0.0.1):
     - Flutter
     - OrderedSet (~> 6.0.3)
-  - image_gallery_saver_plus (0.0.1):
-    - Flutter
-  - JWTDecode (3.2.0)
-  - libwebp (1.5.0):
-    - libwebp/demux (= 1.5.0)
-    - libwebp/mux (= 1.5.0)
-    - libwebp/sharpyuv (= 1.5.0)
-    - libwebp/webp (= 1.5.0)
-  - libwebp/demux (1.5.0):
-    - libwebp/webp
-  - libwebp/mux (1.5.0):
-    - libwebp/demux
-  - libwebp/sharpyuv (1.5.0)
-  - libwebp/webp (1.5.0):
-    - libwebp/sharpyuv
-  - Mantle (2.2.0):
-    - Mantle/extobjc (= 2.2.0)
-  - Mantle/extobjc (2.2.0)
   - OrderedSet (6.0.3)
-  - SDWebImage (5.21.7):
-    - SDWebImage/Core (= 5.21.7)
-  - SDWebImage/Core (5.21.7)
-  - SDWebImageWebPCoder (0.15.0):
-    - libwebp (~> 1.0)
-    - SDWebImage/Core (~> 5.17)
-  - SimpleKeychain (1.2.0)
 
 DEPENDENCIES:
-  - airbridge_flutter_sdk (from `.symlinks/plugins/airbridge_flutter_sdk/ios`)
-  - auth0_flutter (from `.symlinks/plugins/auth0_flutter/darwin`)
   - Flutter (from `Flutter`)
-  - flutter_image_compress_common (from `.symlinks/plugins/flutter_image_compress_common/ios`)
   - flutter_inappwebview_ios (from `.symlinks/plugins/flutter_inappwebview_ios/ios`)
-  - image_gallery_saver_plus (from `.symlinks/plugins/image_gallery_saver_plus/ios`)
 
 SPEC REPOS:
   trunk:
-    - airbridge-ios-sdk
-    - Auth0
-    - JWTDecode
-    - libwebp
-    - Mantle
     - OrderedSet
-    - SDWebImage
-    - SDWebImageWebPCoder
-    - SimpleKeychain
 
 EXTERNAL SOURCES:
-  airbridge_flutter_sdk:
-    :path: ".symlinks/plugins/airbridge_flutter_sdk/ios"
-  auth0_flutter:
-    :path: ".symlinks/plugins/auth0_flutter/darwin"
   Flutter:
     :path: Flutter
-  flutter_image_compress_common:
-    :path: ".symlinks/plugins/flutter_image_compress_common/ios"
   flutter_inappwebview_ios:
     :path: ".symlinks/plugins/flutter_inappwebview_ios/ios"
-  image_gallery_saver_plus:
-    :path: ".symlinks/plugins/image_gallery_saver_plus/ios"
 
 SPEC CHECKSUMS:
-  airbridge-ios-sdk: 6049688ddcfafa85da5ab35b943430c3309ca97b
-  airbridge_flutter_sdk: 79d47074aae010182e265e9bdac9c904d9a01f4d
-  Auth0: 2876d0c36857422eda9cb580a6cc896c7d14cb36
-  auth0_flutter: 0f4846524696ef8441bcb96ceab7bfdbe31b8a05
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_image_compress_common: ec1d45c362c9d30a3f6a0426c297f47c52007e3e
   flutter_inappwebview_ios: 6f63631e2c62a7c350263b13fa5427aedefe81d4
-  image_gallery_saver_plus: 782ade975fe6a4600b53e7c1983e3a2979d1e9e5
-  JWTDecode: 7dae24cb9bf9b608eae61e5081029ec169bb5527
-  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
-  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
-  SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
-  SimpleKeychain: 768cf43ae778b1c21816e94dddf01bb8ee96a075
 
 PODFILE CHECKSUM: 7c00d34b9c7b6ca023f75330d5806ba832647b78
 
