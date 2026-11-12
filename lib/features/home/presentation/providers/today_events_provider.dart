@@ -14,11 +14,12 @@ final todayEventsFutureProvider = AsyncNotifierProvider<
   return ScreenCacheNotifier((ref, bind) {
     final language = ref.watch(contentLanguageProvider);
     final repository = ref.watch(todayEventsDomainRepositoryProvider);
-    final stored = ref
-        .watch(homeLocalDatasourceProvider)
-        .readTodayEvents(language)
-        ?.map((m) => m.toEntity())
-        .toList();
+    final stored =
+        ref
+            .watch(homeLocalDatasourceProvider)
+            .readTodayEvents(language)
+            ?.map((m) => m.toEntity(language: language))
+            .toList();
     return bind.stream(
       stored == null ? null : Right(stored),
       repository.watchTodayEvents(language: language),

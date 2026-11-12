@@ -43,8 +43,14 @@ cd WeBuddhist-app
 
 ### 2. Install dependencies
 ```sh
+flutter config --enable-swift-package-manager
 flutter pub get
 ```
+The iOS project uses Flutter's Swift Package Manager integration: plugins come
+in through `FlutterGeneratedPluginSwiftPackage`, and the committed
+`ios/Podfile.lock` only lists the pods SwiftPM cannot provide. CI enables the
+same flag. Building with it off re-adds every Firebase pod and rewrites
+`Podfile.lock`, so do not commit a lock produced that way.
 
 ### 3. Environment setup
 Each flavor entrypoint loads its own dotenv file (`lib/main_<flavor>.dart` →

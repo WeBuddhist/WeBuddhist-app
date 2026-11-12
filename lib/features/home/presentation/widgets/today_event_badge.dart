@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
+import 'package:flutter_pecha/core/constants/app_config.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/core/utils/network_image_utils.dart';
+import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 
 /// One event the home pill can show or list.
 class TodayEventBadgeItem {
@@ -164,10 +167,8 @@ class _Pill extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
                 Flexible(
-                  child: Text(
-                    TodayEventBadge.formatEventName(item.name),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: _EventName(
+                    name: item.name,
                     style: TextStyle(
                       color: colorScheme.onSurface,
                       fontSize: 13,
@@ -240,10 +241,8 @@ class _MenuRow extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(
-                TodayEventBadge.formatEventName(item.name),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              child: _EventName(
+                name: item.name,
                 style: TextStyle(
                   color: colorScheme.onSurface,
                   fontSize: 14,
@@ -252,8 +251,55 @@ class _MenuRow extends StatelessWidget {
                 ),
               ),
             ),
+            // Only events on at this moment get the dot, at the row's right
+            // edge; later ones today stay plain.
+            if (item.isLive) ...[const SizedBox(width: 8), const _LiveDot()],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// One line of event name. A Tibetan name gets the bundled Tibetan font and
+/// metrics: in English mode the theme font cannot draw Tibetan, so the name
+/// would otherwise render blank.
+class _EventName extends StatelessWidget {
+  const _EventName({required this.name, required this.style});
+
+  final String name;
+  final TextStyle style;
+
+  static final _tibetan = RegExp(r'[\u0F00-\u0FFF]');
+
+  @override
+  Widget build(BuildContext context) {
+    final isTibetan = _tibetan.hasMatch(name);
+    if (!isTibetan) {
+      return Text(
+        TodayEventBadge.formatEventName(name),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: style,
+      );
+    }
+    final fontSize = style.fontSize ?? 14;
+    return Text(
+      name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: getContentTextStyle(
+        AppConfig.tibetanLanguageCode,
+        style.copyWith(
+          letterSpacing: 0,
+          height: AppFontConfig.tibetanCompactLineHeight,
+          leadingDistribution: AppFontConfig.tibetanLeadingDistribution,
+        ),
+      ),
+      strutStyle: AppFontConfig.tibetanStrutStyle(
+        AppConfig.tibetanLanguageCode,
+        fontSize,
+        compact: true,
       ),
     );
   }
