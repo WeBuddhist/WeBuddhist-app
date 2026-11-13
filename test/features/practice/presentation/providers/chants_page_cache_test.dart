@@ -55,5 +55,27 @@ void main() {
       await visit(container);
       expect(loads, 2);
     });
+
+    test('a success that cacheIf rejects is read again', () async {
+      provider = FutureProvider.autoDispose<Either<Failure, int>>((ref) {
+        loads++;
+        return ref.cacheSuccessFor(
+          Future.value(next),
+          const Duration(minutes: 5),
+          // Odd values stand for a partial read.
+          cacheIf: (value) => value.isEven,
+        );
+      });
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      await visit(container);
+      await visit(container);
+      expect(loads, 2);
+
+      next = const Right(2);
+      await visit(container);
+      await visit(container);
+      expect(loads, 3);
+    });
   });
 }

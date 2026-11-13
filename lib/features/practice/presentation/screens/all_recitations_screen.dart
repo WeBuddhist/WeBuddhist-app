@@ -21,6 +21,7 @@ import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_s
 import 'package:flutter_pecha/features/practice/presentation/utils/recitation_reader_navigation.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_book_card.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_load_notice.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_rows.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/space_chant_rows.dart';
@@ -271,17 +272,29 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
     final chantsOfSpaces = _valueOrNull(spaceChants) ?? SpaceChants.empty;
     final chants = catalogue.recitations;
 
-    final sections = chantsPageSections(
-      filter: _filter,
-      hasMyChantBooks: myList.isNotEmpty,
-      hasYourSpaceChantBooks: spaces.yours.isNotEmpty,
-      hasOtherSpaceChantBooks: spaces.others.isNotEmpty,
-      hasTextOnlyChants:
-          chants.isNotEmpty || chantsOfSpaces.othersText.isNotEmpty,
-      hasYourAudioChants: chantsOfSpaces.yoursAudio.isNotEmpty,
-      hasOtherAudioChants: chantsOfSpaces.othersAudio.isNotEmpty,
-      hasYourTextChants: chantsOfSpaces.yoursText.isNotEmpty,
-    );
+    final sections = [
+      ...chantsPageSections(
+        filter: _filter,
+        hasMyChantBooks: myList.isNotEmpty,
+        hasYourSpaceChantBooks: spaces.yours.isNotEmpty,
+        hasOtherSpaceChantBooks: spaces.others.isNotEmpty,
+        hasTextOnlyChants:
+            chants.isNotEmpty || chantsOfSpaces.othersText.isNotEmpty,
+        hasYourAudioChants: chantsOfSpaces.yoursAudio.isNotEmpty,
+        hasOtherAudioChants: chantsOfSpaces.othersAudio.isNotEmpty,
+        hasYourTextChants: chantsOfSpaces.yoursText.isNotEmpty,
+      ),
+    ];
+    // The library failed while other sections show: keep a "Text only"
+    // section so its error and retry are not lost under them. With no
+    // other section the full error screen below says it.
+    final catalogueMatters = _filter != ChantsFilter.chantBooks;
+    if (catalogueMatters &&
+        catalogue.error != null &&
+        sections.isNotEmpty &&
+        !sections.contains(ChantsSection.textOnlyChants)) {
+      sections.add(ChantsSection.textOnlyChants);
+    }
 
     final stillLoading =
         catalogue.isLoading ||
@@ -294,7 +307,6 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
           variant: RecitationListSkeletonVariant.chantTile,
         );
       }
-      final catalogueMatters = _filter != ChantsFilter.chantBooks;
       if (catalogueMatters && catalogue.error != null) {
         return _catalogueError(context, catalogue, languageCode);
       }
@@ -327,6 +339,16 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
             : null;
 
     final items = <Widget>[
+      // Some chant books could not be read: say so above the lists that
+      // are missing their chants, rather than leaving them out quietly.
+      if (catalogueMatters && chantsOfSpaces.isPartial)
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: ChantLoadNotice(
+            message: context.l10n.unableToLoad,
+            onRetry: () => ref.invalidate(spaceChantBooksProvider),
+          ),
+        ),
       if (chantsPending && placeholderAfter == null)
         const _SpaceChantsPlaceholder(),
     ];
@@ -479,6 +501,24 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(child: CircularProgressIndicator()),
+            )
+          // The library failed, on its first page or a later one: an
+          // error with Retry in its place, so the chants are not just
+          // missing. (A failed later page never pages on scroll again.)
+          else if (catalogue.error != null &&
+              (isFullList || catalogue.recitations.isEmpty))
+            ChantLoadNotice(
+              message: catalogue.error!,
+              onRetry: () {
+                final notifier = ref.read(
+                  practiceRecitationsCatalogueProvider(languageCode).notifier,
+                );
+                if (catalogue.recitations.isEmpty) {
+                  notifier.retry();
+                } else {
+                  notifier.loadMore();
+                }
+              },
             ),
         ];
     }

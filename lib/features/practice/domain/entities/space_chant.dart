@@ -40,6 +40,7 @@ class SpaceChants extends Equatable {
     this.yoursText = const [],
     this.othersAudio = const [],
     this.othersText = const [],
+    this.failedBookCount = 0,
   });
 
   static const empty = SpaceChants();
@@ -48,6 +49,12 @@ class SpaceChants extends Equatable {
   final List<SpaceChant> yoursText;
   final List<SpaceChant> othersAudio;
   final List<SpaceChant> othersText;
+
+  /// Chant books whose chants could not be read, so the lists above are
+  /// missing them; the page says so and offers a retry.
+  final int failedBookCount;
+
+  bool get isPartial => failedBookCount > 0;
 
   /// Only the chants in [languageCode] (the Chants page language). Compared
   /// on the main language tag, so `zh` matches `zh-Hant`; a chant with no
@@ -65,6 +72,7 @@ class SpaceChants extends Equatable {
       yoursText: keep(yoursText),
       othersAudio: keep(othersAudio),
       othersText: keep(othersText),
+      failedBookCount: failedBookCount,
     );
   }
 
@@ -78,5 +86,11 @@ class SpaceChants extends Equatable {
       othersText.isEmpty;
 
   @override
-  List<Object?> get props => [yoursAudio, yoursText, othersAudio, othersText];
+  List<Object?> get props => [
+    yoursAudio,
+    yoursText,
+    othersAudio,
+    othersText,
+    failedBookCount,
+  ];
 }

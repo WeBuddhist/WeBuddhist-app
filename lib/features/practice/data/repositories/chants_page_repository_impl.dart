@@ -262,6 +262,7 @@ SpaceChants splitSpaceChants(
     yoursText: yoursText,
     othersAudio: othersAudio,
     othersText: othersText,
+    failedBookCount: details.take(count).where((d) => d == null).length,
   );
 }
 

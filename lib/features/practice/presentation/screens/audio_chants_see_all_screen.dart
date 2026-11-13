@@ -8,6 +8,7 @@ import 'package:flutter_pecha/features/practice/presentation/providers/practice_
 import 'package:flutter_pecha/features/practice/presentation/screens/recitations_search_screen.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_actions.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_load_notice.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/space_chant_rows.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -75,7 +76,14 @@ class _AudioChantsSeeAllScreenState
     final l10n = context.l10n;
     final async = ref.watch(spaceChantsProvider);
     final chants = async.valueOrNull?.fold((_) => null, (c) => c);
-    final hasYours = chants?.yoursAudio.isNotEmpty ?? _showYours;
+    // The pills follow the chants in every language, so a language with
+    // none in the user's spaces empties the list but keeps the pills.
+    final hasYours =
+        ref
+            .watch(allSpaceChantsProvider)
+            .valueOrNull
+            ?.fold((_) => null, (all) => all.yoursAudio.isNotEmpty) ??
+        _showYours;
     // Titled as on the Chants page: "Audio chants" for a user whose spaces
     // have no chant books.
     final isNewUser =
@@ -99,6 +107,16 @@ class _AudioChantsSeeAllScreenState
     } else {
       final showYours = hasYours && _showYours;
       final list = showYours ? chants.yoursAudio : chants.othersAudio;
+      // Some chant books could not be read: said above the list.
+      final notice =
+          chants.isPartial
+              ? ChantLoadNotice(
+                message: l10n.unableToLoad,
+                onRetry: () => ref.invalidate(spaceChantBooksProvider),
+                padding: const EdgeInsets.only(bottom: 4),
+              )
+              : null;
+      final lead = notice == null ? 0 : 1;
       body = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -121,7 +139,9 @@ class _AudioChantsSeeAllScreenState
                   list.isEmpty
                       ? ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
                         children: [
+                          if (notice != null) notice,
                           const SizedBox(height: 120),
                           Center(child: Text(l10n.noContentAvailable)),
                         ],
@@ -131,12 +151,17 @@ class _AudioChantsSeeAllScreenState
                         physics: const AlwaysScrollableScrollPhysics(),
                         // Room under the last row for the Chant book button.
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
-                        itemCount: list.length,
+                        itemCount: list.length + lead,
                         itemBuilder:
-                            (context, index) => Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: SpaceAudioChantRow(chant: list[index]),
-                            ),
+                            (context, index) =>
+                                index < lead
+                                    ? notice!
+                                    : Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: SpaceAudioChantRow(
+                                        chant: list[index - lead],
+                                      ),
+                                    ),
                       ),
             ),
           ),

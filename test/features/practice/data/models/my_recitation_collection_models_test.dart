@@ -143,6 +143,28 @@ void main() {
       });
       expect(detail.items.single.audio.single.url, 'https://cdn/a.mp3');
     });
+
+    test('an imported collection is marked, with its source owner', () {
+      final imported = MyRecitationCollectionDetailModel.fromJson({
+        'id': 'c-2',
+        'name': 'Evening',
+        'reference': {
+          'id': 'src',
+          'source_type': 'GROUP',
+          'owner': {'id': 'u', 'name': ' Tenzin '},
+        },
+      });
+      expect(imported.isImported, isTrue);
+      expect(imported.ownerName, 'Tenzin');
+
+      final own = MyRecitationCollectionDetailModel.fromJson({
+        'id': 'c-3',
+        'name': 'Mine',
+        'reference': null,
+      });
+      expect(own.isImported, isFalse);
+      expect(own.ownerName, isNull);
+    });
   });
 
   group('UpdateMyRecitationCollectionItemDisplayOrderRequest', () {

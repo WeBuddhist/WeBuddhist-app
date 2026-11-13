@@ -10,6 +10,7 @@ import 'package:flutter_pecha/features/practice/presentation/screens/recitations
 import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_actions.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/recitation_reader_navigation.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_load_notice.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_rows.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/space_chant_rows.dart';
@@ -124,20 +125,44 @@ class _TextChantsSeeAllScreenState
         spaceChantsAsync.valueOrNull?.fold((_) => null, (c) => c) ??
         SpaceChants.empty;
 
-    final hasYours = spaceChants.yoursText.isNotEmpty;
+    // The pills follow the chants in every language, so a language with
+    // none in the user's spaces empties the list but keeps the pills.
+    final hasYours =
+        ref
+            .watch(allSpaceChantsProvider)
+            .valueOrNull
+            ?.fold((_) => null, (all) => all.yoursText.isNotEmpty) ??
+        _showYours;
     final showYours = hasYours && _showYours;
     _onYours = showYours;
     final othersText = spaceChants.othersText;
     final spacesLoading = spaceChantsAsync.isLoading;
 
+    // Some chant books could not be read: said above either list.
+    final spacesNotice =
+        spaceChants.isPartial
+            ? ChantLoadNotice(
+              message: l10n.unableToLoad,
+              onRetry: () => ref.invalidate(spaceChantBooksProvider),
+              padding: EdgeInsets.zero,
+            )
+            : null;
+    final lead = spacesNotice == null ? 0 : 1;
+
     final Widget list;
     if (showYours) {
-      list = _rows(
-        itemCount: spaceChants.yoursText.length,
-        itemBuilder:
-            (context, index) =>
-                SpaceTextChantRow(chant: spaceChants.yoursText[index]),
-      );
+      final yours = spaceChants.yoursText;
+      list =
+          yours.isEmpty
+              ? _empty(l10n.recitations_no_content, notice: spacesNotice)
+              : _rows(
+                itemCount: yours.length + lead,
+                itemBuilder:
+                    (context, index) =>
+                        index < lead
+                            ? spacesNotice!
+                            : SpaceTextChantRow(chant: yours[index - lead]),
+              );
     } else if ((state.isLoading || spacesLoading) &&
         state.recitations.isEmpty &&
         othersText.isEmpty) {
@@ -152,29 +177,40 @@ class _TextChantsSeeAllScreenState
         onRetry: () => ref.read(provider.notifier).retry(),
       );
     } else if (state.recitations.isEmpty && othersText.isEmpty) {
-      list = ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const SizedBox(height: 120),
-          Center(child: Text(l10n.recitations_no_content)),
-        ],
-      );
+      list = _empty(l10n.recitations_no_content, notice: spacesNotice);
     } else {
       final chants = state.recitations;
       final total = othersText.length + chants.length;
+      // After the rows: the next page loading, or the library's error
+      // with Retry (a first page that failed while space chants show, or
+      // a later page, which never pages on scroll again).
+      final Widget? tail =
+          state.isLoadingMore
+              ? const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator()),
+              )
+              : state.error != null
+              ? ChantLoadNotice(
+                message: state.error!,
+                padding: EdgeInsets.zero,
+                onRetry:
+                    () =>
+                        chants.isEmpty
+                            ? ref.read(provider.notifier).retry()
+                            : ref.read(provider.notifier).loadMore(),
+              )
+              : null;
       list = _rows(
-        itemCount: total + (state.isLoadingMore ? 1 : 0),
+        itemCount: lead + total + (tail == null ? 0 : 1),
         itemBuilder: (context, index) {
-          if (index == total) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
-            );
+          if (index < lead) return spacesNotice!;
+          final i = index - lead;
+          if (i == total) return tail!;
+          if (i < othersText.length) {
+            return SpaceTextChantRow(chant: othersText[i]);
           }
-          if (index < othersText.length) {
-            return SpaceTextChantRow(chant: othersText[index]);
-          }
-          final chant = chants[index - othersText.length];
+          final chant = chants[i - othersText.length];
           return TextChantRow(
             title: chant.title,
             openLabel: l10n.chants_open_chant,
@@ -241,6 +277,20 @@ class _TextChantsSeeAllScreenState
                 label: l10n.chants_create_chant_book,
                 onPressed: _create,
               ),
+    );
+  }
+
+  /// An empty list that still pulls to refresh, with [notice] above the
+  /// message when part of the chants could not be read.
+  Widget _empty(String message, {Widget? notice}) {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 96),
+      children: [
+        if (notice != null) notice,
+        const SizedBox(height: 120),
+        Center(child: Text(message)),
+      ],
     );
   }
 

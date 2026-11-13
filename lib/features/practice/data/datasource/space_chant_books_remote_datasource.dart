@@ -21,10 +21,17 @@ enum SpaceMembership {
 /// `types=collection` so only chant books come back and count toward
 /// `total`. Kept apart from the group profile datasource, whose feed
 /// method serves every practice type.
+///
+/// Both reads skip the HTTP cache, as the group profile datasource does
+/// for these paths: the feed carries the caller's `is_joined`, and a
+/// pull-to-refresh must see a chant added to a book since the last read.
+/// The Chants page keeps loaded results itself (`cacheSuccessFor`).
 class SpaceChantBooksRemoteDatasource {
   SpaceChantBooksRemoteDatasource({required this.dio});
 
   final Dio dio;
+
+  static final Options _noCache = Options(extra: {'no_cache': true});
 
   /// GET /author/groups/practices?types=collection
   ///
@@ -48,6 +55,7 @@ class SpaceChantBooksRemoteDatasource {
         'limit': limit,
         if (query.isNotEmpty) 'search': query,
       },
+      options: _noCache,
     );
     final data = response.data;
     if (data is! Map<String, dynamic>) {
@@ -66,6 +74,7 @@ class SpaceChantBooksRemoteDatasource {
   ) async {
     final response = await dio.get(
       '/author/groups/recitation-collections/$collectionId',
+      options: _noCache,
     );
     final data = response.data;
     if (data is! Map<String, dynamic>) {

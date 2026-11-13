@@ -79,6 +79,26 @@ void main() {
     });
     expect(page.practices, hasLength(1));
     expect(page.hasMore, isFalse);
+    // The feed carries the caller's is_joined and must refresh on pull.
+    expect(recorder.last!.extra['no_cache'], isTrue);
+  });
+
+  test('reads a book detail past the HTTP cache', () async {
+    final recorder = _Recorder({
+      'id': 'c1',
+      'group_id': 'g1',
+      'name': 'Morning',
+      'item_count': 0,
+      'items': [],
+    });
+    final datasource = SpaceChantBooksRemoteDatasource(
+      dio: Dio()..interceptors.add(recorder),
+    );
+    final detail = await datasource.fetchChantBookDetail('c1');
+
+    expect(recorder.last!.path, '/author/groups/recitation-collections/c1');
+    expect(recorder.last!.extra['no_cache'], isTrue);
+    expect(detail.id, 'c1');
   });
 
   test('leaves out a blank search', () async {
@@ -97,7 +117,10 @@ void main() {
   });
 
   test('a live card shows its audio badge under other spaces', () async {
-    final recorder = _Recorder({'practices': [_liveCard], 'total': 1});
+    final recorder = _Recorder({
+      'practices': [_liveCard],
+      'total': 1,
+    });
     final datasource = SpaceChantBooksRemoteDatasource(
       dio: Dio()..interceptors.add(recorder),
     );

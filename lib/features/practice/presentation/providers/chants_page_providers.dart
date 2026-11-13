@@ -30,10 +30,15 @@ const int chantsPageRailLimit = 20;
 
 /// First page of the user's chant books for the "My chantbooks" rail.
 /// Guests and signed-out users have none, so nothing is requested.
+///
+/// Watches only the sign-in bits: `AuthState` has no `==`, so watching
+/// the whole of it would reload the rail on every auth emission.
 final myChantBooksProvider =
     FutureProvider.autoDispose<Either<Failure, ChantBooksPage>>((ref) {
-      final auth = ref.watch(authProvider);
-      if (auth.isGuest || !auth.isLoggedIn) {
+      final (isLoggedIn, isGuest) = ref.watch(
+        authProvider.select((auth) => (auth.isLoggedIn, auth.isGuest)),
+      );
+      if (isGuest || !isLoggedIn) {
         return const Right(ChantBooksPage.empty);
       }
       return ref
@@ -50,21 +55,27 @@ const Duration spaceChantsCacheTime = Duration(minutes: 5);
 extension CacheSuccessFor on Ref<Object?> {
   /// Awaits [load], then keeps this provider for [duration] after nothing
   /// listens, only when it succeeded, so a failure is retried on the next
-  /// visit. The provider is held while [load] runs, so leaving mid-load
-  /// does not throw the read away.
+  /// visit. A success that [cacheIf] rejects (a partial one, say) is not
+  /// kept either. The provider is held while [load] runs, so leaving
+  /// mid-load does not throw the read away.
   Future<Either<Failure, T>> cacheSuccessFor<T>(
     Future<Either<Failure, T>> load,
-    Duration duration,
-  ) async {
+    Duration duration, {
+    bool Function(T value)? cacheIf,
+  }) async {
     // Taken before the await: the ref may be rebuilt while it runs.
     final link = keepAlive();
     Timer? timer;
     onDispose(() => timer?.cancel());
     final result = await load;
-    if (result.isLeft()) {
-      link.close();
-    } else {
+    final keep = result.fold(
+      (_) => false,
+      (value) => cacheIf?.call(value) ?? true,
+    );
+    if (keep) {
       timer = Timer(duration, link.close);
+    } else {
+      link.close();
     }
     return result;
   }
@@ -86,7 +97,9 @@ final spaceChantBooksProvider =
 
 /// Every chant inside the space chant books, split by joined space and by
 /// audio, in all languages. Follows [spaceChantBooksProvider]; a failed
-/// book list fails this too, so the page shows one error.
+/// book list fails this too, so the page shows one error. A read that
+/// lost some books ([SpaceChants.failedBookCount]) is shown but not kept,
+/// so the next visit reads them again.
 final allSpaceChantsProvider =
     FutureProvider.autoDispose<Either<Failure, SpaceChants>>((ref) async {
       final books = await ref.watch(spaceChantBooksProvider.future);
@@ -97,6 +110,7 @@ final allSpaceChantsProvider =
               ref.read(chantsPageRepositoryProvider).getSpaceChants(books),
         ),
         spaceChantsCacheTime,
+        cacheIf: (chants) => chants.failedBookCount == 0,
       );
     });
 

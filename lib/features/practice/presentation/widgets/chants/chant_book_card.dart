@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/core/utils/tibetan_numerals.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_text.dart';
@@ -37,17 +38,26 @@ class ChantBookCard extends StatelessWidget {
   static const double _radius = 8;
 
   /// Room the name and subtitle need under the cover at the device's text
-  /// size: gap (8), a Tibetan-height 15pt title (~29 at 1x), gap (2) and
-  /// the 12pt subtitle (~16 at 1x). Font sizes go through the text scaler,
-  /// so nonlinear scaling grows each line as the text itself grows.
+  /// size: gap (8), a Tibetan-height 15pt title (29 at 1x), gap (2), the
+  /// 12pt subtitle (17 at 1x) and 2 of slack. Each line is rounded up as
+  /// text layout rounds it, so a Tibetan title does not overflow the grid
+  /// cell by a pixel. Font sizes go through the text scaler, so nonlinear
+  /// scaling grows each line as the text itself grows.
   static double textHeight(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
-    return 8 + scaler.scale(15) * 29 / 15 + 2 + scaler.scale(12) * 16 / 12;
+    final title =
+        (scaler.scale(15) * AppFontConfig.tibetanContentLineHeight)
+            .ceilToDouble();
+    final subtitle = (scaler.scale(12) * _subtitleLineHeight).ceilToDouble();
+    return 8 + title + 2 + subtitle + 2;
   }
 
-  /// Height of a rail of cards at [railWidth], with a little slack.
+  /// The UI font's line height for the subtitle.
+  static const double _subtitleLineHeight = 1.4;
+
+  /// Height of a rail of cards at [railWidth].
   static double railHeight(BuildContext context) =>
-      railWidth + textHeight(context) + 3;
+      railWidth + textHeight(context);
 
   @override
   Widget build(BuildContext context) {

@@ -75,8 +75,10 @@ class _MyRecitationCollectionScreenState
           children: [
             _CollectionAppBar(
               title: detail?.name ?? widget.initialTitle,
+              // An imported collection is someone else's: no rename, edit
+              // or delete.
               onMenuTap:
-                  detail != null
+                  detail != null && !detail.isImported
                       ? () => MyRecitationCollectionOptionsSheet.show(
                         context,
                         collection: detail,

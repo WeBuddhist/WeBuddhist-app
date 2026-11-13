@@ -487,12 +487,30 @@ void main() {
       final some = await repo.getSpaceChants(
         SpaceChantBooks(others: [book('a'), book('b')]),
       );
-      expect(ids(some.getRight().toNullable()!.othersText), ['t1']);
+      final chants = some.getRight().toNullable()!;
+      expect(ids(chants.othersText), ['t1']);
+      // The page says a book is missing and offers a retry.
+      expect(chants.failedBookCount, 1);
+      expect(chants.isPartial, isTrue);
 
       final none = await repo.getSpaceChants(
         SpaceChantBooks(others: [book('b')]),
       );
       expect(none.isLeft(), isTrue);
+    });
+
+    test('a read with every book counts no failure', () async {
+      final spaces = _FakeSpaces(const []);
+      spaces.details['a'] = detail('a', [item('t1')]);
+      final repo = ChantsPageRepositoryImpl(
+        collections: _FakeCollections(Exception('unused')),
+        spaces: spaces,
+        textRequests: _FakeTextRequests(),
+      );
+      final all = await repo.getSpaceChants(
+        SpaceChantBooks(others: [book('a')]),
+      );
+      expect(all.getRight().toNullable()!.isPartial, isFalse);
     });
 
     test('reads every book, at most detailConcurrency at once', () async {

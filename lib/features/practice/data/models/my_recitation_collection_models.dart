@@ -205,11 +205,10 @@ class MyRecitationCollectionsPageResponse {
   ) {
     final rows = json['collections'] as List<dynamic>? ?? const [];
     return MyRecitationCollectionsPageResponse(
-      collections:
-          rows
-              .whereType<Map<String, dynamic>>()
-              .map(MyRecitationCollectionModel.fromJson)
-              .toList(growable: false),
+      collections: rows
+          .whereType<Map<String, dynamic>>()
+          .map(MyRecitationCollectionModel.fromJson)
+          .toList(growable: false),
       skip: (json['skip'] as num?)?.toInt() ?? 0,
       limit: (json['limit'] as num?)?.toInt() ?? rows.length,
       total: (json['total'] as num?)?.toInt() ?? rows.length,
@@ -228,6 +227,15 @@ class MyRecitationCollectionDetailModel {
   final DateTime? updatedAt;
   final List<MyRecitationCollectionItemModel> items;
 
+  /// The source's owner for an imported collection (`reference.owner`),
+  /// else `owner`; null for the user's own.
+  final String? ownerName;
+
+  /// True when the user imported this collection by reference. Such a
+  /// collection is someone else's: it cannot be renamed, edited or deleted
+  /// from here.
+  final bool isImported;
+
   const MyRecitationCollectionDetailModel({
     required this.id,
     required this.name,
@@ -235,6 +243,8 @@ class MyRecitationCollectionDetailModel {
     this.createdAt,
     this.updatedAt,
     this.items = const [],
+    this.ownerName,
+    this.isImported = false,
   });
 
   factory MyRecitationCollectionDetailModel.fromJson(
@@ -247,6 +257,9 @@ class MyRecitationCollectionDetailModel {
             .map(MyRecitationCollectionItemModel.fromJson)
             .toList()
           ..sort((a, b) => a.displayOrder.compareTo(b.displayOrder));
+    final reference = json['reference'];
+    final referenceOwner =
+        reference is Map<String, dynamic> ? reference['owner'] : null;
 
     return MyRecitationCollectionDetailModel(
       id: json['id'] as String? ?? json['collection_id'] as String? ?? '',
@@ -255,6 +268,10 @@ class MyRecitationCollectionDetailModel {
       createdAt: MyRecitationCollectionModel._parseDate(json['created_at']),
       updatedAt: MyRecitationCollectionModel._parseDate(json['updated_at']),
       items: items,
+      ownerName:
+          MyRecitationCollectionModel._ownerName(referenceOwner) ??
+          MyRecitationCollectionModel._ownerName(json['owner']),
+      isImported: reference is Map<String, dynamic>,
     );
   }
 }

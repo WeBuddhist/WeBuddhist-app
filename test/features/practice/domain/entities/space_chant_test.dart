@@ -44,5 +44,15 @@ void main() {
     test('a blank language keeps everything', () {
       expect(chants.inLanguage(' '), chants);
     });
+
+    test('keeps the count of books that failed to load', () {
+      final partial = SpaceChants(
+        yoursAudio: [_chant('Tara bo', 'bo')],
+        failedBookCount: 2,
+      );
+      expect(partial.isPartial, isTrue);
+      expect(partial.inLanguage('en').failedBookCount, 2);
+      expect(SpaceChants.empty.isPartial, isFalse);
+    });
   });
 }
