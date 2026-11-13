@@ -4152,4 +4152,62 @@ class AppLocalizationsBo extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'པར་གཞི།';
+
+  @override
+  String get chants_filter_all => 'ཆ་ཚང་།';
+
+  @override
+  String get chants_chant_books => 'ཞལ་འདོན་དེབ།';
+
+  @override
+  String get chants_filter_single_chants => 'ཞལ་འདོན་རེ་རེ།';
+
+  @override
+  String get chants_my_chant_books => 'ངའི་ཞལ་འདོན་དེབ།';
+
+  @override
+  String get chants_text_only => 'ཡི་གེ་ཁོ་ནའི་ཞལ་འདོན།';
+
+  @override
+  String get chants_from_your_spaces => 'ཁྱེད་ཀྱི་ཚོགས་པ་ནས།';
+
+  @override
+  String get chants_explore_more => 'དེ་ལས་མང་བ་འཚོལ།';
+
+  @override
+  String get chants_create_chant_book => 'ཞལ་འདོན་དེབ།';
+
+  @override
+  String get chants_open_chant => 'ཞལ་འདོན་ཁ་ཕྱེ།';
+
+  @override
+  String get chants_your_spaces => 'ཁྱེད་ཀྱི་ཚོགས་པ།';
+
+  @override
+  String get chants_other_spaces => 'ཚོགས་པ་གཞན།';
+
+  @override
+  String get chants_search_hint => 'ཞལ་འདོན་དང་ཞལ་འདོན་དེབ་འཚོལ།';
+
+  @override
+  String get chants_cant_find => 'ཁྱེད་ཀྱིས་འཚོལ་བཞིན་པའི་ཡིག་ཆ་མ་རྙེད་དམ།';
+
+  @override
+  String get chants_request_text => 'ཡིག་ཆ་རེ་ཞུ།';
+
+  @override
+  String get chants_request_done => 'རེ་ཞུ་ཕུལ་ཟིན།';
+
+  @override
+  String get chants_request_sent => 'ཐུགས་རྗེ་ཆེ། ཁྱེད་ཀྱི་རེ་ཞུ་འབྱོར་སོང་།';
+
+  @override
+  String get chants_request_limit =>
+      'དེ་རིང་ཁྱེད་ཀྱིས་རེ་ཞུ་མང་པོ་ཕུལ་ཟིན། རྗེས་སུ་ཡང་བསྐྱར་ཚོད་ལྟ་གནང་རོགས།';
+
+  @override
+  String get chants_with_audio => 'སྒྲ་ཡོད་པའི་ཞལ་འདོན།';
+
+  @override
+  String get chants_audio_chants => 'སྒྲའི་ཞལ་འདོན།';
 }

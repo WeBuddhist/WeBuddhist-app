@@ -10,10 +10,18 @@ class GroupRecitationAudioModel {
   final String title;
   final String assetUrl;
 
+  /// Not sent yet; requested from the backend (Q3).
+  final String? reciterName;
+
+  /// Not sent yet; requested from the backend (Q3).
+  final String? imageUrl;
+
   GroupRecitationAudioModel({
     required this.id,
     required this.title,
     required this.assetUrl,
+    this.reciterName,
+    this.imageUrl,
   });
 
   factory GroupRecitationAudioModel.fromJson(Map<String, dynamic> json) {
@@ -23,11 +31,25 @@ class GroupRecitationAudioModel {
       id: json['id'] as String? ?? '',
       title: title.isNotEmpty ? title : fileName,
       assetUrl: json['asset_url'] as String? ?? '',
+      reciterName: _blankToNull(json['reciter_name']),
+      imageUrl: _blankToNull(json['image_url']),
     );
   }
 
+  static String? _blankToNull(Object? value) {
+    if (value is! String) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
   GroupRecitationAudio toEntity() {
-    return GroupRecitationAudio(id: id, title: title, assetUrl: assetUrl);
+    return GroupRecitationAudio(
+      id: id,
+      title: title,
+      assetUrl: assetUrl,
+      reciterName: reciterName,
+      imageUrl: imageUrl,
+    );
   }
 }
 
@@ -95,6 +117,10 @@ class GroupRecitationCollectionModel {
   final String? imageUrl;
   final DateTime? createdAt;
   final int itemCount;
+
+  /// Chants that have at least one recording. Lists don't send it yet
+  /// (requested from the backend, Q2); a detail response counts its items.
+  final int audioItemCount;
   final List<GroupRecitationCollectionItemModel> items;
 
   GroupRecitationCollectionModel({
@@ -104,6 +130,7 @@ class GroupRecitationCollectionModel {
     this.imageUrl,
     this.createdAt,
     this.itemCount = 0,
+    this.audioItemCount = 0,
     this.items = const [],
   });
 
@@ -122,6 +149,9 @@ class GroupRecitationCollectionModel {
       imageUrl: json['img_url'] as String?,
       createdAt: GroupProfileModel.parseDate(json['created_at']),
       itemCount: (json['item_count'] as num?)?.toInt() ?? items.length,
+      audioItemCount:
+          (json['audio_item_count'] as num?)?.toInt() ??
+          items.where((item) => item.audio.isNotEmpty).length,
       items: items,
     );
   }
@@ -137,6 +167,7 @@ class GroupRecitationCollectionModel {
       imageUrl: imageUrl,
       createdAt: createdAt,
       itemCount: itemCount,
+      audioItemCount: audioItemCount,
       items: sortedItems.map((item) => item.toEntity()).toList(),
     );
   }
