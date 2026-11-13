@@ -27,6 +27,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/core/cache/app_image_cache_manager.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 final _logger = AppLogger('SelectSessionScreen');
 
@@ -50,21 +51,43 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
 
   final String? _enrollingItemId = null;
 
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearching = false;
+
+  final Map<int, String> _queriesByTab = {
+    0: '', // Plans/Series
+    1: '', // Chants
+    2: '', // Malas
+    3: '', // Timers
+  };
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _tabController.addListener(_onTabChanged);
     _plansScrollController.addListener(_onPlansScroll);
     _chantsScrollController.addListener(_onChantsScroll);
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _plansScrollController.removeListener(_onPlansScroll);
     _plansScrollController.dispose();
     _chantsScrollController.removeListener(_onChantsScroll);
     _chantsScrollController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+
+    // Clear shared search providers when the picker closes so Explore search
+    // does not open with a leftover query.
+    final languageCode = ref.read(contentLanguageProvider);
+    ref.read(practiceRecitationSearchProvider(languageCode).notifier).clear();
+    ref.read(accumulationSearchProvider.notifier).clear();
+
     super.dispose();
   }
 
@@ -85,6 +108,55 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
           .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
           .loadMore();
     }
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    if (!_isSearching) return;
+
+    final activeTab = _tabController.index;
+    final tabQuery = _queriesByTab[activeTab] ?? '';
+
+    _searchController.value = _searchController.value.copyWith(
+      text: tabQuery,
+      selection: TextSelection.collapsed(offset: tabQuery.length),
+    );
+  }
+
+  void _onSearchChanged(String query) {
+    final activeTab = _tabController.index;
+    _queriesByTab[activeTab] = query;
+
+    final languageCode = ref.read(contentLanguageProvider);
+    if (activeTab == 1) {
+      ref.read(practiceRecitationSearchProvider(languageCode).notifier).search(query);
+    } else if (activeTab == 2) {
+      ref.read(accumulationSearchProvider.notifier).search(query);
+    }
+
+    setState(() {});
+  }
+
+  void _openSearch() {
+    setState(() => _isSearching = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _searchFocusNode.requestFocus();
+    });
+  }
+
+  void _closeSearch() {
+    final activeTab = _tabController.index;
+    _queriesByTab[activeTab] = '';
+    _searchController.clear();
+
+    final languageCode = ref.read(contentLanguageProvider);
+    if (activeTab == 1) {
+      ref.read(practiceRecitationSearchProvider(languageCode).notifier).clear();
+    } else if (activeTab == 2) {
+      ref.read(accumulationSearchProvider.notifier).clear();
+    }
+
+    setState(() => _isSearching = false);
   }
 
   void _onPracticeItemSelected(PracticeItem item) {
@@ -111,10 +183,140 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     Navigator.of(context).pop<SessionSelection>(TimerSessionSelection(timer));
   }
 
+  String _searchHint(AppLocalizations localizations) {
+    return switch (_tabController.index) {
+      0 => localizations.search_plans,
+      1 => localizations.recitations_search,
+      2 => localizations.accumulations_search,
+      _ => localizations.text_search_hint,
+    };
+  }
+
+  Widget _buildSearchHeader(BuildContext context, bool isDark) {
+    final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
+    final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
+    final subtitleColor =
+        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 20, 12),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: _closeSearch,
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+          ),
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              focusNode: _searchFocusNode,
+              onChanged: _onSearchChanged,
+              textInputAction: TextInputAction.search,
+              style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15),
+              decoration: InputDecoration(
+                hintText: _searchHint(localizations),
+                hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: subtitleColor,
+                  fontSize: 15,
+                ),
+                prefixIcon: Icon(
+                  Icons.search,
+                  size: 20,
+                  color: subtitleColor,
+                ),
+                suffixIcon:
+                    _searchController.text.isNotEmpty
+                        ? IconButton(
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                            _searchFocusNode.requestFocus();
+                          },
+                          icon: Icon(
+                            Icons.clear,
+                            size: 20,
+                            color: subtitleColor,
+                          ),
+                        )
+                        : null,
+                filled: true,
+                fillColor:
+                    isDark ? AppColors.surfaceDark : AppColors.surfaceWhite,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(999),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(999),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(999),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    final query = _queriesByTab[_tabController.index] ?? '';
+
+    // Plans search waits on a dedicated backend; keep the field but do not query.
+    if (_tabController.index == 0) {
+      return _SessionTabMessage(
+        message: AppLocalizations.of(context)!.comingSoonHeadline,
+      );
+    }
+
+    if (query.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return switch (_tabController.index) {
+      1 => _ChantsTab(
+        scrollController: _chantsScrollController,
+        enrollingItemId: _enrollingItemId,
+        onRecitationSelected: _onRecitationSelected,
+        searchQuery: query,
+      ),
+      2 => _MalasTab(
+        onMantraSelected: _onMantraSelected,
+        searchQuery: query,
+      ),
+      _ => _TimersTab(
+        onTimerSelected: _onTimerSelected,
+        searchQuery: query,
+      ),
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final localizations = AppLocalizations.of(context)!;
+
+    if (_isSearching) {
+      return Scaffold(
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSearchHeader(context, isDark),
+              Expanded(child: _buildSearchResults()),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -124,21 +326,14 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
         ),
         title: Text(
           localizations.routine_add_session,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         scrolledUnderElevation: 0,
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search, size: 22),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(localizations.mala_action_coming_soon),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
+            onPressed: _openSearch,
           ),
         ],
         bottom: TabBar(
@@ -177,9 +372,16 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
             scrollController: _chantsScrollController,
             enrollingItemId: _enrollingItemId,
             onRecitationSelected: _onRecitationSelected,
+            searchQuery: '',
           ),
-          _MalasTab(onMantraSelected: _onMantraSelected),
-          _TimersTab(onTimerSelected: _onTimerSelected),
+          _MalasTab(
+            onMantraSelected: _onMantraSelected,
+            searchQuery: '',
+          ),
+          _TimersTab(
+            onTimerSelected: _onTimerSelected,
+            searchQuery: '',
+          ),
         ],
       ),
     );
@@ -373,16 +575,86 @@ class _ChantsTab extends ConsumerWidget {
   final ScrollController scrollController;
   final String? enrollingItemId;
   final void Function(RecitationModel recitation) onRecitationSelected;
+  final String searchQuery;
 
   const _ChantsTab({
     required this.scrollController,
     required this.enrollingItemId,
     required this.onRecitationSelected,
+    required this.searchQuery,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final languageCode = ref.watch(contentLanguageProvider);
+    final query = searchQuery.trim();
+
+    if (query.isNotEmpty) {
+      if (query.length < 3) {
+        return const SizedBox.shrink();
+      }
+
+      final searchState = ref.watch(practiceRecitationSearchProvider(languageCode));
+
+      if (searchState.isLoading && searchState.results.isEmpty) {
+        return const RecitationListSkeleton(
+          variant: RecitationListSkeletonVariant.chantTile,
+        );
+      }
+
+      if (searchState.error != null && searchState.results.isEmpty) {
+        return _RefreshableScrollBody(
+          onRefresh: () async {
+            ref.read(practiceRecitationSearchProvider(languageCode).notifier).retry();
+          },
+          child: _SessionTabMessage(
+            message: context.l10n.session_chants_load_error,
+          ),
+        );
+      }
+
+      final recitations = searchState.results;
+
+      if (recitations.isEmpty && !searchState.isLoading) {
+        return _RefreshableScrollBody(
+          onRefresh: () async {
+            ref.read(practiceRecitationSearchProvider(languageCode).notifier).retry();
+          },
+          child: _SessionTabMessage(
+            message: context.l10n.search_no_results(query),
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.read(practiceRecitationSearchProvider(languageCode).notifier).retry();
+        },
+        child: ListView.builder(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          itemCount: recitations.length,
+          itemBuilder: (context, index) {
+            final recitation = recitations[index];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: PracticeChantListTile(
+                recitation: recitation,
+                showTrailingCaret: false,
+                includeOuterPadding: false,
+                onTap:
+                    enrollingItemId == null
+                        ? () => onRecitationSelected(recitation)
+                        : null,
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     final recitationsState = ref.watch(
       practiceRecitationsPaginatedProvider(languageCode),
     );
@@ -460,13 +732,94 @@ class _ChantsTab extends ConsumerWidget {
 
 class _MalasTab extends ConsumerWidget {
   final void Function(Mantra mantra) onMantraSelected;
+  final String searchQuery;
 
-  const _MalasTab({required this.onMantraSelected});
+  const _MalasTab({
+    required this.onMantraSelected,
+    required this.searchQuery,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final language = ref.watch(contentLanguageProvider);
+
+    if (searchQuery.trim().isNotEmpty) {
+      final searchState = ref.watch(accumulationSearchProvider);
+
+      if (searchState.isLoading && searchState.results.isEmpty) {
+        return const _MalaListSkeleton();
+      }
+
+      if (searchState.error != null && searchState.results.isEmpty) {
+        return _RefreshableScrollBody(
+          onRefresh: () async {
+            ref.read(accumulationSearchProvider.notifier).retry();
+          },
+          child: _SessionTabMessage(
+            message: context.l10n.session_malas_load_error,
+          ),
+        );
+      }
+
+      final mantras = searchState.results;
+
+      if (mantras.isEmpty && !searchState.isLoading) {
+        return _RefreshableScrollBody(
+          onRefresh: () async {
+            ref.read(accumulationSearchProvider.notifier).retry();
+          },
+          child: _SessionTabMessage(
+            message: context.l10n.search_no_results(searchQuery.trim()),
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.read(accumulationSearchProvider.notifier).retry();
+        },
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+          itemCount: mantras.length,
+          itemBuilder: (context, index) {
+            final mantra = mantras[index];
+            final imageUrl = mantra.beadImageUrl ?? mantra.mantra?.beadImageUrl;
+            final title = mantra.displayTitle(language);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _SessionCard(
+                isDark: isDark,
+                onTap: () => onMantraSelected(mantra),
+                child: Row(
+                  children: [
+                    _CircularImage(imageUrl: imageUrl, size: 52),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     final catalogueAsync = ref.watch(malaCatalogueProvider);
     Future<void> onRefresh() async {
       ref.invalidate(malaCatalogueProvider);
@@ -475,7 +828,7 @@ class _MalasTab extends ConsumerWidget {
 
     return catalogueAsync.when(
       skipLoadingOnReload: true,
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const _MalaListSkeleton(),
       error:
           (_, __) => _RefreshableScrollBody(
             onRefresh: onRefresh,
@@ -556,8 +909,12 @@ class _MalasTab extends ConsumerWidget {
 
 class _TimersTab extends ConsumerWidget {
   final void Function(PresetTimer timer) onTimerSelected;
+  final String searchQuery;
 
-  const _TimersTab({required this.onTimerSelected});
+  const _TimersTab({
+    required this.onTimerSelected,
+    required this.searchQuery,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -587,11 +944,22 @@ class _TimersTab extends ConsumerWidget {
               ),
             ),
             (timers) {
-              if (timers.isEmpty) {
+              final query = searchQuery.trim();
+              final filteredTimers = query.isEmpty
+                  ? timers
+                  : timers
+                      .where((timer) =>
+                          timer.name.toLowerCase().contains(query.toLowerCase()))
+                      .toList();
+
+              if (filteredTimers.isEmpty) {
                 return _RefreshableScrollBody(
                   onRefresh: onRefresh,
                   child: _SessionTabMessage(
-                    message: context.l10n.session_no_timers,
+                    message:
+                        query.isEmpty
+                            ? context.l10n.session_no_timers
+                            : context.l10n.search_no_results(query),
                   ),
                 );
               }
@@ -604,9 +972,9 @@ class _TimersTab extends ConsumerWidget {
                     horizontal: 16,
                     vertical: 12,
                   ),
-                  itemCount: timers.length,
+                  itemCount: filteredTimers.length,
                   itemBuilder: (context, index) {
-                    final timer = timers[index];
+                    final timer = filteredTimers[index];
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -678,6 +1046,47 @@ class _RefreshableScrollBody extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               child: SizedBox(height: constraints.maxHeight, child: child),
             ),
+      ),
+    );
+  }
+}
+
+class _MalaListSkeleton extends StatelessWidget {
+  const _MalaListSkeleton({this.itemCount = 6});
+
+  final int itemCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Skeletonizer(
+      enabled: true,
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _SessionCard(
+              isDark: isDark,
+              child: const Row(
+                children: [
+                  Bone.circle(size: 52),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Bone(
+                      width: 160,
+                      height: 16,
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -775,11 +1184,11 @@ class _CircularImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = imageUrl?.trim();
-    
+
     if (url != null && url.isNotEmpty && _isValidNetworkUrl(url)) {
       final dpr = MediaQuery.of(context).devicePixelRatio;
       final cachePx = _toCachePx(size, dpr);
-      
+
       return ClipOval(
         child: CachedNetworkImage(
           imageUrl: url,
