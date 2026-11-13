@@ -9,6 +9,7 @@ import 'package:flutter_pecha/core/utils/network_image_utils.dart';
 import 'package:flutter_pecha/core/widgets/responsive_cover_image.dart';
 import 'package:flutter_pecha/features/home/domain/entities/series.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
+import 'package:flutter_pecha/features/mala/presentation/providers/accumulation_search_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/practice/data/models/session_selection.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_recitations_paginated_provider.dart';
@@ -22,7 +23,6 @@ import 'package:flutter_pecha/features/timer/presentation/providers/timers_provi
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_pecha/features/plans/data/utils/plan_date_format.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/core/cache/app_image_cache_manager.dart';
@@ -52,6 +52,10 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
   final FocusNode _searchFocusNode = FocusNode();
   bool _isSearching = false;
 
+  /// Explore search is a long-lived provider; chant search is autoDispose.
+  late final SeriesSearchNotifier _seriesSearchNotifier;
+  AccumulationSearchNotifier? _accumulationSearchNotifier;
+
   final Map<int, String> _queriesByTab = {
     0: '', // Plans/Series
     1: '', // Chants
@@ -66,6 +70,7 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     _tabController.addListener(_onTabChanged);
     _plansScrollController.addListener(_onPlansScroll);
     _chantsScrollController.addListener(_onChantsScroll);
+    _seriesSearchNotifier = ref.read(seriesSearchProvider.notifier);
   }
 
   @override
@@ -79,31 +84,36 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     _searchController.dispose();
     _searchFocusNode.dispose();
 
-    // Clear shared search providers when the picker closes so Explore search
-    // does not open with a leftover query.
-    final languageCode = ref.read(contentLanguageProvider);
-    ref.read(seriesSearchProvider.notifier).clear();
-    ref.read(practiceRecitationSearchProvider(languageCode).notifier).clear();
-    ref.read(accumulationSearchProvider.notifier).clear();
-
+    // `ref` is illegal here, and notifying listeners during unmount freezes
+    // the route under Edit routine's PopScope. Clear after this frame.
+    final seriesSearch = _seriesSearchNotifier;
+    final accumulationSearch = _accumulationSearchNotifier;
     super.dispose();
+    Future<void>(() {
+      if (seriesSearch.mounted) seriesSearch.clear();
+      if (accumulationSearch != null && accumulationSearch.mounted) {
+        accumulationSearch.clear();
+      }
+    });
   }
 
   void _onPlansScroll() {
-    if (_plansScrollController.position.pixels >=
-        _plansScrollController.position.maxScrollExtent - 200) {
-      ref.read(sessionSeriesPaginatedProvider.notifier).loadMore();
-    }
+    if (!_plansScrollController.hasClients) return;
+    final position = _plansScrollController.position;
+    if (position.maxScrollExtent <= 0) return;
+    if (position.pixels < position.maxScrollExtent - 200) return;
+    ref.read(sessionSeriesPaginatedProvider.notifier).loadMore();
   }
 
   void _onChantsScroll() {
-    if (_chantsScrollController.position.pixels >=
-        _chantsScrollController.position.maxScrollExtent - 200) {
-      final languageCode = ref.read(contentLanguageProvider);
-      ref
-          .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
-          .loadMore();
-    }
+    if (!_chantsScrollController.hasClients) return;
+    final position = _chantsScrollController.position;
+    if (position.maxScrollExtent <= 0) return;
+    if (position.pixels < position.maxScrollExtent - 200) return;
+    final languageCode = ref.read(contentLanguageProvider);
+    ref
+        .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
+        .loadMore();
   }
 
   void _onTabChanged() {
@@ -127,9 +137,14 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     if (activeTab == 0) {
       ref.read(seriesSearchProvider.notifier).search(query);
     } else if (activeTab == 1) {
-      ref.read(practiceRecitationSearchProvider(languageCode).notifier).search(query);
+      ref
+          .read(practiceRecitationSearchProvider(languageCode).notifier)
+          .search(query);
     } else if (activeTab == 2) {
-      ref.read(accumulationSearchProvider.notifier).search(query);
+      _accumulationSearchNotifier ??= ref.read(
+        accumulationSearchProvider.notifier,
+      );
+      _accumulationSearchNotifier!.search(query);
     }
 
     setState(() {});
@@ -216,11 +231,7 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
                   color: subtitleColor,
                   fontSize: 15,
                 ),
-                prefixIcon: Icon(
-                  Icons.search,
-                  size: 20,
-                  color: subtitleColor,
-                ),
+                prefixIcon: Icon(Icons.search, size: 20, color: subtitleColor),
                 suffixIcon:
                     _searchController.text.isNotEmpty
                         ? IconButton(
@@ -282,14 +293,8 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
         onRecitationSelected: _onRecitationSelected,
         searchQuery: query,
       ),
-      2 => _MalasTab(
-        onMantraSelected: _onMantraSelected,
-        searchQuery: query,
-      ),
-      _ => _TimersTab(
-        onTimerSelected: _onTimerSelected,
-        searchQuery: query,
-      ),
+      2 => _MalasTab(onMantraSelected: _onMantraSelected, searchQuery: query),
+      _ => _TimersTab(onTimerSelected: _onTimerSelected, searchQuery: query),
     };
   }
 
@@ -316,7 +321,7 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(AppAssets.arrowLeft),
-          onPressed: () => context.pop(),
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
         title: Text(
           localizations.routine_add_session,
@@ -368,14 +373,8 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
             onRecitationSelected: _onRecitationSelected,
             searchQuery: '',
           ),
-          _MalasTab(
-            onMantraSelected: _onMantraSelected,
-            searchQuery: '',
-          ),
-          _TimersTab(
-            onTimerSelected: _onTimerSelected,
-            searchQuery: '',
-          ),
+          _MalasTab(onMantraSelected: _onMantraSelected, searchQuery: ''),
+          _TimersTab(onTimerSelected: _onTimerSelected, searchQuery: ''),
         ],
       ),
     );
@@ -590,7 +589,9 @@ class _ChantsTab extends ConsumerWidget {
         return const SizedBox.shrink();
       }
 
-      final searchState = ref.watch(practiceRecitationSearchProvider(languageCode));
+      final searchState = ref.watch(
+        practiceRecitationSearchProvider(languageCode),
+      );
 
       if (searchState.isLoading && searchState.results.isEmpty) {
         return const RecitationListSkeleton(
@@ -601,7 +602,9 @@ class _ChantsTab extends ConsumerWidget {
       if (searchState.error != null && searchState.results.isEmpty) {
         return _RefreshableScrollBody(
           onRefresh: () async {
-            ref.read(practiceRecitationSearchProvider(languageCode).notifier).retry();
+            ref
+                .read(practiceRecitationSearchProvider(languageCode).notifier)
+                .retry();
           },
           child: _SessionTabMessage(
             message: context.l10n.session_chants_load_error,
@@ -614,7 +617,9 @@ class _ChantsTab extends ConsumerWidget {
       if (recitations.isEmpty && !searchState.isLoading) {
         return _RefreshableScrollBody(
           onRefresh: () async {
-            ref.read(practiceRecitationSearchProvider(languageCode).notifier).retry();
+            ref
+                .read(practiceRecitationSearchProvider(languageCode).notifier)
+                .retry();
           },
           child: _SessionTabMessage(
             message: context.l10n.search_no_results(query),
@@ -624,7 +629,9 @@ class _ChantsTab extends ConsumerWidget {
 
       return RefreshIndicator(
         onRefresh: () async {
-          ref.read(practiceRecitationSearchProvider(languageCode).notifier).retry();
+          ref
+              .read(practiceRecitationSearchProvider(languageCode).notifier)
+              .retry();
         },
         child: ListView.builder(
           controller: scrollController,
@@ -655,9 +662,10 @@ class _ChantsTab extends ConsumerWidget {
       practiceRecitationsPaginatedProvider(languageCode),
     );
 
-    Future<void> onRefresh() => ref
-        .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
-        .refresh();
+    Future<void> onRefresh() =>
+        ref
+            .read(practiceRecitationsPaginatedProvider(languageCode).notifier)
+            .refresh();
 
     if (recitationsState.isLoading && recitationsState.recitations.isEmpty) {
       return const RecitationListSkeleton(
@@ -730,10 +738,7 @@ class _MalasTab extends ConsumerWidget {
   final void Function(Mantra mantra) onMantraSelected;
   final String searchQuery;
 
-  const _MalasTab({
-    required this.onMantraSelected,
-    required this.searchQuery,
-  });
+  const _MalasTab({required this.onMantraSelected, required this.searchQuery});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -777,10 +782,7 @@ class _MalasTab extends ConsumerWidget {
         },
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           itemCount: mantras.length,
           itemBuilder: (context, index) {
             final mantra = mantras[index];
@@ -907,10 +909,7 @@ class _TimersTab extends ConsumerWidget {
   final void Function(PresetTimer timer) onTimerSelected;
   final String searchQuery;
 
-  const _TimersTab({
-    required this.onTimerSelected,
-    required this.searchQuery,
-  });
+  const _TimersTab({required this.onTimerSelected, required this.searchQuery});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -941,12 +940,16 @@ class _TimersTab extends ConsumerWidget {
             ),
             (timers) {
               final query = searchQuery.trim();
-              final filteredTimers = query.isEmpty
-                  ? timers
-                  : timers
-                      .where((timer) =>
-                          timer.name.toLowerCase().contains(query.toLowerCase()))
-                      .toList();
+              final filteredTimers =
+                  query.isEmpty
+                      ? timers
+                      : timers
+                          .where(
+                            (timer) => timer.name.toLowerCase().contains(
+                              query.toLowerCase(),
+                            ),
+                          )
+                          .toList();
 
               if (filteredTimers.isEmpty) {
                 return _RefreshableScrollBody(
@@ -1184,10 +1187,7 @@ class _SessionCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: child,
-        ),
+        child: Padding(padding: const EdgeInsets.all(12), child: child),
       ),
     );
   }
@@ -1257,7 +1257,9 @@ class _CircularImage extends StatelessWidget {
           placeholder: (_, __) => _placeholder(),
           errorWidget: (context, url, error) {
             final sanitizedUrl = stableNetworkImageCacheKey(url);
-            _logger.warning('Failed to load mala image: $sanitizedUrl, error: $error');
+            _logger.warning(
+              'Failed to load mala image: $sanitizedUrl, error: $error',
+            );
             return _placeholder();
           },
         ),

@@ -53,6 +53,10 @@ class SessionSeriesNotifier extends StateNotifier<SessionSeriesState> {
 
   static const int _pageSize = 20;
 
+  // Blocks paging while page one is being read again; stale pages are dropped.
+  bool _firstPageInFlight = false;
+  int _pageEpoch = 0;
+
   SeriesQueryParams _params({required int skip}) {
     return SeriesQueryParams(
       language: languageCode,
@@ -62,21 +66,28 @@ class SessionSeriesNotifier extends StateNotifier<SessionSeriesState> {
     );
   }
 
+  void _applyFirstPage(SeriesListPage page) {
+    _pageEpoch++;
+    state = SessionSeriesState(
+      items: [
+        for (final model in page.series) model.toEntity(language: languageCode),
+      ],
+      hasMore: page.series.isNotEmpty && page.hasMore,
+    );
+  }
+
   Future<void> loadInitial() async {
+    if (_firstPageInFlight) return;
+
     if (state.items.isEmpty) {
       state = state.copyWith(isLoading: true, error: null);
     }
 
+    _firstPageInFlight = true;
     try {
       final page = await datasource.fetchSeriesPage(params: _params(skip: 0));
       if (!mounted) return;
-      state = SessionSeriesState(
-        items: [
-          for (final model in page.series)
-            model.toEntity(language: languageCode),
-        ],
-        hasMore: page.hasMore,
-      );
+      _applyFirstPage(page);
     } catch (e) {
       if (!mounted) return;
       if (state.items.isEmpty) {
@@ -84,18 +95,31 @@ class SessionSeriesNotifier extends StateNotifier<SessionSeriesState> {
       } else {
         state = state.copyWith(isLoading: false);
       }
+    } finally {
+      _firstPageInFlight = false;
     }
   }
 
   Future<void> loadMore() async {
-    if (state.isLoading || state.isLoadingMore || !state.hasMore) return;
+    if (state.isLoadingMore ||
+        state.isLoading ||
+        !state.hasMore ||
+        _firstPageInFlight) {
+      return;
+    }
 
     state = state.copyWith(isLoadingMore: true, error: null);
+    final epoch = _pageEpoch;
     try {
       final page = await datasource.fetchSeriesPage(
         params: _params(skip: state.items.length),
       );
       if (!mounted) return;
+      // Page one was replaced meanwhile; this page belongs to the old list.
+      if (epoch != _pageEpoch) {
+        state = state.copyWith(isLoadingMore: false);
+        return;
+      }
       state = state.copyWith(
         items: [
           ...state.items,
@@ -103,10 +127,14 @@ class SessionSeriesNotifier extends StateNotifier<SessionSeriesState> {
             model.toEntity(language: languageCode),
         ],
         isLoadingMore: false,
-        hasMore: page.hasMore,
+        hasMore: page.series.isNotEmpty && page.hasMore,
       );
     } catch (e) {
       if (!mounted) return;
+      if (epoch != _pageEpoch) {
+        state = state.copyWith(isLoadingMore: false);
+        return;
+      }
       state = state.copyWith(isLoadingMore: false, error: e.toString());
     }
   }
