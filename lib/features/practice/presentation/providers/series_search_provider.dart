@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/core/di/core_providers.dart';
+import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/home/data/datasource/series_remote_datasource.dart';
 import 'package:flutter_pecha/features/home/domain/entities/series.dart';
 import 'package:flutter_pecha/features/home/presentation/utils/series_analytics.dart';
@@ -39,11 +40,13 @@ class SeriesSearchNotifier extends StateNotifier<SeriesSearchState> {
   SeriesSearchNotifier({
     required this.datasource,
     required this.languageCode,
+    required this.includePrivateJoined,
     this.analytics,
   }) : super(const SeriesSearchState());
 
   final SeriesRemoteDatasource datasource;
   final String languageCode;
+  final bool includePrivateJoined;
   final SeriesAnalytics? analytics;
   Timer? _debounceTimer;
   static const Duration _debounceDuration = Duration(milliseconds: 500);
@@ -75,6 +78,8 @@ class SeriesSearchNotifier extends StateNotifier<SeriesSearchState> {
         params: SeriesQueryParams(
           language: languageCode,
           search: query.trim(),
+          limit: 20,
+          includePrivateJoined: includePrivateJoined,
         ),
       );
       if (!mounted) return;
@@ -118,9 +123,13 @@ final seriesSearchProvider =
     StateNotifierProvider<SeriesSearchNotifier, SeriesSearchState>((ref) {
   final dio = ref.watch(dioProvider);
   final languageCode = ref.watch(contentLanguageProvider);
+  final includePrivateJoined = ref.watch(
+    authProvider.select((auth) => auth.isLoggedIn && !auth.isGuest),
+  );
   return SeriesSearchNotifier(
     datasource: SeriesRemoteDatasource(dio: dio),
     languageCode: languageCode,
+    includePrivateJoined: includePrivateJoined,
     analytics: ref.watch(seriesAnalyticsProvider),
   );
 });

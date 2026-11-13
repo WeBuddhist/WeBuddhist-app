@@ -7,14 +7,13 @@ import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/core/utils/network_image_utils.dart';
 import 'package:flutter_pecha/core/widgets/responsive_cover_image.dart';
-import 'package:flutter_pecha/core/widgets/skeletons/skeletons.dart';
+import 'package:flutter_pecha/features/home/domain/entities/series.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/practice/data/models/session_selection.dart';
-import 'package:flutter_pecha/features/practice/domain/entities/practice_item.dart';
-import 'package:flutter_pecha/features/practice/domain/entities/practice_items_tab.dart';
-import 'package:flutter_pecha/features/practice/presentation/providers/practice_items_paginated_provider.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_recitations_paginated_provider.dart';
+import 'package:flutter_pecha/features/practice/presentation/providers/series_search_provider.dart';
+import 'package:flutter_pecha/features/practice/presentation/providers/session_series_paginated_provider.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/practice_chant_list_tile.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
 import 'package:flutter_pecha/features/recitation/presentation/widgets/recitation_list_skeleton.dart';
@@ -43,8 +42,6 @@ class SelectSessionScreen extends ConsumerStatefulWidget {
 
 class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     with SingleTickerProviderStateMixin {
-  static const PracticeItemsTab _practiceTab = PracticeItemsTab.all;
-
   late TabController _tabController;
   final ScrollController _plansScrollController = ScrollController();
   final ScrollController _chantsScrollController = ScrollController();
@@ -85,6 +82,7 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     // Clear shared search providers when the picker closes so Explore search
     // does not open with a leftover query.
     final languageCode = ref.read(contentLanguageProvider);
+    ref.read(seriesSearchProvider.notifier).clear();
     ref.read(practiceRecitationSearchProvider(languageCode).notifier).clear();
     ref.read(accumulationSearchProvider.notifier).clear();
 
@@ -94,9 +92,7 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
   void _onPlansScroll() {
     if (_plansScrollController.position.pixels >=
         _plansScrollController.position.maxScrollExtent - 200) {
-      ref
-          .read(practiceItemsPaginatedProvider(_practiceTab).notifier)
-          .loadMore();
+      ref.read(sessionSeriesPaginatedProvider.notifier).loadMore();
     }
   }
 
@@ -128,7 +124,9 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     _queriesByTab[activeTab] = query;
 
     final languageCode = ref.read(contentLanguageProvider);
-    if (activeTab == 1) {
+    if (activeTab == 0) {
+      ref.read(seriesSearchProvider.notifier).search(query);
+    } else if (activeTab == 1) {
       ref.read(practiceRecitationSearchProvider(languageCode).notifier).search(query);
     } else if (activeTab == 2) {
       ref.read(accumulationSearchProvider.notifier).search(query);
@@ -150,7 +148,9 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     _searchController.clear();
 
     final languageCode = ref.read(contentLanguageProvider);
-    if (activeTab == 1) {
+    if (activeTab == 0) {
+      ref.read(seriesSearchProvider.notifier).clear();
+    } else if (activeTab == 1) {
       ref.read(practiceRecitationSearchProvider(languageCode).notifier).clear();
     } else if (activeTab == 2) {
       ref.read(accumulationSearchProvider.notifier).clear();
@@ -159,13 +159,9 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
     setState(() => _isSearching = false);
   }
 
-  void _onPracticeItemSelected(PracticeItem item) {
+  void _onSeriesSelected(Series series) {
     if (_enrollingItemId != null) return;
-    final selection = switch (item) {
-      PracticePlanItem(:final plan) => PlanSessionSelection(plan),
-      PracticeSeriesItem(:final series) => SeriesSessionSelection(series),
-    };
-    Navigator.of(context).pop<SessionSelection>(selection);
+    Navigator.of(context).pop<SessionSelection>(SeriesSessionSelection(series));
   }
 
   void _onRecitationSelected(RecitationModel recitation) {
@@ -269,19 +265,17 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
 
   Widget _buildSearchResults() {
     final query = _queriesByTab[_tabController.index] ?? '';
-
-    // Plans search waits on a dedicated backend; keep the field but do not query.
-    if (_tabController.index == 0) {
-      return _SessionTabMessage(
-        message: AppLocalizations.of(context)!.comingSoonHeadline,
-      );
-    }
-
     if (query.trim().isEmpty) {
       return const SizedBox.shrink();
     }
 
     return switch (_tabController.index) {
+      0 => _PlansTab(
+        scrollController: _plansScrollController,
+        enrollingItemId: _enrollingItemId,
+        onSeriesSelected: _onSeriesSelected,
+        searchQuery: query,
+      ),
       1 => _ChantsTab(
         scrollController: _chantsScrollController,
         enrollingItemId: _enrollingItemId,
@@ -363,10 +357,10 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
         controller: _tabController,
         children: [
           _PlansTab(
-            tab: _practiceTab,
             scrollController: _plansScrollController,
             enrollingItemId: _enrollingItemId,
-            onItemSelected: _onPracticeItemSelected,
+            onSeriesSelected: _onSeriesSelected,
+            searchQuery: '',
           ),
           _ChantsTab(
             scrollController: _chantsScrollController,
@@ -391,24 +385,75 @@ class _SelectSessionScreenState extends ConsumerState<SelectSessionScreen>
 // ─── Plans tab ───────────────────────────────────────────────────────────────
 
 class _PlansTab extends ConsumerWidget {
-  final PracticeItemsTab tab;
   final ScrollController scrollController;
   final String? enrollingItemId;
-  final void Function(PracticeItem item) onItemSelected;
+  final void Function(Series series) onSeriesSelected;
+  final String searchQuery;
 
   const _PlansTab({
-    required this.tab,
     required this.scrollController,
     required this.enrollingItemId,
-    required this.onItemSelected,
+    required this.onSeriesSelected,
+    required this.searchQuery,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsState = ref.watch(practiceItemsPaginatedProvider(tab));
+    final query = searchQuery.trim();
+
+    if (query.isNotEmpty) {
+      final searchState = ref.watch(seriesSearchProvider);
+
+      if (searchState.isLoading && searchState.results.isEmpty) {
+        return const _PlansListSkeleton();
+      }
+
+      if (searchState.error != null && searchState.results.isEmpty) {
+        return _RefreshableScrollBody(
+          onRefresh: () async {
+            ref.read(seriesSearchProvider.notifier).retry();
+          },
+          child: _SessionTabMessage(
+            message: context.l10n.session_plans_load_error,
+          ),
+        );
+      }
+
+      final items = searchState.results;
+
+      if (items.isEmpty && !searchState.isLoading) {
+        return _RefreshableScrollBody(
+          onRefresh: () async {
+            ref.read(seriesSearchProvider.notifier).retry();
+          },
+          child: _SessionTabMessage(
+            message: context.l10n.search_no_results(query),
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          ref.read(seriesSearchProvider.notifier).retry();
+        },
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildPlanCard(context, items[index]),
+            );
+          },
+        ),
+      );
+    }
+
+    final itemsState = ref.watch(sessionSeriesPaginatedProvider);
 
     Future<void> onRefresh() =>
-        ref.read(practiceItemsPaginatedProvider(tab).notifier).refresh();
+        ref.read(sessionSeriesPaginatedProvider.notifier).refresh();
 
     _logger.debug(
       '📋 _PlansTab BUILD: ${itemsState.items.length} items, '
@@ -416,7 +461,7 @@ class _PlansTab extends ConsumerWidget {
     );
 
     if (itemsState.isLoading && itemsState.items.isEmpty) {
-      return const PlanListSkeleton();
+      return const _PlansListSkeleton();
     }
 
     if (itemsState.error != null && itemsState.items.isEmpty) {
@@ -457,111 +502,62 @@ class _PlansTab extends ConsumerWidget {
             );
           }
 
-          final item = items[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: _buildPlanCard(context, item),
+            child: _buildPlanCard(context, items[index]),
           );
         },
       ),
     );
   }
 
-  Widget _buildPlanCard(BuildContext context, PracticeItem item) {
+  Widget _buildPlanCard(BuildContext context, Series series) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final dateRange = _formatDateRange(series.startDate, series.endDate);
+    final subtitle =
+        series.subTitle?.isNotEmpty == true ? series.subTitle : dateRange;
 
-    switch (item) {
-      case PracticePlanItem(:final plan):
-        final dateRange = _formatDateRange(
-          plan.startDate,
-          plan.startDate?.add(Duration(days: plan.totalDays)),
-        );
-        return _SessionCard(
-          isDark: isDark,
-          onTap: enrollingItemId == null ? () => onItemSelected(item) : null,
-          child: Row(
-            children: [
-              _CoverImage(image: plan.coverImage, size: 56),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      plan.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (dateRange != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        dateRange,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color:
-                              isDark
-                                  ? AppColors.textTertiaryDark
-                                  : AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
+    return _SessionCard(
+      isDark: isDark,
+      onTap: enrollingItemId == null ? () => onSeriesSelected(series) : null,
+      child: Row(
+        children: [
+          _CoverImage(image: series.coverImage, size: 56),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  series.title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-        );
-
-      case PracticeSeriesItem(:final series):
-        final dateRange = _formatDateRange(series.startDate, series.endDate);
-        final subtitle =
-            series.subTitle?.isNotEmpty == true ? series.subTitle : dateRange;
-        return _SessionCard(
-          isDark: isDark,
-          onTap: enrollingItemId == null ? () => onItemSelected(item) : null,
-          child: Row(
-            children: [
-              _CoverImage(image: series.coverImage, size: 56),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      series.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                if (subtitle != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color:
+                          isDark
+                              ? AppColors.textTertiaryDark
+                              : AppColors.textSecondary,
                     ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color:
-                              isDark
-                                  ? AppColors.textTertiaryDark
-                                  : AppColors.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
           ),
-        );
-    }
+        ],
+      ),
+    );
   }
 
   static String? _formatDateRange(DateTime? start, DateTime? end) {
@@ -1046,6 +1042,62 @@ class _RefreshableScrollBody extends StatelessWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               child: SizedBox(height: constraints.maxHeight, child: child),
             ),
+      ),
+    );
+  }
+}
+
+class _PlansListSkeleton extends StatelessWidget {
+  const _PlansListSkeleton({this.itemCount = 6});
+
+  final int itemCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Skeletonizer(
+      enabled: true,
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _SessionCard(
+              isDark: isDark,
+              child: Row(
+                children: [
+                  Bone(
+                    width: 56,
+                    height: 56,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Bone(
+                          width: 160,
+                          height: 16,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        const SizedBox(height: 8),
+                        Bone(
+                          width: 110,
+                          height: 13,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }

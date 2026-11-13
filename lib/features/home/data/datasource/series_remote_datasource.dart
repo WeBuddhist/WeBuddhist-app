@@ -8,12 +8,14 @@ class SeriesQueryParams {
   final int skip;
   final int limit;
   final String? search;
+  final bool includePrivateJoined;
 
   const SeriesQueryParams({
     required this.language,
     this.skip = 0,
     this.limit = 10,
     this.search,
+    this.includePrivateJoined = false,
   });
 
   Map<String, dynamic> toQueryParams() {
@@ -25,8 +27,27 @@ class SeriesQueryParams {
     if (search != null && search!.trim().isNotEmpty) {
       params['search'] = search!.trim();
     }
+    if (includePrivateJoined) {
+      params['include_private_joined'] = true;
+    }
     return params;
   }
+}
+
+class SeriesListPage {
+  const SeriesListPage({
+    required this.series,
+    required this.skip,
+    required this.limit,
+    required this.total,
+  });
+
+  final List<SeriesModel> series;
+  final int skip;
+  final int limit;
+  final int total;
+
+  bool get hasMore => skip + series.length < total;
 }
 
 class SeriesRemoteDatasource {
@@ -64,8 +85,16 @@ class SeriesRemoteDatasource {
     }
   }
 
-  /// Endpoint: GET /series?language={language}&skip={skip}&limit={limit}&search={search}
+  /// Endpoint: GET /series?language=&skip=&limit=&search=
   Future<List<SeriesModel>> fetchSeries({
+    required SeriesQueryParams params,
+  }) async {
+    final page = await fetchSeriesPage(params: params);
+    return page.series;
+  }
+
+  /// Same as [fetchSeries], including pagination totals from the envelope.
+  Future<SeriesListPage> fetchSeriesPage({
     required SeriesQueryParams params,
   }) async {
     try {
@@ -76,11 +105,29 @@ class SeriesRemoteDatasource {
       );
 
       if (response.statusCode == 200) {
+        final data = _asStringMap(response.data) ?? const {};
         final List<dynamic> seriesJson =
-            (response.data['series'] as List<dynamic>?) ?? [];
-        return seriesJson
-            .map((s) => SeriesModel.fromJson(s as Map<String, dynamic>))
-            .toList();
+            (data['series'] as List<dynamic>?) ?? [];
+        final series = <SeriesModel>[];
+        for (final raw in seriesJson) {
+          final item = _asStringMap(raw);
+          if (item == null) continue;
+          try {
+            final model = SeriesModel.fromJson(item);
+            if (model.id.isNotEmpty) series.add(model);
+          } catch (e, st) {
+            _logger.error('Skipping unreadable series row', e, st);
+          }
+        }
+        final skip = (data['skip'] as num?)?.toInt() ?? params.skip;
+        final limit = (data['limit'] as num?)?.toInt() ?? params.limit;
+        final total = (data['total'] as num?)?.toInt() ?? skip + series.length;
+        return SeriesListPage(
+          series: series,
+          skip: skip,
+          limit: limit,
+          total: total,
+        );
       } else {
         _logger.error('Failed to load series: ${response.statusCode}');
         throw _statusToException(response.statusCode, 'Failed to load series');
@@ -249,6 +296,14 @@ class SeriesRemoteDatasource {
     } else {
       return ServerException('$label: $statusCode');
     }
+  }
+
+  Map<String, dynamic>? _asStringMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return value.map((key, val) => MapEntry(key.toString(), val));
+    }
+    return null;
   }
 
   Exception _dioToException(DioException e, String label) {
