@@ -110,6 +110,10 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
     result.fold(
       (failure) {
         state = state.copyWith(
+          // Rows kept on screen while this query loaded belong to the
+          // previous one; once its first page fails they must go, so the
+          // results stay this query's and `retry` starts it over.
+          results: reset ? const [] : null,
           isLoading: false,
           isLoadingMore: false,
           error: failure.message,
@@ -142,6 +146,8 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
   }
 
   /// The first page again when nothing loaded, otherwise the failed next page.
+  /// Non-empty results are always the current query's: a failed first page
+  /// clears what the previous query left.
   void retry() {
     if (state.query.trim().isEmpty) return;
     if (state.results.isEmpty) {

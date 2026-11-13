@@ -123,6 +123,34 @@ void main() {
       expect(repository.searchSkips, [0, 20]);
     });
 
+    test('retrying a failed new query replaces the old rows', () async {
+      container.listen(groupSearchProvider, (_, __) {});
+      final notifier = container.read(groupSearchProvider.notifier);
+
+      notifier.search('a');
+      await Future<void>.delayed(const Duration(milliseconds: 550));
+      expect(container.read(groupSearchProvider).results, hasLength(20));
+
+      repository.onSearch = (_) async => const Left(NetworkFailure('offline'));
+      notifier.search('b');
+      await Future<void>.delayed(const Duration(milliseconds: 550));
+      var state = container.read(groupSearchProvider);
+      expect(state.error, isNotNull);
+      expect(state.results, isEmpty);
+
+      repository.searchSkips.clear();
+      repository.onSearch = (skip) async => Right(_page('b', skip: skip));
+      notifier.retry();
+      await pumpEventQueue();
+
+      state = container.read(groupSearchProvider);
+      expect(repository.searchSkips, [0]);
+      expect(state.results.map((g) => g.id), [
+        for (var i = 0; i < 20; i++) 'b$i',
+      ]);
+      expect(state.skip, 20);
+    });
+
     test('a page for an older query is dropped', () async {
       final oldPage = Completer<Either<Failure, DiscoverGroupsPage>>();
       repository.onSearch = (_) => oldPage.future;
