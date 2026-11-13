@@ -4215,4 +4215,12 @@ class AppLocalizationsNe extends AppLocalizations {
 
   @override
   String get chants_audio_chants => 'अडियो जप';
+
+  @override
+  String get reader_no_resources_title =>
+      'यस खण्डका लागि कुनै टीका वा संस्करण उपलब्ध छैन';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'हामी नियमित रूपमा नयाँ ग्रन्थहरू थप्छौं; छिट्टै फेरि हेर्नुहोस्';
 }

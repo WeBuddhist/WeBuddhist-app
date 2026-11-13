@@ -4241,4 +4241,12 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get chants_audio_chants => 'Audio chants';
+
+  @override
+  String get reader_no_resources_title =>
+      'ဤအပိုင်းအတွက် အဖွင့်ကျမ်း သို့မဟုတ် ဗားရှင်း မရှိသေးပါ';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'ကျမ်းစာအသစ်များကို ပုံမှန်ထည့်နေပါသည်။ မကြာမီ ပြန်ကြည့်ပါ။';
 }

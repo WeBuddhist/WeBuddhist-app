@@ -2116,5 +2116,7 @@
   "chants_request_sent": "Thanks. We've received your request.",
   "chants_request_limit": "You've sent a lot of requests today. Please try again later.",
   "chants_with_audio": "Chants with audio",
-  "chants_audio_chants": "Audio chants"
+  "chants_audio_chants": "Audio chants",
+  "reader_no_resources_title": "No commentaries or versions available for this segment",
+  "reader_no_resources_subtitle": "We add new texts regularly; check back soon"
 }

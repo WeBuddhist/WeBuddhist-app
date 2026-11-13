@@ -1167,5 +1167,7 @@
   "chants_request_sent": "謝謝，我們已收到你的申請。",
   "chants_request_limit": "你今天已送出許多申請，請稍後再試。",
   "chants_with_audio": "有音檔的持誦",
-  "chants_audio_chants": "音檔持誦"
+  "chants_audio_chants": "音檔持誦",
+  "reader_no_resources_title": "此段落尚無注釋或版本",
+  "reader_no_resources_subtitle": "我們會定期新增文本，請稍後再來查看"
 }

@@ -1177,5 +1177,7 @@
   "chants_request_sent": "धन्यवाद। हमें आपका अनुरोध मिल गया है।",
   "chants_request_limit": "आज आप कई अनुरोध भेज चुके हैं। कृपया बाद में फिर कोशिश करें।",
   "chants_with_audio": "ऑडियो वाले जप",
-  "chants_audio_chants": "ऑडियो जप"
+  "chants_audio_chants": "ऑडियो जप",
+  "reader_no_resources_title": "इस खंड के लिए कोई टीका या संस्करण उपलब्ध नहीं है",
+  "reader_no_resources_subtitle": "हम नियमित रूप से नए ग्रंथ जोड़ते हैं; जल्द ही फिर देखें"
 }

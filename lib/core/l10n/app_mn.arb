@@ -1177,5 +1177,7 @@
   "chants_request_sent": "Баярлалаа. Таны хүсэлтийг хүлээн авлаа.",
   "chants_request_limit": "Та өнөөдөр олон хүсэлт илгээсэн байна. Дараа дахин оролдоно уу.",
   "chants_with_audio": "Аудиотой магтаал",
-  "chants_audio_chants": "Аудио магтаал"
+  "chants_audio_chants": "Аудио магтаал",
+  "reader_no_resources_title": "Энэ хэсэгт тайлбар эсвэл хувилбар байхгүй байна",
+  "reader_no_resources_subtitle": "Бид шинэ судар тогтмол нэмдэг; удахгүй дахин шалгаарай"
 }

@@ -4168,4 +4168,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chants_audio_chants => 'Audio chants';
+
+  @override
+  String get reader_no_resources_title =>
+      'No commentaries or versions available for this segment';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'We add new texts regularly; check back soon';
 }

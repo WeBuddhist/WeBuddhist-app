@@ -4210,4 +4210,12 @@ class AppLocalizationsBo extends AppLocalizations {
 
   @override
   String get chants_audio_chants => 'སྒྲའི་ཞལ་འདོན།';
+
+  @override
+  String get reader_no_resources_title =>
+      'ཚིགས་བཅད་འདིའི་འགྲེལ་བ་དང་པར་གཞི་མི་འདུག';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'ང་ཚོས་དཔེ་ཆ་གསར་པ་རྒྱུན་དུ་ཁ་སྣོན་བྱེད་བཞིན་ཡོད། རྗེས་སུ་ཡང་བསྐྱར་གཟིགས་རོགས།';
 }

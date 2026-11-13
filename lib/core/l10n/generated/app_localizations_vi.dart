@@ -4201,4 +4201,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get chants_audio_chants => 'Audio chants';
+
+  @override
+  String get reader_no_resources_title =>
+      'Chưa có chú giải hoặc bản dịch nào cho đoạn này';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'Chúng tôi thường xuyên bổ sung kinh văn mới; hãy quay lại sau nhé';
 }

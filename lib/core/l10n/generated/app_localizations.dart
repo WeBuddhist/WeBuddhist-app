@@ -7320,6 +7320,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Audio chants'**
   String get chants_audio_chants;
+
+  /// No description provided for @reader_no_resources_title.
+  ///
+  /// In en, this message translates to:
+  /// **'No commentaries or versions available for this segment'**
+  String get reader_no_resources_title;
+
+  /// No description provided for @reader_no_resources_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We add new texts regularly; check back soon'**
+  String get reader_no_resources_subtitle;
 }
 
 class _AppLocalizationsDelegate

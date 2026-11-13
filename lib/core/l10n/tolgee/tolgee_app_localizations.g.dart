@@ -8329,4 +8329,18 @@ class TolgeeAppLocalizations extends AppLocalizations {
     'chants_audio_chants',
     () => _fallback.chants_audio_chants,
   );
+
+  @override
+  String get reader_no_resources_title => TolgeeBridge.get(
+    localeName,
+    'reader_no_resources_title',
+    () => _fallback.reader_no_resources_title,
+  );
+
+  @override
+  String get reader_no_resources_subtitle => TolgeeBridge.get(
+    localeName,
+    'reader_no_resources_subtitle',
+    () => _fallback.reader_no_resources_subtitle,
+  );
 }

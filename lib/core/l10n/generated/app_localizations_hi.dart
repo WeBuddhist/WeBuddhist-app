@@ -4196,4 +4196,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get chants_audio_chants => 'ऑडियो जप';
+
+  @override
+  String get reader_no_resources_title =>
+      'इस खंड के लिए कोई टीका या संस्करण उपलब्ध नहीं है';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'हम नियमित रूप से नए ग्रंथ जोड़ते हैं; जल्द ही फिर देखें';
 }
