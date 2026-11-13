@@ -6,6 +6,7 @@ import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/core/error/exceptions.dart';
 import 'package:flutter_pecha/features/connect/data/datasource/connect_remote_datasource.dart';
 import 'package:flutter_pecha/features/connect/data/repositories/connect_repository_impl.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +34,8 @@ class _FakeRemote extends ConnectRemoteDatasource {
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   }) async {
     calls++;
     if (error != null) throw error!;
@@ -41,8 +44,8 @@ class _FakeRemote extends ConnectRemoteDatasource {
 }
 
 Map<String, dynamic> _page(List<String> ids) => {
-  'groups': [
-    for (final id in ids) {'id': id, 'slug': id, 'group_type': 'COMMUNITY'},
+  'spaces': [
+    for (final id in ids) {'id': id, 'slug': id, 'space_type': 'COMMUNITY'},
   ],
   'skip': 0,
   'limit': 20,
@@ -57,6 +60,8 @@ void main() {
     'discover_groups',
     userId: 'user-1',
     language: 'en',
+    version: 2,
+    params: [SpaceSort.popular.name],
   );
 
   setUp(() {

@@ -1199,6 +1199,48 @@ abstract class AppLocalizations {
   /// **'Popular spaces'**
   String get connect_popular_spaces;
 
+  /// No description provided for @connect_looking_for.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for'**
+  String get connect_looking_for;
+
+  /// No description provided for @connect_sort_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort spaces'**
+  String get connect_sort_spaces;
+
+  /// No description provided for @connect_sort_popular.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular'**
+  String get connect_sort_popular;
+
+  /// No description provided for @connect_sort_newly_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Newly added'**
+  String get connect_sort_newly_added;
+
+  /// No description provided for @connect_sort_most_active.
+  ///
+  /// In en, this message translates to:
+  /// **'Most active'**
+  String get connect_sort_most_active;
+
+  /// No description provided for @connect_find_your_space.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your space'**
+  String get connect_find_your_space;
+
+  /// Shown above the spaces list when a space search finds nothing
+  ///
+  /// In en, this message translates to:
+  /// **'No spaces match \"{query}\"'**
+  String connect_no_spaces_match(String query);
+
   /// No description provided for @connect_your_spaces.
   ///
   /// In en, this message translates to:

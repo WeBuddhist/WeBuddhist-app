@@ -3,16 +3,21 @@ import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/connect_feed_item.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/connect_post_comment.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/discover_groups_page.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_events_page.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract class ConnectRepository {
+  /// Published communities. [includeJoined] only matters for a signed-in
+  /// caller; [sort] null keeps the server's tradition-first order.
   Future<Either<Failure, DiscoverGroupsPage>> getDiscoverGroups({
     required String language,
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   });
 
   Future<Either<Failure, DiscoverGroupsPage>> getMyGroups({
@@ -46,6 +51,7 @@ abstract class ConnectRepository {
   ScreenCacheSource<DiscoverGroupsPage> discoverGroupsFirstPage({
     required String language,
     required int limit,
+    required SpaceSort sort,
   });
 
   ScreenCacheSource<ConnectFeedPage> connectFeedFirstPage({

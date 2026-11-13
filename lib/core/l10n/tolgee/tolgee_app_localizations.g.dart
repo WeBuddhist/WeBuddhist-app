@@ -1185,6 +1185,56 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get connect_looking_for => TolgeeBridge.get(
+    localeName,
+    'connect_looking_for',
+    () => _fallback.connect_looking_for,
+  );
+
+  @override
+  String get connect_sort_spaces => TolgeeBridge.get(
+    localeName,
+    'connect_sort_spaces',
+    () => _fallback.connect_sort_spaces,
+  );
+
+  @override
+  String get connect_sort_popular => TolgeeBridge.get(
+    localeName,
+    'connect_sort_popular',
+    () => _fallback.connect_sort_popular,
+  );
+
+  @override
+  String get connect_sort_newly_added => TolgeeBridge.get(
+    localeName,
+    'connect_sort_newly_added',
+    () => _fallback.connect_sort_newly_added,
+  );
+
+  @override
+  String get connect_sort_most_active => TolgeeBridge.get(
+    localeName,
+    'connect_sort_most_active',
+    () => _fallback.connect_sort_most_active,
+  );
+
+  @override
+  String get connect_find_your_space => TolgeeBridge.get(
+    localeName,
+    'connect_find_your_space',
+    () => _fallback.connect_find_your_space,
+  );
+
+  @override
+  String connect_no_spaces_match(String query) => TolgeeBridge.format(
+    localeName,
+    'connect_no_spaces_match',
+    <String, Object>{'query': query},
+    () => _fallback.connect_no_spaces_match(query),
+  );
+
+  @override
   String get connect_your_spaces => TolgeeBridge.get(
     localeName,
     'connect_your_spaces',
@@ -3763,12 +3813,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String group_removed_message(String group, String duration) =>
-      TolgeeBridge.format(
-        localeName,
-        'group_removed_message',
-        <String, Object>{'group': group, 'duration': duration},
-        () => _fallback.group_removed_message(group, duration),
-      );
+      TolgeeBridge.format(localeName, 'group_removed_message', <String, Object>{
+        'group': group,
+        'duration': duration,
+      }, () => _fallback.group_removed_message(group, duration));
 
   @override
   String group_removed_message_no_date(String group) => TolgeeBridge.format(
@@ -5402,12 +5450,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String event_replay_session(String day, String session) =>
-      TolgeeBridge.format(
-        localeName,
-        'event_replay_session',
-        <String, Object>{'day': day, 'session': session},
-        () => _fallback.event_replay_session(day, session),
-      );
+      TolgeeBridge.format(localeName, 'event_replay_session', <String, Object>{
+        'day': day,
+        'session': session,
+      }, () => _fallback.event_replay_session(day, session));
 
   @override
   String get event_replay_recording => TolgeeBridge.get(
@@ -8143,12 +8189,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_round_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_round_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_round_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_round_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_round_position(current, total));
 
   @override
   String reader_round_number(String current) => TolgeeBridge.format(
@@ -8160,12 +8204,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_count_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_count_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_count_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_count_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_count_position(current, total));
 
   @override
   String reader_show_script_in(String language) => TolgeeBridge.format(

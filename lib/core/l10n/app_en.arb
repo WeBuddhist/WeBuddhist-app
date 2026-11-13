@@ -265,6 +265,21 @@
   "connect_tab_groups": "Spaces",
   "connect_landing_title": "Connect with your Buddhist community",
   "connect_popular_spaces": "Popular spaces",
+  "connect_looking_for": "Looking for",
+  "connect_sort_spaces": "Sort spaces",
+  "connect_sort_popular": "Popular",
+  "connect_sort_newly_added": "Newly added",
+  "connect_sort_most_active": "Most active",
+  "connect_find_your_space": "Find your space",
+  "connect_no_spaces_match": "No spaces match \"{query}\"",
+  "@connect_no_spaces_match": {
+    "description": "Shown above the spaces list when a space search finds nothing",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "connect_your_spaces": "Your spaces",
   "connect_find_a_space": "Find a space",
   "connect_segment_my": "Your spaces",

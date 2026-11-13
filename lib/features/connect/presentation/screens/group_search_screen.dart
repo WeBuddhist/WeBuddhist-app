@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
+import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/group_search_provider.dart';
+import 'package:flutter_pecha/features/connect/presentation/widgets/connect_discover_spaces.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/group_search_result_card.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,10 +46,16 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
     super.dispose();
   }
 
+  /// Near the end: more search results first, then more of the list below.
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
+    final position = _scrollController.position;
+    if (position.pixels < position.maxScrollExtent - 200) return;
+
+    final search = ref.read(groupSearchProvider);
+    if (search.query.trim().isNotEmpty && search.hasMore) {
       ref.read(groupSearchProvider.notifier).loadMore();
+    } else {
+      ref.read(discoverGroupsProvider.notifier).loadMore();
     }
   }
 
@@ -95,7 +104,7 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
                       onChanged: _onQueryChanged,
                       style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: context.l10n.search_groups,
+                        hintText: context.l10n.connect_find_your_space,
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: subtitleColor,
                           fontSize: 15,
@@ -148,129 +157,100 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
                 ],
               ),
             ),
-            Expanded(child: _buildBody(context, searchState, isDark)),
+            Expanded(child: _buildBody(context, searchState)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildBody(
-    BuildContext context,
-    GroupSearchState searchState,
-    bool isDark,
-  ) {
-    // Blank until something is typed, as in the design.
-    if (searchState.query.trim().isEmpty) return const SizedBox.shrink();
+  /// Search results (when there is a query) above the "Looking for" list,
+  /// in one scroll: screens 3–6 of the design.
+  Widget _buildBody(BuildContext context, GroupSearchState searchState) {
+    final discoverState = ref.watch(discoverGroupsProvider);
+    final discoverNotifier = ref.read(discoverGroupsProvider.notifier);
 
-    if (searchState.isLoading && searchState.results.isEmpty) {
-      return const GroupProfileTabSkeleton.box(
-        variant: GroupProfileTabSkeletonVariant.member,
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(discoverGroupsProvider.notifier).ensureLoaded();
+    });
 
-    if (searchState.error != null && searchState.results.isEmpty) {
-      return _ErrorSearchState(
-        message: context.l10n.connect_failed_load_discover_groups_error,
-        onRetry: () => ref.read(groupSearchProvider.notifier).retry(),
-      );
-    }
+    final hasQuery = searchState.query.trim().isNotEmpty;
 
-    if (searchState.results.isEmpty && !searchState.isLoading) {
-      return _EmptySearchState(
-        title: context.l10n.no_groups_found,
-        isDark: isDark,
-        icon: Icons.search_off,
-      );
-    }
-
-    return ListView.builder(
+    return CustomScrollView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(bottom: 24),
-      itemCount: searchState.results.length + (searchState.hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index == searchState.results.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Center(
-              child:
-                  searchState.isLoadingMore
-                      ? const CircularProgressIndicator()
-                      : const SizedBox.shrink(),
-            ),
-          );
-        }
-
-        return GroupSearchResultCard(group: searchState.results[index]);
-      },
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      slivers: [
+        if (hasQuery) ..._buildResults(context, searchState),
+        SliverToBoxAdapter(
+          child: ConnectLookingForHeader(
+            padding: EdgeInsets.fromLTRB(16, hasQuery ? 20 : 12, 16, 4),
+          ),
+        ),
+        ...buildDiscoverSpaceSlivers(context, discoverState, discoverNotifier),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
     );
   }
-}
 
-class _EmptySearchState extends StatelessWidget {
-  const _EmptySearchState({
-    required this.title,
-    required this.isDark,
-    this.icon = Icons.search,
-  });
-
-  final String title;
-  final bool isDark;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final subtitleColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 64, color: subtitleColor),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: subtitleColor),
-              textAlign: TextAlign.center,
-            ),
-          ],
+  List<Widget> _buildResults(BuildContext context, GroupSearchState state) {
+    if (state.isLoading && state.results.isEmpty) {
+      return const [
+        SliverToBoxAdapter(
+          child: GroupProfileTabSkeleton.box(
+            variant: GroupProfileTabSkeletonVariant.member,
+          ),
         ),
-      ),
-    );
-  }
-}
+      ];
+    }
 
-class _ErrorSearchState extends StatelessWidget {
-  const _ErrorSearchState({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: const TextStyle(fontSize: 16, color: Colors.red),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: Text(context.l10n.retry)),
-          ],
+    if (state.error != null && state.results.isEmpty) {
+      return [
+        SliverToBoxAdapter(
+          child: ErrorStateWidget(
+            error: state.error!,
+            onRetry: () => ref.read(groupSearchProvider.notifier).retry(),
+          ),
         ),
+      ];
+    }
+
+    if (state.results.isEmpty) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      return [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Text(
+              context.l10n.connect_no_spaces_match(state.query.trim()),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color:
+                    isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
+      ];
+    }
+
+    return [
+      SliverList.builder(
+        itemCount: state.results.length,
+        itemBuilder:
+            (context, index) =>
+                GroupSearchResultCard(group: state.results[index]),
       ),
-    );
+      if (state.isLoadingMore)
+        const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ),
+    ];
   }
 }

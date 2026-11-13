@@ -8,9 +8,10 @@ Social hub tab: unified feed, group events, and group discovery from followed co
 
 ## User-facing functionality
 
-- Main nav **Connect** tab: guests and members with no spaces see a landing page (hero with space search, then popular spaces); otherwise the page of the space last opened, with ☰ opening **Your spaces** to switch
+- Main nav **Connect** tab: guests and members with no spaces see a landing page (hero with space search, then the "Looking for" spaces list sorted Popular / Newly added / Most active); otherwise the page of the space last opened, with ☰ opening **Your spaces** to switch
 - **Feed** — merged posts, events, practices from followed groups, shown on Home as "From the community" (preview + full screen); posts carry likes and comments
-- Group search (`GroupSearchScreen`), reached from the landing page and Your spaces
+- Group search (`GroupSearchScreen`), reached from the landing page and Your spaces: matches on top (joined spaces included), the same "Looking for" list below
+- Discover and search read `GET /api/v2/spaces` (`ApiConfig.spacesV2Path`); the sort is `discoverSpaceSortProvider` (`SpaceSort` → `sort_by`), shared by both screens, each sort with its own stored first page
 - Post detail (drawer from a card, or `/home/posts/:postId` route from a push) with comment thread
 - Optimistic pending join/unjoin while API catches up
 

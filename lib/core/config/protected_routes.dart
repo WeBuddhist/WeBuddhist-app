@@ -1,3 +1,5 @@
+import 'package:flutter_pecha/core/config/api_config.dart';
+
 /// Centralized configuration for protected API routes that require authentication.
 class ProtectedRoutes {
   /// List of all protected API paths.
@@ -111,6 +113,9 @@ class ProtectedRoutes {
     '/series/{id}',
     '/series/featured',
     '/author/groups',
+    // v2 spaces list: with a token the caller's own fields (`is_joined`,
+    // `my_role`) come back and `include_joined` takes effect.
+    ApiConfig.spacesV2Path,
     // Group detail + members: sends auth when logged in so fields like
     // `is_group_enrolled` reflect the current user (anonymous GET → false).
     '/author/groups/',

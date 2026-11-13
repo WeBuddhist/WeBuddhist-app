@@ -95,6 +95,8 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
       search: query.trim(),
       skip: skip,
       limit: _limit,
+      // A member searching should also find the spaces they're already in.
+      includeJoined: true,
     );
 
     if (!mounted) return;
