@@ -4154,6 +4154,64 @@ class AppLocalizationsMn extends AppLocalizations {
   String get reader_tab_versions => 'Хувилбарууд';
 
   @override
+  String get chants_filter_all => 'Бүгд';
+
+  @override
+  String get chants_chant_books => 'Магтаалын ном';
+
+  @override
+  String get chants_filter_single_chants => 'Дан магтаал';
+
+  @override
+  String get chants_my_chant_books => 'Миний магтаалын ном';
+
+  @override
+  String get chants_text_only => 'Зөвхөн бичвэртэй магтаал';
+
+  @override
+  String get chants_from_your_spaces => 'Таны орон зайнаас';
+
+  @override
+  String get chants_explore_more => 'Бусдыг судлах';
+
+  @override
+  String get chants_create_chant_book => 'Магтаалын ном';
+
+  @override
+  String get chants_open_chant => 'Магтаал нээх';
+
+  @override
+  String get chants_your_spaces => 'Таны орон зайнууд';
+
+  @override
+  String get chants_other_spaces => 'Бусад орон зай';
+
+  @override
+  String get chants_search_hint => 'Магтаал болон магтаалын ном хайх';
+
+  @override
+  String get chants_cant_find => 'Хайж буй бичвэрээ олсонгүй юу?';
+
+  @override
+  String get chants_request_text => 'Бичвэр хүсэх';
+
+  @override
+  String get chants_request_done => 'Хүсэлт илгээсэн';
+
+  @override
+  String get chants_request_sent => 'Баярлалаа. Таны хүсэлтийг хүлээн авлаа.';
+
+  @override
+  String get chants_request_limit =>
+      'Та өнөөдөр олон хүсэлт илгээсэн байна. Дараа дахин оролдоно уу.';
+
+  @override
+  String get chants_with_audio => 'Аудиотой магтаал';
+
+  @override
+  String get chants_audio_chants => 'Аудио магтаал';
+
+  @override
   String get reader_no_resources_title =>
       'Энэ хэсэгт тайлбар эсвэл хувилбар байхгүй байна';
 

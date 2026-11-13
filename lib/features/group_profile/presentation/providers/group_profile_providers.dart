@@ -822,6 +822,7 @@ class GroupFollowNotifier extends StateNotifier<GroupFollowState> {
     _invalidateGroupProfile();
     _refreshGroupMembers();
     _invalidateConnectProviders();
+    noteMySpaceMembershipChanged(_ref);
     if (incrementCount) {
       noteGroupMembershipChanged(_ref, _key.groupId);
     }
@@ -863,6 +864,7 @@ class GroupFollowNotifier extends StateNotifier<GroupFollowState> {
         _invalidateGroupProfile();
         _refreshGroupMembers();
         _invalidateConnectProviders();
+        noteMySpaceMembershipChanged(_ref);
         noteGroupMembershipChanged(_ref, _key.groupId);
         if (connectGroup != null) {
           _removePendingJoinedGroup(connectGroup.id);
@@ -1247,6 +1249,16 @@ void noteGroupMembershipChanged(Ref ref, String groupId) {
   ref
       .read(groupMembershipEpochProvider(groupId).notifier)
       .update((epoch) => epoch + 1);
+}
+
+/// Bumped when the signed-in user joins or leaves any space. Lists split
+/// on the user's membership and kept between visits (the Chants page's
+/// space chant books) watch it, so a space just joined moves to "From your
+/// spaces" without waiting for their cache to lapse.
+final mySpaceMembershipEpochProvider = StateProvider<int>((ref) => 0);
+
+void noteMySpaceMembershipChanged(Ref ref) {
+  ref.read(mySpaceMembershipEpochProvider.notifier).update((e) => e + 1);
 }
 
 (int, int, int)? _membershipSize(

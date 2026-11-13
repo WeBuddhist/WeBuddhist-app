@@ -7207,6 +7207,120 @@ abstract class AppLocalizations {
   /// **'Versions'**
   String get reader_tab_versions;
 
+  /// No description provided for @chants_filter_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get chants_filter_all;
+
+  /// No description provided for @chants_chant_books.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant books'**
+  String get chants_chant_books;
+
+  /// No description provided for @chants_filter_single_chants.
+  ///
+  /// In en, this message translates to:
+  /// **'Single chants'**
+  String get chants_filter_single_chants;
+
+  /// No description provided for @chants_my_chant_books.
+  ///
+  /// In en, this message translates to:
+  /// **'My chantbooks'**
+  String get chants_my_chant_books;
+
+  /// No description provided for @chants_text_only.
+  ///
+  /// In en, this message translates to:
+  /// **'Text-only chants'**
+  String get chants_text_only;
+
+  /// No description provided for @chants_from_your_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'From your spaces'**
+  String get chants_from_your_spaces;
+
+  /// No description provided for @chants_explore_more.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore more'**
+  String get chants_explore_more;
+
+  /// No description provided for @chants_create_chant_book.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant book'**
+  String get chants_create_chant_book;
+
+  /// No description provided for @chants_open_chant.
+  ///
+  /// In en, this message translates to:
+  /// **'Open chant'**
+  String get chants_open_chant;
+
+  /// No description provided for @chants_your_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Your spaces'**
+  String get chants_your_spaces;
+
+  /// No description provided for @chants_other_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'Other spaces'**
+  String get chants_other_spaces;
+
+  /// No description provided for @chants_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search chants and chantbooks'**
+  String get chants_search_hint;
+
+  /// No description provided for @chants_cant_find.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find the text you\'re looking for?'**
+  String get chants_cant_find;
+
+  /// No description provided for @chants_request_text.
+  ///
+  /// In en, this message translates to:
+  /// **'Request text'**
+  String get chants_request_text;
+
+  /// No description provided for @chants_request_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get chants_request_done;
+
+  /// No description provided for @chants_request_sent.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks. We\'ve received your request.'**
+  String get chants_request_sent;
+
+  /// No description provided for @chants_request_limit.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve sent a lot of requests today. Please try again later.'**
+  String get chants_request_limit;
+
+  /// No description provided for @chants_with_audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Chants with audio'**
+  String get chants_with_audio;
+
+  /// No description provided for @chants_audio_chants.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio chants'**
+  String get chants_audio_chants;
+
   /// No description provided for @reader_no_resources_title.
   ///
   /// In en, this message translates to:

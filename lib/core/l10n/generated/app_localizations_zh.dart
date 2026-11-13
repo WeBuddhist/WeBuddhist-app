@@ -3986,6 +3986,63 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reader_tab_versions => '版本';
 
   @override
+  String get chants_filter_all => '全部';
+
+  @override
+  String get chants_chant_books => '持誦集';
+
+  @override
+  String get chants_filter_single_chants => '單篇持誦';
+
+  @override
+  String get chants_my_chant_books => '我的持誦集';
+
+  @override
+  String get chants_text_only => '純文字持誦';
+
+  @override
+  String get chants_from_your_spaces => '來自你的社群';
+
+  @override
+  String get chants_explore_more => '探索更多';
+
+  @override
+  String get chants_create_chant_book => '持誦集';
+
+  @override
+  String get chants_open_chant => '開啟持誦';
+
+  @override
+  String get chants_your_spaces => '你的社群';
+
+  @override
+  String get chants_other_spaces => '其他社群';
+
+  @override
+  String get chants_search_hint => '搜尋持誦與持誦集';
+
+  @override
+  String get chants_cant_find => '找不到你要的經文嗎？';
+
+  @override
+  String get chants_request_text => '申請經文';
+
+  @override
+  String get chants_request_done => '已申請';
+
+  @override
+  String get chants_request_sent => '謝謝，我們已收到你的申請。';
+
+  @override
+  String get chants_request_limit => '你今天已送出許多申請，請稍後再試。';
+
+  @override
+  String get chants_with_audio => '有音檔的持誦';
+
+  @override
+  String get chants_audio_chants => '音檔持誦';
+
+  @override
   String get reader_no_resources_title => '此段落尚無注釋或版本';
 
   @override
@@ -7715,6 +7772,63 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get reader_tab_versions => '版本';
+
+  @override
+  String get chants_filter_all => '全部';
+
+  @override
+  String get chants_chant_books => '持诵集';
+
+  @override
+  String get chants_filter_single_chants => '单篇持诵';
+
+  @override
+  String get chants_my_chant_books => '我的持诵集';
+
+  @override
+  String get chants_text_only => '纯文字持诵';
+
+  @override
+  String get chants_from_your_spaces => '来自你的社群';
+
+  @override
+  String get chants_explore_more => '探索更多';
+
+  @override
+  String get chants_create_chant_book => '持诵集';
+
+  @override
+  String get chants_open_chant => '打开持诵';
+
+  @override
+  String get chants_your_spaces => '你的社群';
+
+  @override
+  String get chants_other_spaces => '其他社群';
+
+  @override
+  String get chants_search_hint => '搜索持诵与持诵集';
+
+  @override
+  String get chants_cant_find => '找不到你要的经文吗？';
+
+  @override
+  String get chants_request_text => '申请经文';
+
+  @override
+  String get chants_request_done => '已申请';
+
+  @override
+  String get chants_request_sent => '谢谢，我们已收到你的申请。';
+
+  @override
+  String get chants_request_limit => '你今天已提交许多申请，请稍后再试。';
+
+  @override
+  String get chants_with_audio => '有音频的持诵';
+
+  @override
+  String get chants_audio_chants => '音频持诵';
 
   @override
   String get reader_no_resources_title => '此段落尚无注释或版本';

@@ -11,15 +11,19 @@ class GroupRecitationAudio extends Equatable {
   final String id;
   final String title;
   final String assetUrl;
+  final String? reciterName;
+  final String? imageUrl;
 
   const GroupRecitationAudio({
     required this.id,
     required this.title,
     required this.assetUrl,
+    this.reciterName,
+    this.imageUrl,
   });
 
   @override
-  List<Object?> get props => [id, title, assetUrl];
+  List<Object?> get props => [id, title, assetUrl, reciterName, imageUrl];
 }
 
 class GroupRecitationCollectionItem extends Equatable {
@@ -60,6 +64,9 @@ class GroupRecitationCollection extends Equatable {
   final String? imageUrl;
   final DateTime? createdAt;
   final int itemCount;
+
+  /// Chants with at least one recording; 0 until list responses send it.
+  final int audioItemCount;
   final List<GroupRecitationCollectionItem> items;
 
   const GroupRecitationCollection({
@@ -69,8 +76,11 @@ class GroupRecitationCollection extends Equatable {
     this.imageUrl,
     this.createdAt,
     this.itemCount = 0,
+    this.audioItemCount = 0,
     this.items = const [],
   });
+
+  bool get hasAudio => audioItemCount > 0;
 
   @override
   List<Object?> get props => [
@@ -80,6 +90,7 @@ class GroupRecitationCollection extends Equatable {
     imageUrl,
     createdAt,
     itemCount,
+    audioItemCount,
     items,
   ];
 }
