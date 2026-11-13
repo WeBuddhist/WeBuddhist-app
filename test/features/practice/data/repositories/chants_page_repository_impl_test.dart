@@ -355,6 +355,7 @@ void main() {
     GroupRecitationCollectionItem item(
       String textId, {
       bool withAudio = false,
+      String? audioUrl,
     }) => GroupRecitationCollectionItem(
       id: 'i-$textId',
       textId: textId,
@@ -362,7 +363,18 @@ void main() {
       language: 'bo',
       type: '',
       displayOrder: 0,
-      audio: withAudio ? audio : const [],
+      audio:
+          audioUrl != null
+              ? [
+                GroupRecitationAudio(
+                  id: audioUrl,
+                  title: '',
+                  assetUrl: audioUrl,
+                ),
+              ]
+              : withAudio
+              ? audio
+              : const [],
     );
     GroupRecitationCollection detail(
       String id,
@@ -436,6 +448,32 @@ void main() {
         expect(ids(chants.othersText), ['t2']);
       },
     );
+
+    test('keeps a recording when a joined book has the text only', () {
+      final chants = splitSpaceChants(
+        [book('y', joined: true), book('o')],
+        [
+          detail('y', [item('t1'), item('t2')]),
+          detail('o', [item('t1', withAudio: true)]),
+        ],
+      );
+      expect(ids(chants.othersAudio), ['t1']);
+      // The text-only copy would repeat what the audio row already opens.
+      expect(ids(chants.yoursText), ['t2']);
+    });
+
+    test('keeps distinct recordings of a text, the same one once', () {
+      final chants = splitSpaceChants(
+        [book('y', joined: true), book('o'), book('p')],
+        [
+          detail('y', [item('t1', audioUrl: 'https://cdn/a.mp3')]),
+          detail('o', [item('t1', audioUrl: 'https://cdn/b.mp3')]),
+          detail('p', [item('t1', audioUrl: 'https://cdn/a.mp3')]),
+        ],
+      );
+      expect(chants.yoursAudio.single.collection.id, 'y');
+      expect(chants.othersAudio.single.collection.id, 'o');
+    });
 
     test('leaves out a book that fails, fails only when all do', () async {
       final spaces = _FakeSpaces(const []);

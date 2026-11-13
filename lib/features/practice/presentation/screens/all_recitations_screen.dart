@@ -584,14 +584,10 @@ class _ChantBookRail extends StatelessWidget {
   final List<ChantBook> books;
   final ValueChanged<ChantBook> onTap;
 
-  /// Cover (170), gap (8), a Tibetan-height title (~29), gap (2) and the
-  /// subtitle line (~16).
-  static const double _height = 228;
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: _height,
+      height: ChantBookCard.railHeight(context),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),

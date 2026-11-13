@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
-import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/practice/data/models/bookmark_models.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/bookmark_card.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/filter_pill.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -235,7 +235,6 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
                               for (final tab in _tabs) _tabLabel(context, tab),
                             ],
                             selectedIndex: _tabController.index,
-                            isDark: isDark,
                             onSelected: _tabController.animateTo,
                           ),
                     ),
@@ -275,13 +274,11 @@ class _BookmarkFilterPills extends StatelessWidget {
   const _BookmarkFilterPills({
     required this.labels,
     required this.selectedIndex,
-    required this.isDark,
     required this.onSelected,
   });
 
   final List<String> labels;
   final int selectedIndex;
-  final bool isDark;
   final ValueChanged<int> onSelected;
 
   @override
@@ -295,98 +292,17 @@ class _BookmarkFilterPills extends StatelessWidget {
         spacing: 8,
         children: [
           for (var i = 0; i < labels.length; i++)
-            _FilterPill(
+            FilterPill(
               label: labels[i],
               semanticsHint: localizations.tabLabel(
                 tabIndex: i + 1,
                 tabCount: labels.length,
               ),
               isSelected: i == selectedIndex,
-              isDark: isDark,
               onTap: () => onSelected(i),
+              minWidth: 56,
             ),
         ],
-      ),
-    );
-  }
-}
-
-class _FilterPill extends StatelessWidget {
-  const _FilterPill({
-    required this.label,
-    required this.semanticsHint,
-    required this.isSelected,
-    required this.isDark,
-    required this.onTap,
-  });
-
-  final String label;
-
-  /// Position within the group ("Tab 2 of 7"), as Flutter's [TabBar] reads
-  /// it, so screen readers know the pills are a set of filters.
-  final String semanticsHint;
-  final bool isSelected;
-  final bool isDark;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ink = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final inverse = isDark ? AppColors.textPrimary : AppColors.textPrimaryDark;
-    final border = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-
-    // The pill is drawn at the design's height, but like a Material chip its
-    // tap area is padded to kMinInteractiveDimension; a tap on that padding
-    // selects the pill too.
-    return Semantics(
-      role: SemanticsRole.tab,
-      button: true,
-      selected: isSelected,
-      hint: semanticsHint,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        excludeFromSemantics: true,
-        onTap: onTap,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            minHeight: kMinInteractiveDimension,
-          ),
-          child: Center(
-            widthFactor: 1,
-            heightFactor: 1,
-            child: Material(
-              color: isSelected ? ink : Colors.transparent,
-              shape: StadiumBorder(
-                side: BorderSide(color: isSelected ? ink : border),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: onTap,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 56),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      label,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      strutStyle: context.tibetanStrutStyle(16, compact: true),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected ? inverse : ink,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

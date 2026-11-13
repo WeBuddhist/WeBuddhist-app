@@ -199,9 +199,13 @@ SpaceChantBooks splitSpaceChantBooks(List<GroupPractice> practices) {
 }
 
 /// Flattens loaded book [details] (null where a book failed, same order as
-/// [books]) into chant rows, in book order then the book's own order. A
-/// text in more than one book is listed once, from the first book, so a
-/// joined space wins when [books] lists those first.
+/// [books]) into chant rows, in book order then the book's own order.
+///
+/// A text in more than one book is not listed twice. Each distinct
+/// recording of it is kept (the same recording in two books once). A copy
+/// without audio is listed only when no book has a recording of that text,
+/// and then once. The first copy wins, so a joined space wins when [books]
+/// lists those first.
 SpaceChants splitSpaceChants(
   List<ChantBook> books,
   List<GroupRecitationCollection?> details,
@@ -210,14 +214,35 @@ SpaceChants splitSpaceChants(
   final yoursText = <SpaceChant>[];
   final othersAudio = <SpaceChant>[];
   final othersText = <SpaceChant>[];
+  final count = min(books.length, details.length);
+
+  String? textKey(GroupRecitationCollectionItem item) =>
+      _nonBlank(item.textId) ?? _nonBlank(item.id);
+
+  // Texts with a recording in any book, so a text-only copy elsewhere
+  // does not hide in "Text chants" what "Audio chants" already plays.
+  final recordedTexts = <String>{};
+  for (var i = 0; i < count; i++) {
+    for (final item in details[i]?.items ?? const []) {
+      final key = textKey(item);
+      if (key != null && item.audio.isNotEmpty) recordedTexts.add(key);
+    }
+  }
+
   final seen = <String>{};
-  for (var i = 0; i < books.length && i < details.length; i++) {
+  for (var i = 0; i < count; i++) {
     final book = books[i];
     final detail = details[i];
     if (detail == null) continue;
     for (final item in detail.items) {
-      final key = _nonBlank(item.textId) ?? _nonBlank(item.id);
-      if (key == null || !seen.add(key)) continue;
+      final key = textKey(item);
+      if (key == null) continue;
+      if (item.audio.isEmpty) {
+        if (recordedTexts.contains(key) || !seen.add(key)) continue;
+      } else {
+        final recordings = item.audio.map((a) => a.assetUrl).toList()..sort();
+        if (!seen.add('$key\u0000${recordings.join('\u0000')}')) continue;
+      }
       final chant = SpaceChant(
         item: item,
         collection: detail,

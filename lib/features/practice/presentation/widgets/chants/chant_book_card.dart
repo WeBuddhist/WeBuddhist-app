@@ -36,6 +36,19 @@ class ChantBookCard extends StatelessWidget {
   static const double railWidth = 170;
   static const double _radius = 8;
 
+  /// Room the name and subtitle need under the cover at the device's text
+  /// size: gap (8), a Tibetan-height 15pt title (~29 at 1x), gap (2) and
+  /// the 12pt subtitle (~16 at 1x). Font sizes go through the text scaler,
+  /// so nonlinear scaling grows each line as the text itself grows.
+  static double textHeight(BuildContext context) {
+    final scaler = MediaQuery.textScalerOf(context);
+    return 8 + scaler.scale(15) * 29 / 15 + 2 + scaler.scale(12) * 16 / 12;
+  }
+
+  /// Height of a rail of cards at [railWidth], with a little slack.
+  static double railHeight(BuildContext context) =>
+      railWidth + textHeight(context) + 3;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

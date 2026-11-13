@@ -232,9 +232,6 @@ class _ChantBookGrid extends StatelessWidget {
   static const double _gutter = 20;
   static const double _gap = 10;
 
-  /// Gap, a Tibetan-height title, gap and the subtitle under each cover.
-  static const double _textHeight = 8 + 29 + 2 + 16;
-
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -253,7 +250,7 @@ class _ChantBookGrid extends StatelessWidget {
                   // The text height already leaves room for a Tibetan
                   // title, so Latin rows get the design's ~15pt gap.
                   mainAxisSpacing: 4,
-                  mainAxisExtent: cell + _textHeight,
+                  mainAxisExtent: cell + ChantBookCard.textHeight(context),
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final book = books[index];

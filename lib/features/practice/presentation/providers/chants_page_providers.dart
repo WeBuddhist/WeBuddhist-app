@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/core/di/core_providers.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
@@ -39,15 +41,47 @@ final myChantBooksProvider =
           .getMyChantBooks(limit: chantsPageRailLimit);
     });
 
+/// How long loaded space books and chants outlive the last screen showing
+/// them. Reading them is one feed read plus one detail read per book, so
+/// leaving the Chants page and coming back should not repeat it. Pull to
+/// refresh, a language change and a sign-in change still read again.
+const Duration spaceChantsCacheTime = Duration(minutes: 5);
+
+extension CacheSuccessFor on Ref<Object?> {
+  /// Awaits [load], then keeps this provider for [duration] after nothing
+  /// listens, only when it succeeded, so a failure is retried on the next
+  /// visit. The provider is held while [load] runs, so leaving mid-load
+  /// does not throw the read away.
+  Future<Either<Failure, T>> cacheSuccessFor<T>(
+    Future<Either<Failure, T>> load,
+    Duration duration,
+  ) async {
+    // Taken before the await: the ref may be rebuilt while it runs.
+    final link = keepAlive();
+    Timer? timer;
+    onDispose(() => timer?.cancel());
+    final result = await load;
+    if (result.isLeft()) {
+      link.close();
+    } else {
+      timer = Timer(duration, link.close);
+    }
+    return result;
+  }
+}
+
 /// Space chant books, split into the user's spaces and the rest. Re-read
 /// when sign-in changes, since that changes which spaces count as joined.
 final spaceChantBooksProvider =
     FutureProvider.autoDispose<Either<Failure, SpaceChantBooks>>((ref) {
       ref.watch(authProvider.select((auth) => auth.isLoggedIn));
       final language = ref.watch(contentLanguageProvider);
-      return ref
-          .watch(chantsPageRepositoryProvider)
-          .getSpaceChantBooks(language: language);
+      return ref.cacheSuccessFor(
+        ref
+            .watch(chantsPageRepositoryProvider)
+            .getSpaceChantBooks(language: language),
+        spaceChantsCacheTime,
+      );
     });
 
 /// Every chant inside the space chant books, split by joined space and by
@@ -56,9 +90,13 @@ final spaceChantBooksProvider =
 final allSpaceChantsProvider =
     FutureProvider.autoDispose<Either<Failure, SpaceChants>>((ref) async {
       final books = await ref.watch(spaceChantBooksProvider.future);
-      return books.fold(
-        (failure) async => Left(failure),
-        (books) => ref.read(chantsPageRepositoryProvider).getSpaceChants(books),
+      return ref.cacheSuccessFor(
+        books.fold(
+          (failure) async => Left<Failure, SpaceChants>(failure),
+          (books) =>
+              ref.read(chantsPageRepositoryProvider).getSpaceChants(books),
+        ),
+        spaceChantsCacheTime,
       );
     });
 
@@ -200,10 +238,6 @@ final chantBookSearchProvider = FutureProvider.autoDispose
       final spaces = await ref.watch(spaceChantBooksProvider.future);
       final mine = await mineFuture;
 
-      // Only fail when both sources failed.
-      if (mine.isLeft() && spaces.isLeft()) {
-        return mine.map((_) => const <ChantBook>[]);
-      }
       final myBooks = mine.fold((_) => const <ChantBook>[], (p) => p.books);
       final space = spaces.getOrElse((_) => SpaceChantBooks.empty);
       final seen = <String>{};
@@ -213,11 +247,19 @@ final chantBookSearchProvider = FutureProvider.autoDispose
         name: (b) => b.name,
         subtitle: (b) => b.subtitle,
       );
-      return Right(
-        [
-          ...myBooks,
-          ...match(space.yours),
-          ...match(space.others),
-        ].where((b) => seen.add('${b.source.name}:${b.id}')).toList(),
-      );
+      final books =
+          [
+            ...myBooks,
+            ...match(space.yours),
+            ...match(space.others),
+          ].where((b) => seen.add('${b.source.name}:${b.id}')).toList();
+      // What one source found is shown even if the other failed; with
+      // nothing found, a failure is reported, so search can offer a retry
+      // instead of "Can't find".
+      if (books.isEmpty) {
+        final failure =
+            mine.getLeft().toNullable() ?? spaces.getLeft().toNullable();
+        if (failure != null) return Left(failure);
+      }
+      return Right(books);
     });

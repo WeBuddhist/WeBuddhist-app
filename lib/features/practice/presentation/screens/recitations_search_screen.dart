@@ -24,6 +24,7 @@ import 'package:flutter_pecha/features/recitation/presentation/providers/recitat
 import 'package:flutter_pecha/features/recitation/presentation/widgets/recitation_list_skeleton.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart' show Either;
 
 /// Search on the Chants page: results grouped into chant books, text-only
 /// chants and audio chants, with All / Chant books / Audio chants / Single
@@ -276,11 +277,27 @@ class _RecitationsSearchScreenState
           variant: RecitationListSkeletonVariant.chantTile,
         );
       }
+      // Nothing to show: a source that failed may have held the match, so
+      // offer a retry of every failed source rather than "Can't find".
       final chantError = wantsText ? chantState.error : null;
-      if (chantError != null) {
+      final bookError = wantsBooks ? _failureMessage(bookAsync) : null;
+      final spaceError =
+          wantsText || wantsAudio
+              ? _failureMessage(ref.watch(spaceChantsProvider))
+              : null;
+      final error = chantError ?? bookError ?? spaceError;
+      if (error != null) {
         return _SearchError(
-          message: chantError,
-          onRetry: () => _searchNotifier.retry(),
+          message: error,
+          onRetry: () {
+            if (chantError != null) _searchNotifier.retry();
+            // The book search reads the space books too, so this
+            // re-runs it as well.
+            if (spaceError != null) ref.invalidate(spaceChantBooksProvider);
+            if (bookError != null) {
+              ref.invalidate(chantBookSearchProvider(_bookQuery));
+            }
+          },
         );
       }
       return _CantFind(
@@ -325,6 +342,14 @@ class _RecitationsSearchScreenState
         ),
       ],
     );
+  }
+
+  /// The message of a failed load, whether it threw or returned a failure;
+  /// null while loading or when it succeeded.
+  static String? _failureMessage<T>(AsyncValue<Either<Failure, T>> async) {
+    if (async.isLoading) return null;
+    if (async.hasError) return async.error.toString();
+    return async.valueOrNull?.fold((failure) => failure.message, (_) => null);
   }
 
   _RequestStatus get _requestStatus {
@@ -393,7 +418,7 @@ class _BookRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 228,
+      height: ChantBookCard.railHeight(context),
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
