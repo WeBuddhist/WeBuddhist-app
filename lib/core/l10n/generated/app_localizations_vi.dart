@@ -624,13 +624,30 @@ class AppLocalizationsVi extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => 'Đang tìm kiếm';
 
   @override
-  String get connect_your_spaces => 'Your spaces';
+  String get connect_sort_spaces => 'Sắp xếp nhóm';
 
   @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_sort_popular => 'Phổ biến';
+
+  @override
+  String get connect_sort_newly_added => 'Mới thêm';
+
+  @override
+  String get connect_sort_most_active => 'Sôi nổi nhất';
+
+  @override
+  String get connect_find_your_space => 'Tìm nhóm của bạn';
+
+  @override
+  String connect_no_spaces_match(String query) {
+    return 'Không có nhóm nào khớp với \"$query\"';
+  }
+
+  @override
+  String get connect_your_spaces => 'Nhóm của bạn';
 
   @override
   String get connect_segment_my => 'Nhóm của bạn';

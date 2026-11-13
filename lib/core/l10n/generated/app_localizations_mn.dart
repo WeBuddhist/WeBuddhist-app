@@ -623,13 +623,30 @@ class AppLocalizationsMn extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => 'Хайж буй';
 
   @override
-  String get connect_your_spaces => 'Your spaces';
+  String get connect_sort_spaces => 'Орон зайг эрэмбэлэх';
 
   @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_sort_popular => 'Алдартай';
+
+  @override
+  String get connect_sort_newly_added => 'Шинээр нэмэгдсэн';
+
+  @override
+  String get connect_sort_most_active => 'Хамгийн идэвхтэй';
+
+  @override
+  String get connect_find_your_space => 'Орон зайгаа олоорой';
+
+  @override
+  String connect_no_spaces_match(String query) {
+    return '\"$query\"-д тохирох орон зай олдсонгүй';
+  }
+
+  @override
+  String get connect_your_spaces => 'Таны орон зайнууд';
 
   @override
   String get connect_segment_my => 'Таны орон зай';

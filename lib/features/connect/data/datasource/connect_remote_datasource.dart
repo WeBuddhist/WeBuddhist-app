@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_pecha/core/config/api_config.dart';
 import 'package:flutter_pecha/core/error/exceptions.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/connect/data/models/connect_feed_model.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_pecha/features/connect/data/models/connect_post_comment_
 import 'package:flutter_pecha/features/connect/domain/entities/connect_feed_item.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/connect_post_comment.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/discover_groups_page.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/group_profile/data/models/group_profile_model.dart';
 
 class ConnectRemoteDatasource {
@@ -19,36 +21,49 @@ class ConnectRemoteDatasource {
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   }) async {
     final data = await fetchDiscoverGroupsJson(
       language: language,
       skip: skip,
       limit: limit,
       search: search,
+      sort: sort,
+      includeJoined: includeJoined,
     );
     return parseGroupsPage(data, skip: skip, limit: limit);
   }
 
-  /// Raw page as served, so the screen cache stores exactly what the API sent.
+  /// Raw page of `GET /api/v2/spaces` as served, so the screen cache stores
+  /// exactly what the API sent. Without [sort] the server's own order applies
+  /// (the caller's traditions first, then newest).
   Future<Map<String, dynamic>> fetchDiscoverGroupsJson({
     required String language,
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   }) async {
     try {
       final queryParameters = <String, dynamic>{
         'language': language,
-        'group_type': 'COMMUNITY',
+        'space_type': 'COMMUNITY',
         'skip': skip,
         'limit': limit,
       };
       if (search != null && search.trim().isNotEmpty) {
         queryParameters['search'] = search.trim();
       }
+      if (sort != null) {
+        queryParameters['sort_by'] = sort.apiValue;
+        queryParameters['sort_order'] = 'desc';
+      }
+      if (includeJoined) queryParameters['include_joined'] = true;
 
       final response = await dio.get(
-        '/author/groups',
+        ApiConfig.spacesV2Path,
         queryParameters: queryParameters,
         options: Options(extra: {'no_cache': true}),
       );
@@ -392,7 +407,9 @@ class ConnectRemoteDatasource {
     required int skip,
     required int limit,
   }) {
-    final groupsJson = data['groups'] as List<dynamic>? ?? const [];
+    // v2 lists `spaces`; the joined list (v1) still says `groups`.
+    final groupsJson =
+        (data['spaces'] ?? data['groups']) as List<dynamic>? ?? const [];
     final groups =
         groupsJson
             .whereType<Map<String, dynamic>>()

@@ -40,7 +40,10 @@ class GroupProfileModel {
     return GroupProfileModel(
       id: json['id'] as String? ?? '',
       slug: json['slug'] as String? ?? '',
-      groupType: GroupType.fromApi(json['group_type'] as String?),
+      // v2 (`/api/v2/spaces`) says `space_type` where v1 said `group_type`.
+      groupType: GroupType.fromApi(
+        (json['space_type'] ?? json['group_type']) as String?,
+      ),
       isPublic: json['is_public'] as bool? ?? false,
       avatarUrl: json['avatar_url'] as String?,
       bannerUrl: json['banner_url'] as String?,

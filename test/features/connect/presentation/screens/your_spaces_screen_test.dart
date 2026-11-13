@@ -68,7 +68,7 @@ void main() {
     expect(find.text('2 members'), findsOneWidget);
     expect(find.text('1 follower'), findsOneWidget);
     expect(find.text('0 members'), findsNothing);
-    expect(find.text('Find a space'), findsOneWidget);
+    expect(find.text('Find your space'), findsOneWidget);
     expect(find.byType(ConnectUnreadDot), findsOneWidget);
     expect(
       find.descendant(

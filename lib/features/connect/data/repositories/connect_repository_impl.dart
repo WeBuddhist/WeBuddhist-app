@@ -9,6 +9,7 @@ import 'package:flutter_pecha/features/connect/data/models/connect_post_comment_
 import 'package:flutter_pecha/features/connect/domain/entities/connect_feed_item.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/connect_post_comment.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/discover_groups_page.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/connect/domain/repositories/connect_repository.dart';
 import 'package:flutter_pecha/features/group_profile/data/models/group_event_model.dart';
 import 'package:flutter_pecha/features/group_profile/data/models/group_practice_model.dart';
@@ -30,6 +31,8 @@ class ConnectRepositoryImpl implements ConnectRepository {
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   }) async {
     try {
       final page = await remote.fetchDiscoverGroups(
@@ -37,6 +40,8 @@ class ConnectRepositoryImpl implements ConnectRepository {
         skip: skip,
         limit: limit,
         search: search,
+        sort: sort,
+        includeJoined: includeJoined,
       );
       return Right(page);
     } on ServerException catch (e) {
@@ -135,19 +140,24 @@ class ConnectRepositoryImpl implements ConnectRepository {
   ScreenCacheSource<DiscoverGroupsPage> discoverGroupsFirstPage({
     required String language,
     required int limit,
+    required SpaceSort sort,
   }) {
     return ScreenCacheSource(
       store: store,
+      // v2: pages now come from /api/v2/spaces, one per sort.
       key: ScreenCacheKey.user(
         'discover_groups',
         userId: store.currentUserIdSync,
         language: language,
+        version: 2,
+        params: [sort.name],
       ),
       fetchJson:
           () => remote.fetchDiscoverGroupsJson(
             language: language,
             skip: 0,
             limit: limit,
+            sort: sort,
           ),
       fromJson:
           (json) => ConnectRemoteDatasource.parseGroupsPage(

@@ -7,6 +7,7 @@ import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/features/connect/data/datasource/connect_remote_datasource.dart';
 import 'package:flutter_pecha/features/connect/data/repositories/connect_repository_impl.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/discover_groups_page.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/group_profile/data/models/group_profile_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +37,8 @@ class _FakeRemote extends ConnectRemoteDatasource {
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   }) => firstPage.future;
 
   @override
@@ -44,6 +47,8 @@ class _FakeRemote extends ConnectRemoteDatasource {
     int skip = 0,
     int limit = 20,
     String? search,
+    SpaceSort? sort,
+    bool includeJoined = false,
   }) {
     nextPageCalls++;
     return nextPage.future;
@@ -51,8 +56,8 @@ class _FakeRemote extends ConnectRemoteDatasource {
 }
 
 Map<String, dynamic> _json(List<String> ids, {required int total}) => {
-  'groups': [
-    for (final id in ids) {'id': id, 'slug': id, 'group_type': 'COMMUNITY'},
+  'spaces': [
+    for (final id in ids) {'id': id, 'slug': id, 'space_type': 'COMMUNITY'},
   ],
   'skip': 0,
   'limit': 20,
@@ -83,6 +88,8 @@ void main() {
     'discover_groups',
     userId: 'user-1',
     language: 'en',
+    version: 2,
+    params: [SpaceSort.popular.name],
   );
 
   setUp(() {

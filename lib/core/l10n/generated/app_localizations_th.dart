@@ -618,13 +618,30 @@ class AppLocalizationsTh extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => 'กำลังมองหา';
 
   @override
-  String get connect_your_spaces => 'Your spaces';
+  String get connect_sort_spaces => 'เรียงลำดับกลุ่ม';
 
   @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_sort_popular => 'ยอดนิยม';
+
+  @override
+  String get connect_sort_newly_added => 'เพิ่มใหม่';
+
+  @override
+  String get connect_sort_most_active => 'เคลื่อนไหวมากที่สุด';
+
+  @override
+  String get connect_find_your_space => 'ค้นหากลุ่มของคุณ';
+
+  @override
+  String connect_no_spaces_match(String query) {
+    return 'ไม่พบกลุ่มที่ตรงกับ \"$query\"';
+  }
+
+  @override
+  String get connect_your_spaces => 'กลุ่มของคุณ';
 
   @override
   String get connect_segment_my => 'กลุ่มของคุณ';

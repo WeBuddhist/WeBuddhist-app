@@ -39,6 +39,13 @@ class ApiConfig {
   static const String plansPath = '/plans';
   static const String tasksPath = '/tasks';
 
+  /// Prefix for v2 paths on the main client. The base URL ends in `/api/v1`
+  /// and Dio normalizes dot segments, so `'$v2Prefix/spaces'` is sent to
+  /// `/api/v2/spaces` while interceptors still see a relative path to match
+  /// against `ProtectedRoutes`.
+  static const String v2Prefix = '/../v2';
+  static const String spacesV2Path = '$v2Prefix/spaces';
+
   /// Full URL for a given path
   String urlFor(String path) => '$baseUrl$path';
 }

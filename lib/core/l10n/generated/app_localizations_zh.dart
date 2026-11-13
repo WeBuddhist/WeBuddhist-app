@@ -598,13 +598,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => '正在尋找';
 
   @override
-  String get connect_your_spaces => 'Your spaces';
+  String get connect_sort_spaces => '排序社群';
 
   @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_sort_popular => '熱門';
+
+  @override
+  String get connect_sort_newly_added => '最新加入';
+
+  @override
+  String get connect_sort_most_active => '最活躍';
+
+  @override
+  String get connect_find_your_space => '尋找你的社群';
+
+  @override
+  String connect_no_spaces_match(String query) {
+    return '找不到符合「$query」的社群';
+  }
+
+  @override
+  String get connect_your_spaces => '你的社群';
 
   @override
   String get connect_segment_my => '您的社群';
@@ -4629,6 +4646,32 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get connect_tab_groups => '社群';
+
+  @override
+  String get connect_looking_for => '正在寻找';
+
+  @override
+  String get connect_sort_spaces => '排序社群';
+
+  @override
+  String get connect_sort_popular => '热门';
+
+  @override
+  String get connect_sort_newly_added => '最新加入';
+
+  @override
+  String get connect_sort_most_active => '最活跃';
+
+  @override
+  String get connect_find_your_space => '寻找你的社群';
+
+  @override
+  String connect_no_spaces_match(String query) {
+    return '找不到符合“$query”的社群';
+  }
+
+  @override
+  String get connect_your_spaces => '你的社群';
 
   @override
   String get connect_segment_my => '您的社群';

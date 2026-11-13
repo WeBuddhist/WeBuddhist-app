@@ -7,6 +7,7 @@ import 'package:flutter_pecha/features/auth/presentation/providers/auth_notifier
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/state/auth_state.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_accumulator.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/connect/domain/repositories/connect_repository.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
@@ -114,6 +115,7 @@ class _FakeConnectRepository extends Fake implements ConnectRepository {
   ScreenCacheSource<DiscoverGroupsPage> discoverGroupsFirstPage({
     required String language,
     required int limit,
+    required SpaceSort sort,
   }) {
     return ScreenCacheSource(
       store: FakeScreenCacheStore(),

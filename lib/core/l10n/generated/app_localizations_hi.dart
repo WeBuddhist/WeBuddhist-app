@@ -622,13 +622,30 @@ class AppLocalizationsHi extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => 'खोज रहे हैं';
 
   @override
-  String get connect_your_spaces => 'Your spaces';
+  String get connect_sort_spaces => 'स्पेस क्रमबद्ध करें';
 
   @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_sort_popular => 'लोकप्रिय';
+
+  @override
+  String get connect_sort_newly_added => 'नए जोड़े गए';
+
+  @override
+  String get connect_sort_most_active => 'सबसे सक्रिय';
+
+  @override
+  String get connect_find_your_space => 'अपना स्पेस खोजें';
+
+  @override
+  String connect_no_spaces_match(String query) {
+    return '\"$query\" से मेल खाता कोई स्पेस नहीं मिला';
+  }
+
+  @override
+  String get connect_your_spaces => 'आपके स्पेस';
 
   @override
   String get connect_segment_my => 'आपके स्पेस';

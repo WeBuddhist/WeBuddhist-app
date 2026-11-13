@@ -3,16 +3,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
-import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_space_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/screens/group_search_screen.dart';
-import 'package:flutter_pecha/features/connect/presentation/widgets/group_search_result_card.dart';
-import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
+import 'package:flutter_pecha/features/connect/presentation/widgets/connect_discover_spaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Connect for someone with no spaces: a hero with the space search, then
-/// the popular spaces to start from.
+/// the spaces to start from, in the order picked under "Looking for".
 class ConnectLandingView extends ConsumerStatefulWidget {
   const ConnectLandingView({super.key});
 
@@ -74,19 +72,8 @@ class _ConnectLandingViewState extends ConsumerState<ConnectLandingView> {
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
                 const SliverToBoxAdapter(child: _ConnectHero()),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-                    child: Text(
-                      context.l10n.connect_popular_spaces,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                ..._buildSpaces(context, state, notifier),
+                const SliverToBoxAdapter(child: ConnectLookingForHeader()),
+                ...buildDiscoverSpaceSlivers(context, state, notifier),
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
               ],
             ),
@@ -94,55 +81,6 @@ class _ConnectLandingViewState extends ConsumerState<ConnectLandingView> {
         ),
       ),
     );
-  }
-
-  List<Widget> _buildSpaces(
-    BuildContext context,
-    DiscoverGroupsState state,
-    DiscoverGroupsNotifier notifier,
-  ) {
-    final groups = state.groups;
-    if (groups.isEmpty) {
-      if (state.isLoading || !state.hasLoaded) {
-        return const [
-          SliverToBoxAdapter(
-            child: GroupProfileTabSkeleton.box(
-              variant: GroupProfileTabSkeletonVariant.member,
-            ),
-          ),
-        ];
-      }
-
-      final Widget child;
-      if (state.error != null) {
-        child = ErrorStateWidget(error: state.error!, onRetry: notifier.retry);
-      } else {
-        child = Padding(
-          padding: const EdgeInsets.all(32),
-          child: Text(
-            context.l10n.no_groups_found,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
-        );
-      }
-      return [SliverToBoxAdapter(child: child)];
-    }
-
-    return [
-      SliverList.builder(
-        itemCount: groups.length,
-        itemBuilder:
-            (context, index) => GroupSearchResultCard(group: groups[index]),
-      ),
-      if (state.isLoadingMore)
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        ),
-    ];
   }
 }
 

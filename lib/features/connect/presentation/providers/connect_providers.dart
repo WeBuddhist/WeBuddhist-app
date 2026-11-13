@@ -7,6 +7,7 @@ import 'package:flutter_pecha/core/di/core_providers.dart';
 import 'package:flutter_pecha/features/connect/data/datasource/connect_remote_datasource.dart';
 import 'package:flutter_pecha/features/connect/data/repositories/connect_repository_impl.dart';
 import 'package:flutter_pecha/features/connect/domain/entities/discover_groups_page.dart';
+import 'package:flutter_pecha/features/connect/domain/entities/space_sort.dart';
 import 'package:flutter_pecha/features/connect/domain/repositories/connect_repository.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/cached_first_page.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
@@ -73,6 +74,7 @@ class DiscoverGroupsNotifier extends StateNotifier<DiscoverGroupsState> {
   DiscoverGroupsNotifier({
     required this.repository,
     required this.language,
+    required this.sort,
     required ScreenCacheSource<DiscoverGroupsPage> source,
   }) : _source = source,
        super(_seed(source));
@@ -93,6 +95,7 @@ class DiscoverGroupsNotifier extends StateNotifier<DiscoverGroupsState> {
 
   final ConnectRepository repository;
   final String language;
+  final SpaceSort sort;
   final ScreenCacheSource<DiscoverGroupsPage> _source;
   static const int _limit = 20;
 
@@ -159,6 +162,7 @@ class DiscoverGroupsNotifier extends StateNotifier<DiscoverGroupsState> {
       language: language,
       skip: state.skip,
       limit: _limit,
+      sort: sort,
     );
 
     if (!mounted) return;
@@ -210,18 +214,29 @@ class DiscoverGroupsNotifier extends StateNotifier<DiscoverGroupsState> {
   }
 }
 
+/// The "Looking for" order, shared by the Connect landing and the space
+/// search for the rest of the session.
+final discoverSpaceSortProvider = StateProvider<SpaceSort>(
+  (ref) => SpaceSort.popular,
+);
+
+/// Rebuilt with a fresh list when the sort changes; each sort keeps its own
+/// stored first page.
 final discoverGroupsProvider = StateNotifierProvider.autoDispose<
   DiscoverGroupsNotifier,
   DiscoverGroupsState
 >((ref) {
   final language = ref.watch(contentLanguageProvider);
   final repository = ref.watch(connectRepositoryProvider);
+  final sort = ref.watch(discoverSpaceSortProvider);
   return DiscoverGroupsNotifier(
     repository: repository,
     language: language,
+    sort: sort,
     source: repository.discoverGroupsFirstPage(
       language: language,
       limit: DiscoverGroupsNotifier._limit,
+      sort: sort,
     ),
   );
 });

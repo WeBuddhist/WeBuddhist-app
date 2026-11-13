@@ -55,10 +55,15 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
   final String language;
   Timer? _debounceTimer;
   static const int _limit = 20;
+
+  /// Bumped on every new query or clear; a response for an older one is
+  /// dropped instead of landing in the current results.
+  int _generation = 0;
   static const Duration _debounceDuration = Duration(milliseconds: 500);
 
   void search(String query) {
     _debounceTimer?.cancel();
+    _generation++;
     state = state.copyWith(query: query, isLoading: true, clearError: true);
 
     if (query.trim().isEmpty) {
@@ -78,6 +83,7 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
     }
 
     final skip = reset ? 0 : state.skip;
+    final generation = _generation;
 
     if (reset) {
       state = state.copyWith(
@@ -95,13 +101,19 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
       search: query.trim(),
       skip: skip,
       limit: _limit,
+      // A member searching should also find the spaces they're already in.
+      includeJoined: true,
     );
 
-    if (!mounted) return;
+    if (!mounted || generation != _generation) return;
 
     result.fold(
       (failure) {
         state = state.copyWith(
+          // Rows kept on screen while this query loaded belong to the
+          // previous one; once its first page fails they must go, so the
+          // results stay this query's and `retry` starts it over.
+          results: reset ? const [] : null,
           isLoading: false,
           isLoadingMore: false,
           error: failure.message,
@@ -120,22 +132,35 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
     );
   }
 
+  /// Next page of the current query. Waits for the first page: until it
+  /// lands, `skip` is still 0 and a page fetched now would repeat it.
   Future<void> loadMore() async {
-    if (state.isLoadingMore || !state.hasMore || state.query.trim().isEmpty) {
+    if (state.isLoading ||
+        state.isLoadingMore ||
+        !state.hasMore ||
+        state.query.trim().isEmpty) {
       return;
     }
 
     await _performSearch(state.query, reset: false);
   }
 
+  /// The first page again when nothing loaded, otherwise the failed next page.
+  /// Non-empty results are always the current query's: a failed first page
+  /// clears what the previous query left.
   void retry() {
-    if (state.query.isNotEmpty) {
+    if (state.query.trim().isEmpty) return;
+    if (state.results.isEmpty) {
+      _generation++;
       _performSearch(state.query, reset: true);
+    } else {
+      loadMore();
     }
   }
 
   void clear() {
     _debounceTimer?.cancel();
+    _generation++;
     state = const GroupSearchState();
   }
 

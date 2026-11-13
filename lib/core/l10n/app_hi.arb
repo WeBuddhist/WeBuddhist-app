@@ -706,6 +706,21 @@
   "share_plan_subject": "WeBuddhist पर मेरे साथ जुड़ें",
   "share_group_invite_message": "इस स्पेस में मेरे साथ जुड़ें। चलिए WeBuddhist पर एक साथ अभ्यास करें!",
   "connect_subtitle": "अपने समूह खोजें और साथ मिलकर अभ्यास करें",
+  "connect_looking_for": "खोज रहे हैं",
+  "connect_sort_spaces": "स्पेस क्रमबद्ध करें",
+  "connect_sort_popular": "लोकप्रिय",
+  "connect_sort_newly_added": "नए जोड़े गए",
+  "connect_sort_most_active": "सबसे सक्रिय",
+  "connect_find_your_space": "अपना स्पेस खोजें",
+  "connect_your_spaces": "आपके स्पेस",
+  "connect_no_spaces_match": "\"{query}\" से मेल खाता कोई स्पेस नहीं मिला",
+  "@connect_no_spaces_match": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "discover_groups": "समूह खोजें",
   "my_groups": "मेरे स्पेस",
   "see_all": "सभी देखें",
