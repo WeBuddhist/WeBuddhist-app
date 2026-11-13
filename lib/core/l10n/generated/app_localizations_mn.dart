@@ -4027,6 +4027,10 @@ class AppLocalizationsMn extends AppLocalizations {
       'Duration must be greater than 0';
 
   @override
+  String get timer_duplicate_setup =>
+      'A timer with this duration, sound, and title already exists.';
+
+  @override
   String get splash_tagline_1 => 'We Buddhists practice together';
 
   @override
@@ -4040,6 +4044,9 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get timer_duration_hours => 'hours';
+
+  @override
+  String get timer_duration_hr => 'hr';
 
   @override
   String get timer_duration_sec => 'sec';

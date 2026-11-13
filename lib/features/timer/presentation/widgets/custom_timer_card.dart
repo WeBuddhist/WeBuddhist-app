@@ -10,22 +10,24 @@ class CustomTimerCard extends StatelessWidget {
   final String title;
   final VoidCallback? onTap;
 
-  static const _borderRadius = 20.0;
+  static const _borderRadius = 16.0;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = Theme.of(context).colorScheme.onSurface;
-    final mutedColor = color.withValues(alpha: 0.45);
+    final mutedColor = isDark ? AppColors.textTertiaryDark : AppColors.grey800;
+    final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
+    final fill = isDark ? AppColors.surfaceDark : AppColors.surfaceWhite;
 
     return Material(
-      color: isDark ? AppColors.surfaceDark : AppColors.surfaceWhite,
+      color: fill,
       borderRadius: BorderRadius.circular(_borderRadius),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 12, 16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
@@ -34,22 +36,23 @@ class CustomTimerCard extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: mutedColor),
+                  color: fill,
+                  border: Border.all(color: borderColor),
                 ),
-                child: Icon(AppAssets.plus, size: 20, color: color),
+                child: Icon(AppAssets.plus, size: 24, color: color),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: color,
                   ),
                 ),
               ),
-              Icon(AppAssets.caretRight, size: 18, color: mutedColor),
+              Icon(AppAssets.caretRight, size: 16, color: mutedColor),
             ],
           ),
         ),

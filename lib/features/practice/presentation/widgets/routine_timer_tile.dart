@@ -3,10 +3,10 @@ import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/features/practice/data/models/routine_model.dart';
-import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/presentation/providers/timers_providers.dart';
 import 'package:flutter_pecha/features/timer/presentation/widgets/preset_timer_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_pecha/features/timer/presentation/widgets/timer_duration_text.dart';
 
 /// A timer inside a practice block, in the same style as the timer cards:
 /// the custom title, the duration in large type and the ambient sound.
@@ -37,7 +37,6 @@ class RoutineTimerTile extends ConsumerWidget {
     final isTibetan = AppFontConfig.isTibetanLanguage(
       Localizations.localeOf(context).languageCode,
     );
-    final lineHeight = isTibetan ? AppFontConfig.tibetanCompactLineHeight : 1.0;
     final leading = isTibetan ? AppFontConfig.tibetanLeadingDistribution : null;
 
     final soundsById = ref.watch(ambientSoundByIdProvider);
@@ -60,31 +59,6 @@ class RoutineTimerTile extends ConsumerWidget {
     }
 
     final sound = soundLabel();
-
-    final value = TextSpan(
-      text: '${PresetTimer.labelValueFromMs(durationMs)}',
-      style: TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.w300,
-        height: lineHeight,
-        leadingDistribution: leading,
-        color: textColor,
-      ),
-    );
-    final unit = TextSpan(
-      text:
-          PresetTimer.labelsInSeconds(durationMs)
-              ? l10n.timer_duration_sec
-              : l10n.timer_min,
-      style: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w300,
-        height: lineHeight,
-        leadingDistribution: leading,
-        color: textColor,
-      ),
-    );
-    const gap = TextSpan(text: ' ');
 
     return Container(
       decoration: BoxDecoration(
@@ -126,13 +100,12 @@ class RoutineTimerTile extends ConsumerWidget {
                         ),
                         const SizedBox(height: 6),
                       ],
-                      Text.rich(
-                        TextSpan(
-                          children:
-                              isTibetan
-                                  ? [unit, gap, value]
-                                  : [value, gap, unit],
-                        ),
+                      TimerDurationText(
+                        durationMs: durationMs,
+                        valueFontSize: 28,
+                        compactValueFontSize: 18,
+                        unitFontSize: 18,
+                        color: textColor,
                       ),
                       if (sound != null) ...[
                         const SizedBox(height: 6),

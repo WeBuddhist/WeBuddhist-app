@@ -4056,6 +4056,10 @@ class AppLocalizationsMy extends AppLocalizations {
       'ကြာချိန်သည် 0 ထက် ကြီးရပါမည်';
 
   @override
+  String get timer_duplicate_setup =>
+      'A timer with this duration, sound, and title already exists.';
+
+  @override
   String get splash_tagline_1 =>
       'ဗုဒ္ဓဘာသာဝင် ကျွန်ုပ်တို့ အတူတကွ ကျင့်ကြံကြသည်';
 
@@ -4071,6 +4075,9 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get timer_duration_hours => 'နာရီ';
+
+  @override
+  String get timer_duration_hr => 'hr';
 
   @override
   String get timer_duration_sec => 'စက္ကန့်';

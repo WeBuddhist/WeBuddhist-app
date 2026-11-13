@@ -7926,6 +7926,13 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get timer_duplicate_setup => TolgeeBridge.get(
+    localeName,
+    'timer_duplicate_setup',
+    () => _fallback.timer_duplicate_setup,
+  );
+
+  @override
   String get splash_tagline_1 => TolgeeBridge.get(
     localeName,
     'splash_tagline_1',
@@ -7958,6 +7965,13 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'timer_duration_hours',
     () => _fallback.timer_duration_hours,
+  );
+
+  @override
+  String get timer_duration_hr => TolgeeBridge.get(
+    localeName,
+    'timer_duration_hr',
+    () => _fallback.timer_duration_hr,
   );
 
   @override

@@ -21,13 +21,17 @@ class TodayEventsRepository implements TodayEventsRepositoryInterface {
     final cached = local.readTodayEvents(language);
     if (cached != null) {
       unawaited(_refresh(language));
-      return Right(cached.map((model) => model.toEntity()).toList());
+      return Right(
+        cached.map((model) => model.toEntity(language: language)).toList(),
+      );
     }
 
     try {
       final models = await remote.fetchTodayEvents(language: language);
       await local.saveTodayEvents(language, models);
-      return Right(models.map((model) => model.toEntity()).toList());
+      return Right(
+        models.map((model) => model.toEntity(language: language)).toList(),
+      );
     } catch (e) {
       return Left(_toFailure(e, 'Failed to get today events'));
     }
@@ -40,14 +44,18 @@ class TodayEventsRepository implements TodayEventsRepositoryInterface {
     final key = local.todayEventsKey(language);
     final cached = local.readTodayEvents(language);
     if (cached != null) {
-      yield Right(cached.map((model) => model.toEntity()).toList());
+      yield Right(
+        cached.map((model) => model.toEntity(language: language)).toList(),
+      );
     }
 
     try {
       await _refresh(language);
       final refreshed = local.readTodayEvents(language);
       if (refreshed != null) {
-        yield Right(refreshed.map((model) => model.toEntity()).toList());
+        yield Right(
+          refreshed.map((model) => model.toEntity(language: language)).toList(),
+        );
       }
     } catch (e) {
       if (cached == null) {
@@ -58,7 +66,9 @@ class TodayEventsRepository implements TodayEventsRepositoryInterface {
     await for (final _ in local.watchKey(key)) {
       final latest = local.readTodayEvents(language);
       if (latest != null) {
-        yield Right(latest.map((model) => model.toEntity()).toList());
+        yield Right(
+          latest.map((model) => model.toEntity(language: language)).toList(),
+        );
       }
     }
   }

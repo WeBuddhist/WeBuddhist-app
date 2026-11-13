@@ -29,7 +29,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  airbridge_flutter_sdk: ^4.9.0 # check latest at pub.dev
+  airbridge_flutter_sdk: ^4.12.0 # 4.12+ supports Swift Package Manager
 
   # Audio
   just_audio: ^0.9.36
@@ -60,7 +60,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
 
   # Authentication
-  auth0_flutter: ^1.9.0
+  # 2.5+ supports Swift Package Manager; stay on 2.x (3.x has breaking changes).
+  auth0_flutter: ^2.7.0
 
   # Environment
   flutter_dotenv: ^5.2.1
@@ -129,7 +130,6 @@ dependencies:
   # Vendored: adds a playInBackground flag for the live player.
   youtube_player_flutter:
     path: packages/youtube_player_flutter
-  image_gallery_saver_plus: ^4.0.1
   image_picker: ^1.1.2
 
   # Network connectivity
@@ -157,7 +157,7 @@ dependencies:
   firebase_messaging: ^16.4.1
   posthog_flutter: ^5.46.0
   package_info_plus: ^9.0.0
-  flutter_image_compress: ^2.4.0
+  flutter_image_compress: ^2.5.1
   pali_script_convertor: ^1.0.1
   clarity_flutter: ^1.10.0
   flutter_map: ^8.3.2
@@ -199,6 +199,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   generate: true
+
+  # iOS plugins resolve through Swift Package Manager (Firebase ships
+  # prebuilt binaries there). Only flutter_inappwebview_ios (pulled in by the
+  # vendored youtube_player_flutter) still needs CocoaPods.
+  config:
+    enable-swift-package-manager: true
 
   assets:
     - assets/images/
