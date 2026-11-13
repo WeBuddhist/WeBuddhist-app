@@ -629,36 +629,30 @@ class AppLocalizationsNe extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => 'खोज्दै हुनुहुन्छ';
 
   @override
-  String get connect_looking_for => 'Looking for';
+  String get connect_sort_spaces => 'स्पेस क्रमबद्ध गर्नुहोस्';
 
   @override
-  String get connect_sort_spaces => 'Sort spaces';
+  String get connect_sort_popular => 'लोकप्रिय';
 
   @override
-  String get connect_sort_popular => 'Popular';
+  String get connect_sort_newly_added => 'भर्खरै थपिएका';
 
   @override
-  String get connect_sort_newly_added => 'Newly added';
+  String get connect_sort_most_active => 'सबैभन्दा सक्रिय';
 
   @override
-  String get connect_sort_most_active => 'Most active';
-
-  @override
-  String get connect_find_your_space => 'Find your space';
+  String get connect_find_your_space => 'आफ्नो स्पेस खोज्नुहोस्';
 
   @override
   String connect_no_spaces_match(String query) {
-    return 'No spaces match \"$query\"';
+    return '\"$query\" सँग मिल्ने कुनै स्पेस फेला परेन';
   }
 
   @override
-  String get connect_your_spaces => 'Your spaces';
-
-  @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_your_spaces => 'तपाईंका स्पेसहरू';
 
   @override
   String get connect_segment_my => 'तपाईंका स्पेस';

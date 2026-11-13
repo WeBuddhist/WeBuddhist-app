@@ -1178,13 +1178,6 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
-  String get connect_popular_spaces => TolgeeBridge.get(
-    localeName,
-    'connect_popular_spaces',
-    () => _fallback.connect_popular_spaces,
-  );
-
-  @override
   String get connect_looking_for => TolgeeBridge.get(
     localeName,
     'connect_looking_for',
@@ -1239,13 +1232,6 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'connect_your_spaces',
     () => _fallback.connect_your_spaces,
-  );
-
-  @override
-  String get connect_find_a_space => TolgeeBridge.get(
-    localeName,
-    'connect_find_a_space',
-    () => _fallback.connect_find_a_space,
   );
 
   @override

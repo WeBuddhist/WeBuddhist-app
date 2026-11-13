@@ -628,36 +628,30 @@ class AppLocalizationsBo extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
+  String get connect_looking_for => 'འཚོལ་བཞིན་པ།';
 
   @override
-  String get connect_looking_for => 'Looking for';
+  String get connect_sort_spaces => 'ཚོགས་པ་གོ་རིམ་སྒྲིག';
 
   @override
-  String get connect_sort_spaces => 'Sort spaces';
+  String get connect_sort_popular => 'དར་ཆེ་ཤོས།';
 
   @override
-  String get connect_sort_popular => 'Popular';
+  String get connect_sort_newly_added => 'གསར་དུ་བསྣན་པ།';
 
   @override
-  String get connect_sort_newly_added => 'Newly added';
+  String get connect_sort_most_active => 'འགུལ་སྐྱོད་མང་ཤོས།';
 
   @override
-  String get connect_sort_most_active => 'Most active';
-
-  @override
-  String get connect_find_your_space => 'Find your space';
+  String get connect_find_your_space => 'ཁྱེད་ཀྱི་ཚོགས་པ་འཚོལ།';
 
   @override
   String connect_no_spaces_match(String query) {
-    return 'No spaces match \"$query\"';
+    return '\"$query\" དང་མཐུན་པའི་ཚོགས་པ་མ་རྙེད།';
   }
 
   @override
-  String get connect_your_spaces => 'Your spaces';
-
-  @override
-  String get connect_find_a_space => 'Find a space';
+  String get connect_your_spaces => 'ཁྱེད་ཀྱི་ཚོགས་པ།';
 
   @override
   String get connect_segment_my => 'ཁྱེད་ཀྱི་ཚོགས་པ།';

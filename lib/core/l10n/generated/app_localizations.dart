@@ -1193,12 +1193,6 @@ abstract class AppLocalizations {
   /// **'Connect with your Buddhist community'**
   String get connect_landing_title;
 
-  /// No description provided for @connect_popular_spaces.
-  ///
-  /// In en, this message translates to:
-  /// **'Popular spaces'**
-  String get connect_popular_spaces;
-
   /// No description provided for @connect_looking_for.
   ///
   /// In en, this message translates to:
@@ -1246,12 +1240,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your spaces'**
   String get connect_your_spaces;
-
-  /// No description provided for @connect_find_a_space.
-  ///
-  /// In en, this message translates to:
-  /// **'Find a space'**
-  String get connect_find_a_space;
 
   /// No description provided for @connect_segment_my.
   ///

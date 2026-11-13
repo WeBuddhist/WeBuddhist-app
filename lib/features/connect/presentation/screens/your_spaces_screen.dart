@@ -8,7 +8,7 @@ import 'package:flutter_pecha/features/connect/presentation/widgets/group_search
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The member's spaces, to switch which one the Connect tab shows, with
-/// "Find a space" at the bottom.
+/// "Find your space" at the bottom.
 class YourSpacesScreen extends ConsumerWidget {
   const YourSpacesScreen({super.key, required this.currentSpaceId});
 
@@ -120,7 +120,7 @@ class YourSpacesScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        context.l10n.connect_find_a_space,
+                        context.l10n.connect_find_your_space,
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,

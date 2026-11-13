@@ -264,7 +264,6 @@
   "connect_tab_practices": "Practices",
   "connect_tab_groups": "Spaces",
   "connect_landing_title": "Connect with your Buddhist community",
-  "connect_popular_spaces": "Popular spaces",
   "connect_looking_for": "Looking for",
   "connect_sort_spaces": "Sort spaces",
   "connect_sort_popular": "Popular",
@@ -281,7 +280,6 @@
     }
   },
   "connect_your_spaces": "Your spaces",
-  "connect_find_a_space": "Find a space",
   "connect_segment_my": "Your spaces",
   "connect_segment_discover": "Discover",
   "connect_empty_discover_events": "No events to discover",

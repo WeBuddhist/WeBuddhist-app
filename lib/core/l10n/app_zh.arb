@@ -689,6 +689,21 @@
   "share_plan_subject": "在WeBuddhist上和我一起吧",
   "share_group_invite_message": "來這個社群和我一起吧。讓我們在 WeBuddhist 上一起修持！",
   "connect_subtitle": "尋找你的社群，一起修持",
+  "connect_looking_for": "正在尋找",
+  "connect_sort_spaces": "排序社群",
+  "connect_sort_popular": "熱門",
+  "connect_sort_newly_added": "最新加入",
+  "connect_sort_most_active": "最活躍",
+  "connect_find_your_space": "尋找你的社群",
+  "connect_your_spaces": "你的社群",
+  "connect_no_spaces_match": "找不到符合「{query}」的社群",
+  "@connect_no_spaces_match": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "discover_groups": "探索社群",
   "my_groups": "我的社群",
   "see_all": "查看全部",

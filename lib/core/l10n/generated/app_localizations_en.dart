@@ -620,9 +620,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connect_landing_title => 'Connect with your Buddhist community';
 
   @override
-  String get connect_popular_spaces => 'Popular spaces';
-
-  @override
   String get connect_looking_for => 'Looking for';
 
   @override
@@ -647,9 +644,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connect_your_spaces => 'Your spaces';
-
-  @override
-  String get connect_find_a_space => 'Find a space';
 
   @override
   String get connect_segment_my => 'Your spaces';

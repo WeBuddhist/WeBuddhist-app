@@ -706,6 +706,21 @@
   "share_plan_subject": "WeBuddhist дээр надтай нэгдээрэй",
   "share_group_invite_message": "Энэ орон зайд надтай нэгдээрэй. WeBuddhist дээр хамтдаа дадлага хийцгээе!",
   "connect_subtitle": "Бүлгээ олж, хамтдаа дадлага хийгээрэй",
+  "connect_looking_for": "Хайж буй",
+  "connect_sort_spaces": "Орон зайг эрэмбэлэх",
+  "connect_sort_popular": "Алдартай",
+  "connect_sort_newly_added": "Шинээр нэмэгдсэн",
+  "connect_sort_most_active": "Хамгийн идэвхтэй",
+  "connect_find_your_space": "Орон зайгаа олоорой",
+  "connect_your_spaces": "Таны орон зайнууд",
+  "connect_no_spaces_match": "\"{query}\"-д тохирох орон зай олдсонгүй",
+  "@connect_no_spaces_match": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "discover_groups": "Бүлэг хайх",
   "my_groups": "Миний орон зайнууд",
   "see_all": "Бүгдийг харах",
