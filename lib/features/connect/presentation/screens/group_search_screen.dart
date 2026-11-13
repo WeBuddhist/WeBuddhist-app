@@ -46,17 +46,24 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
     super.dispose();
   }
 
-  /// Near the end: more search results first, then more of the list below.
+  /// The bottom of the page is the end of "Looking for": page that list.
+  /// Search results page on their own, from their last row.
   void _onScroll() {
     final position = _scrollController.position;
     if (position.pixels < position.maxScrollExtent - 200) return;
+    ref.read(discoverGroupsProvider.notifier).loadMore();
+  }
 
-    final search = ref.read(groupSearchProvider);
-    if (search.query.trim().isNotEmpty && search.hasMore) {
+  /// Called as the last result is built, i.e. once it scrolls within the
+  /// viewport's cache extent. A failed page waits for the retry row, so a
+  /// rebuild doesn't refetch it in a loop.
+  void _onLastResultBuilt() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final search = ref.read(groupSearchProvider);
+      if (search.error != null) return;
       ref.read(groupSearchProvider.notifier).loadMore();
-    } else {
-      ref.read(discoverGroupsProvider.notifier).loadMore();
-    }
+    });
   }
 
   void _onQueryChanged(String query) {
@@ -240,15 +247,27 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
     return [
       SliverList.builder(
         itemCount: state.results.length,
-        itemBuilder:
-            (context, index) =>
-                GroupSearchResultCard(group: state.results[index]),
+        itemBuilder: (context, index) {
+          if (index == state.results.length - 1 && state.hasMore) {
+            _onLastResultBuilt();
+          }
+          return GroupSearchResultCard(group: state.results[index]);
+        },
       ),
       if (state.isLoadingMore)
         const SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
             child: Center(child: CircularProgressIndicator()),
+          ),
+        )
+      else if (state.error != null)
+        SliverToBoxAdapter(
+          child: Center(
+            child: TextButton(
+              onPressed: () => ref.read(groupSearchProvider.notifier).retry(),
+              child: Text(context.l10n.retry),
+            ),
           ),
         ),
     ];
