@@ -79,17 +79,25 @@ class ChantBooksPage extends Equatable {
 
 /// Space chant books split into the user's spaces and everyone else's.
 class SpaceChantBooks extends Equatable {
-  const SpaceChantBooks({this.yours = const [], this.others = const []});
+  const SpaceChantBooks({
+    this.yours = const [],
+    this.others = const [],
+    this.isPartial = false,
+  });
 
   static const empty = SpaceChantBooks();
 
   final List<ChantBook> yours;
   final List<ChantBook> others;
 
+  /// True when a later page of the feed failed, so books are missing from
+  /// both lists; the page says so and offers a retry.
+  final bool isPartial;
+
   /// The design's "new user" layout applies when the user's spaces have no
   /// chant books: no Your / Other split, no toggle.
   bool get hasYourSpaces => yours.isNotEmpty;
 
   @override
-  List<Object?> get props => [yours, others];
+  List<Object?> get props => [yours, others, isPartial];
 }

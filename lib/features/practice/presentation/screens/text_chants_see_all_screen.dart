@@ -138,9 +138,14 @@ class _TextChantsSeeAllScreenState
     final othersText = spaceChants.othersText;
     final spacesLoading = spaceChantsAsync.isLoading;
 
-    // Some chant books could not be read: said above either list.
+    // The space chants failed, or some chant books could not be read:
+    // said above either list, so they are not simply missing.
+    final spacesFailed =
+        !spaceChantsAsync.isLoading &&
+        (spaceChantsAsync.hasError ||
+            (spaceChantsAsync.valueOrNull?.isLeft() ?? false));
     final spacesNotice =
-        spaceChants.isPartial
+        spacesFailed || spaceChants.isPartial
             ? ChantLoadNotice(
               message: l10n.unableToLoad,
               onRetry: () => ref.invalidate(spaceChantBooksProvider),
@@ -174,7 +179,10 @@ class _TextChantsSeeAllScreenState
         othersText.isEmpty) {
       list = ErrorStateWidget(
         error: state.error!,
-        onRetry: () => ref.read(provider.notifier).retry(),
+        onRetry: () {
+          ref.read(provider.notifier).retry();
+          if (spacesFailed) ref.invalidate(spaceChantBooksProvider);
+        },
       );
     } else if (state.recitations.isEmpty && othersText.isEmpty) {
       list = _empty(l10n.recitations_no_content, notice: spacesNotice);

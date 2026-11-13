@@ -65,6 +65,7 @@ class ChantsPageRepositoryImpl implements ChantsPageRepository {
   }) async {
     final practices = <GroupPractice>[];
     var skip = 0;
+    var isPartial = false;
     for (var i = 0; i < maxFeedPages; i++) {
       final GroupPracticesPage page;
       try {
@@ -75,17 +76,19 @@ class ChantsPageRepositoryImpl implements ChantsPageRepository {
           limit: feedPageSize,
         );
       } catch (e) {
-        // A later page failing still shows what was read; a first one fails.
+        // A later page failing still shows what was read, marked as cut
+        // short so the page can say so; a first one fails.
         if (practices.isEmpty) {
           return Left(ExceptionMapper.map(e, context: 'getSpaceChantBooks'));
         }
+        isPartial = true;
         break;
       }
       practices.addAll(page.practices);
       skip += page.practices.length;
       if (!page.hasMore || page.practices.isEmpty) break;
     }
-    return Right(splitSpaceChantBooks(practices));
+    return Right(splitSpaceChantBooks(practices, isPartial: isPartial));
   }
 
   /// Book details read at the same time. On 2026-11-12 each took ~3 s and
@@ -166,7 +169,11 @@ ChantBook chantBookFromPersonal(MyRecitationCollectionModel model) {
 /// Picks the collections out of the practices feed, in feed order, and
 /// splits them by whether the user joined the space. A collection listed
 /// twice (one space importing another's) is kept once, joined first.
-SpaceChantBooks splitSpaceChantBooks(List<GroupPractice> practices) {
+/// [isPartial] marks a feed cut short by a failed page.
+SpaceChantBooks splitSpaceChantBooks(
+  List<GroupPractice> practices, {
+  bool isPartial = false,
+}) {
   final yours = <ChantBook>[];
   final others = <ChantBook>[];
   final seen = <String>{};
@@ -195,7 +202,7 @@ SpaceChantBooks splitSpaceChantBooks(List<GroupPractice> practices) {
     );
     (practice.isJoined ? yours : others).add(book);
   }
-  return SpaceChantBooks(yours: yours, others: others);
+  return SpaceChantBooks(yours: yours, others: others, isPartial: isPartial);
 }
 
 /// Flattens loaded book [details] (null where a book failed, same order as

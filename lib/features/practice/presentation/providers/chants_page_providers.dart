@@ -4,6 +4,7 @@ import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/core/di/core_providers.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/space_chant_books_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/text_requests_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/data/repositories/chants_page_repository_impl.dart';
@@ -82,16 +83,20 @@ extension CacheSuccessFor on Ref<Object?> {
 }
 
 /// Space chant books, split into the user's spaces and the rest. Re-read
-/// when sign-in changes, since that changes which spaces count as joined.
+/// when sign-in changes or the user joins or leaves a space, since both
+/// change which spaces count as joined. A list cut short by a failed feed
+/// page ([SpaceChantBooks.isPartial]) is shown but not kept.
 final spaceChantBooksProvider =
     FutureProvider.autoDispose<Either<Failure, SpaceChantBooks>>((ref) {
       ref.watch(authProvider.select((auth) => auth.isLoggedIn));
+      ref.watch(mySpaceMembershipEpochProvider);
       final language = ref.watch(contentLanguageProvider);
       return ref.cacheSuccessFor(
         ref
             .watch(chantsPageRepositoryProvider)
             .getSpaceChantBooks(language: language),
         spaceChantsCacheTime,
+        cacheIf: (books) => !books.isPartial,
       );
     });
 

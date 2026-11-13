@@ -338,15 +338,26 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
             ? ChantsSection.otherSpaceChantBooks
             : null;
 
+    // A source failed or came back short while other sections show: say
+    // so above them, with Retry, rather than leaving its chants out
+    // quietly. (With nothing to show, the full error screen above says it.)
+    final myBooksFailed = _failed(myBooks);
+    final spacesShort =
+        _failed(spaceBooks) ||
+        spaces.isPartial ||
+        (catalogueMatters &&
+            (_failed(spaceChants) || chantsOfSpaces.isPartial));
+
     final items = <Widget>[
-      // Some chant books could not be read: say so above the lists that
-      // are missing their chants, rather than leaving them out quietly.
-      if (catalogueMatters && chantsOfSpaces.isPartial)
+      if (myBooksFailed || spacesShort)
         Padding(
           padding: const EdgeInsets.only(top: 4),
           child: ChantLoadNotice(
             message: context.l10n.unableToLoad,
-            onRetry: () => ref.invalidate(spaceChantBooksProvider),
+            onRetry: () {
+              if (myBooksFailed) ref.invalidate(myChantBooksProvider);
+              if (spacesShort) ref.invalidate(spaceChantBooksProvider);
+            },
           ),
         ),
       if (chantsPending && placeholderAfter == null)
@@ -584,6 +595,10 @@ T? _valueOrNull<T>(AsyncValue<Either<Failure, T>> value) =>
 
 Failure? _failureOf<T>(AsyncValue<Either<Failure, T>> value) =>
     value.valueOrNull?.fold((failure) => failure, (_) => null);
+
+/// True once a read ended in a failure, returned or thrown.
+bool _failed<T>(AsyncValue<Either<Failure, T>> value) =>
+    !value.isLoading && (value.hasError || _failureOf(value) != null);
 
 /// Shimmering audio rows standing in for the space chant sections while
 /// the books' chants load.

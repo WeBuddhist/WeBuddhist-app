@@ -245,6 +245,18 @@ void main() {
       final result = await repo.getSpaceChantBooks(language: 'en');
       final books = result.getOrElse((_) => SpaceChantBooks.empty);
       expect(books.others, hasLength(1));
+      // Marked as cut short, so the page says so and does not keep it.
+      expect(books.isPartial, isTrue);
+    });
+
+    test('a feed read to the end is not partial', () async {
+      final repo = _repo(
+        feed: [
+          _page([_collection('a')], total: 1),
+        ],
+      );
+      final result = await repo.getSpaceChantBooks(language: 'en');
+      expect(result.getOrElse((_) => SpaceChantBooks.empty).isPartial, isFalse);
     });
 
     test('stops on an empty page even if total says more', () async {

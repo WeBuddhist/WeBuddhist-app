@@ -9,6 +9,7 @@ import 'package:flutter_pecha/features/practice/presentation/providers/practice_
 import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_actions.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_book_card.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_load_notice.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -172,15 +173,20 @@ class _ChantBooksSeeAllScreenState
         final hasYours = spaces.hasYourSpaces;
         final showYours = hasYours && _showYours;
         final books = showYours ? spaces.yours : spaces.others;
+        // The feed was cut short by a failed page: said above the grid.
+        final notice =
+            spaces.isPartial
+                ? ChantLoadNotice(
+                  message: l10n.unableToLoad,
+                  onRetry: () => ref.invalidate(spaceChantBooksProvider),
+                )
+                : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (hasYours)
               ChantFilterPills(
-                labels: [
-                  l10n.chants_your_spaces,
-                  l10n.chants_other_spaces,
-                ],
+                labels: [l10n.chants_your_spaces, l10n.chants_other_spaces],
                 selectedIndex: showYours ? 0 : 1,
                 onSelected: (i) {
                   setState(() => _showYours = i == 0);
@@ -197,6 +203,7 @@ class _ChantBooksSeeAllScreenState
                         ? ListView(
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [
+                            if (notice != null) notice,
                             const SizedBox(height: 120),
                             Center(child: Text(l10n.noContentAvailable)),
                           ],
@@ -204,6 +211,7 @@ class _ChantBooksSeeAllScreenState
                         : _ChantBookGrid(
                           books: books,
                           controller: _scrollController,
+                          header: notice,
                           onTap: (book) => openChantBook(context, ref, book),
                         ),
               ),
@@ -222,12 +230,16 @@ class _ChantBookGrid extends StatelessWidget {
     required this.controller,
     required this.onTap,
     this.isLoadingMore = false,
+    this.header,
   });
 
   final List<ChantBook> books;
   final ScrollController controller;
   final ValueChanged<ChantBook> onTap;
   final bool isLoadingMore;
+
+  /// Shown above the grid: a notice that the list is cut short.
+  final Widget? header;
 
   static const double _gutter = 20;
   static const double _gap = 10;
@@ -241,6 +253,13 @@ class _ChantBookGrid extends StatelessWidget {
           controller: controller,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
+            if (header != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: header,
+                ),
+              ),
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(_gutter, 8, _gutter, 0),
               sliver: SliverGrid(
