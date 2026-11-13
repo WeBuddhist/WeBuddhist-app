@@ -4110,4 +4110,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'Versions';
+
+  @override
+  String get reader_no_resources_title =>
+      'No commentaries or versions available for this segment';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'We add new texts regularly; check back soon';
 }

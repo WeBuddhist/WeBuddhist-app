@@ -1435,5 +1435,7 @@
   "reader_show_script_in": "{language}显示方式",
   "reader_verse_label": "偈颂 {number}",
   "reader_tab_commentary": "注释",
-  "reader_tab_versions": "版本"
+  "reader_tab_versions": "版本",
+  "reader_no_resources_title": "此段落尚无注释或版本",
+  "reader_no_resources_subtitle": "我们会定期新增文本，请稍后再来查看"
 }

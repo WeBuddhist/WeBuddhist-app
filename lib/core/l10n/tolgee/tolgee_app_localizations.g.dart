@@ -8196,4 +8196,18 @@ class TolgeeAppLocalizations extends AppLocalizations {
     'reader_tab_versions',
     () => _fallback.reader_tab_versions,
   );
+
+  @override
+  String get reader_no_resources_title => TolgeeBridge.get(
+    localeName,
+    'reader_no_resources_title',
+    () => _fallback.reader_no_resources_title,
+  );
+
+  @override
+  String get reader_no_resources_subtitle => TolgeeBridge.get(
+    localeName,
+    'reader_no_resources_subtitle',
+    () => _fallback.reader_no_resources_subtitle,
+  );
 }

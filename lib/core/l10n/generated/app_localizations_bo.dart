@@ -4152,4 +4152,12 @@ class AppLocalizationsBo extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'པར་གཞི།';
+
+  @override
+  String get reader_no_resources_title =>
+      'ཚིགས་བཅད་འདིའི་འགྲེལ་བ་དང་པར་གཞི་མི་འདུག';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'ང་ཚོས་དཔེ་ཆ་གསར་པ་རྒྱུན་དུ་ཁ་སྣོན་བྱེད་བཞིན་ཡོད། རྗེས་སུ་ཡང་བསྐྱར་གཟིགས་རོགས།';
 }

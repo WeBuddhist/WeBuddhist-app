@@ -4152,4 +4152,12 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'Хувилбарууд';
+
+  @override
+  String get reader_no_resources_title =>
+      'Энэ хэсэгт тайлбар эсвэл хувилбар байхгүй байна';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'Бид шинэ судар тогтмол нэмдэг; удахгүй дахин шалгаарай';
 }

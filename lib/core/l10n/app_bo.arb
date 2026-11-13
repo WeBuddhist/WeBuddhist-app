@@ -1154,5 +1154,7 @@
   "reader_show_script_in": "{language} སྟོན་སྟངས།",
   "reader_verse_label": "ཚིགས་བཅད། {number}",
   "reader_tab_commentary": "འགྲེལ་བ།",
-  "reader_tab_versions": "པར་གཞི།"
+  "reader_tab_versions": "པར་གཞི།",
+  "reader_no_resources_title": "ཚིགས་བཅད་འདིའི་འགྲེལ་བ་དང་པར་གཞི་མི་འདུག",
+  "reader_no_resources_subtitle": "ང་ཚོས་དཔེ་ཆ་གསར་པ་རྒྱུན་དུ་ཁ་སྣོན་བྱེད་བཞིན་ཡོད། རྗེས་སུ་ཡང་བསྐྱར་གཟིགས་རོགས།"
 }

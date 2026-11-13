@@ -4138,4 +4138,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'संस्करण';
+
+  @override
+  String get reader_no_resources_title =>
+      'इस खंड के लिए कोई टीका या संस्करण उपलब्ध नहीं है';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'हम नियमित रूप से नए ग्रंथ जोड़ते हैं; जल्द ही फिर देखें';
 }

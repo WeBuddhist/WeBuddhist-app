@@ -1148,5 +1148,7 @@
   "reader_show_script_in": "{language}顯示方式",
   "reader_verse_label": "偈頌 {number}",
   "reader_tab_commentary": "注釋",
-  "reader_tab_versions": "版本"
+  "reader_tab_versions": "版本",
+  "reader_no_resources_title": "此段落尚無注釋或版本",
+  "reader_no_resources_subtitle": "我們會定期新增文本，請稍後再來查看"
 }

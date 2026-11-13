@@ -4096,4 +4096,12 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get reader_tab_versions => 'Versions';
+
+  @override
+  String get reader_no_resources_title =>
+      'ยังไม่มีอรรถกถาหรือฉบับแปลสำหรับส่วนนี้';
+
+  @override
+  String get reader_no_resources_subtitle =>
+      'เราเพิ่มคัมภีร์ใหม่อยู่เสมอ แวะกลับมาเร็ว ๆ นี้';
 }

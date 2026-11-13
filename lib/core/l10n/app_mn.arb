@@ -1158,5 +1158,7 @@
   "reader_show_script_in": "{language}-г харуулах",
   "reader_verse_label": "Шүлэг {number}",
   "reader_tab_commentary": "Тайлбар",
-  "reader_tab_versions": "Хувилбарууд"
+  "reader_tab_versions": "Хувилбарууд",
+  "reader_no_resources_title": "Энэ хэсэгт тайлбар эсвэл хувилбар байхгүй байна",
+  "reader_no_resources_subtitle": "Бид шинэ судар тогтмол нэмдэг; удахгүй дахин шалгаарай"
 }

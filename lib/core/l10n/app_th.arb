@@ -1115,5 +1115,7 @@
   "timer_create_custom": "สร้างตัวจับเวลาเอง",
   "timer_starting": "กำลังเริ่ม...",
   "timer_duration_hours": "ชั่วโมง",
-  "timer_duration_sec": "วินาที"
+  "timer_duration_sec": "วินาที",
+  "reader_no_resources_title": "ยังไม่มีอรรถกถาหรือฉบับแปลสำหรับส่วนนี้",
+  "reader_no_resources_subtitle": "เราเพิ่มคัมภีร์ใหม่อยู่เสมอ แวะกลับมาเร็ว ๆ นี้"
 }

@@ -1158,5 +1158,7 @@
   "reader_show_script_in": "{language} यसमा देखाउनुहोस्",
   "reader_verse_label": "श्लोक {number}",
   "reader_tab_commentary": "टीका",
-  "reader_tab_versions": "संस्करणहरू"
+  "reader_tab_versions": "संस्करणहरू",
+  "reader_no_resources_title": "यस खण्डका लागि कुनै टीका वा संस्करण उपलब्ध छैन",
+  "reader_no_resources_subtitle": "हामी नियमित रूपमा नयाँ ग्रन्थहरू थप्छौं; छिट्टै फेरि हेर्नुहोस्"
 }

@@ -1115,5 +1115,7 @@
   "timer_create_custom": "စိတ်ကြိုက် အချိန်မှတ်စက် ဖန်တီးရန်",
   "timer_starting": "စတင်နေသည်...",
   "timer_duration_hours": "နာရီ",
-  "timer_duration_sec": "စက္ကန့်"
+  "timer_duration_sec": "စက္ကန့်",
+  "reader_no_resources_title": "ဤအပိုင်းအတွက် အဖွင့်ကျမ်း သို့မဟုတ် ဗားရှင်း မရှိသေးပါ",
+  "reader_no_resources_subtitle": "ကျမ်းစာအသစ်များကို ပုံမှန်ထည့်နေပါသည်။ မကြာမီ ပြန်ကြည့်ပါ။"
 }

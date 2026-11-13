@@ -3984,6 +3984,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reader_tab_versions => '版本';
+
+  @override
+  String get reader_no_resources_title => '此段落尚無注釋或版本';
+
+  @override
+  String get reader_no_resources_subtitle => '我們會定期新增文本，請稍後再來查看';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -7709,4 +7715,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get reader_tab_versions => '版本';
+
+  @override
+  String get reader_no_resources_title => '此段落尚无注释或版本';
+
+  @override
+  String get reader_no_resources_subtitle => '我们会定期新增文本，请稍后再来查看';
 }
