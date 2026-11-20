@@ -367,16 +367,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get recitations_no_content => 'ไม่มีบทสวด';
 
   @override
-  String get my_recitation_collection_new_title => 'ชุดบทสวดใหม่';
+  String get chant_book_new_title => 'ชุดบทสวดใหม่';
 
   @override
   String get my_recitation_collection_next => 'ถัดไป';
 
   @override
   String get my_recitation_collection_create => 'สร้าง';
-
-  @override
-  String get my_recitation_collection_create_button => 'สร้างชุดบทสวด';
 
   @override
   String get my_recitation_collection_change_title => 'เปลี่ยนชื่อ';
@@ -391,23 +388,22 @@ class AppLocalizationsTh extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'ค้นหาบทสวด';
 
   @override
-  String get my_recitation_collection_add_to_collection => 'เพิ่มในชุดบทสวด';
+  String get chant_book_add_to => 'เพิ่มในชุดบทสวด';
 
   @override
-  String get my_recitation_collection_edit => 'แก้ไขชุดบทสวด';
+  String get chant_book_edit => 'แก้ไขชุดบทสวด';
 
   @override
-  String get my_recitation_collection_delete => 'ลบชุดบทสวด';
+  String get chant_book_delete => 'ลบชุดบทสวด';
 
   @override
-  String get my_recitation_collection_delete_title => 'ลบชุดบทสวดใช่ไหม';
+  String get chant_book_delete_title => 'ลบชุดบทสวดใช่ไหม';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'ชุดบทสวดนี้จะถูกลบอย่างถาวร';
+  String get chant_book_delete_message => 'ชุดบทสวดนี้จะถูกลบอย่างถาวร';
 
   @override
-  String get my_recitation_collection_fallback_title => 'ชุดบทสวด';
+  String get chant_book_fallback_title => 'ชุดบทสวด';
 
   @override
   String get my_recitation_collection_unavailable => 'ไม่มีให้ใช้งานแล้ว';
@@ -437,11 +433,11 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
+  String get chant_book_bookmarks_empty_title =>
       'ยังไม่มีชุดบทสวดที่บุ๊กมาร์กไว้';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
+  String get chant_book_bookmarks_empty_subtitle =>
       'บุ๊กมาร์กรายการที่สนใจเพื่อเก็บไว้ที่นี่';
 
   @override
@@ -2798,7 +2794,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get group_post_updated => 'บันทึกการเปลี่ยนแปลงแล้ว';
 
   @override
-  String get practice_collection_already_added =>
+  String get chant_book_already_in_practices =>
       'ชุดบทสวดนี้อยู่ในการปฏิบัติของคุณแล้ว';
 
   @override
@@ -4201,7 +4197,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get chants_filter_single_chants => 'Single chants';
 
   @override
-  String get chants_my_chant_books => 'My chantbooks';
+  String get chants_my_chant_books_title => 'My chant books';
 
   @override
   String get chants_text_only => 'Text-only chants';
@@ -4225,7 +4221,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get chants_other_spaces => 'Other spaces';
 
   @override
-  String get chants_search_hint => 'Search chants and chantbooks';
+  String get chants_search_hint_chant_books => 'Search chants and chant books';
 
   @override
   String get chants_cant_find => 'Can\'t find the text you\'re looking for?';

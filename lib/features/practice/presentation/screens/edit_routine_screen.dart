@@ -442,7 +442,7 @@ class _EditRoutineScreenState extends ConsumerState<EditRoutineScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(context.l10n.practice_collection_already_added),
+        content: Text(context.l10n.chant_book_already_in_practices),
         duration: const Duration(seconds: 2),
       ),
     );

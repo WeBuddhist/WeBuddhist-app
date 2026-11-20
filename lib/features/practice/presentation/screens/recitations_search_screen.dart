@@ -157,7 +157,7 @@ class _RecitationsSearchScreenState
                       textInputAction: TextInputAction.search,
                       style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: l10n.chants_search_hint,
+                        hintText: l10n.chants_search_hint_chant_books,
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: subtitleColor,
                           fontSize: 15,

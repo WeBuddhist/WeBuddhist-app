@@ -39,21 +39,24 @@ class ChantBookCard extends StatelessWidget {
 
   /// Room the name and subtitle need under the cover at the device's text
   /// size: gap (8), a Tibetan-height 15pt title (29 at 1x), gap (2), the
-  /// 12pt subtitle (17 at 1x) and 2 of slack. Each line is rounded up as
-  /// text layout rounds it, so a Tibetan title does not overflow the grid
-  /// cell by a pixel. Font sizes go through the text scaler, so nonlinear
-  /// scaling grows each line as the text itself grows.
+  /// 12pt subtitle (17 at 1x, 23 in the Tibetan UI) and 2 of slack. Each
+  /// line is rounded up as text layout rounds it, so a Tibetan title does
+  /// not overflow the grid cell by a pixel. Font sizes go through the text
+  /// scaler, so nonlinear scaling grows each line as the text itself grows.
   static double textHeight(BuildContext context) {
     final scaler = MediaQuery.textScalerOf(context);
     final title =
         (scaler.scale(15) * AppFontConfig.tibetanContentLineHeight)
             .ceilToDouble();
-    final subtitle = (scaler.scale(12) * _subtitleLineHeight).ceilToDouble();
+    final subtitle =
+        (scaler.scale(12) * _subtitleLineHeight(context)).ceilToDouble();
     return 8 + title + 2 + subtitle + 2;
   }
 
-  /// The UI font's line height for the subtitle.
-  static const double _subtitleLineHeight = 1.4;
+  /// The UI font's line height for the subtitle. The Tibetan theme sets a
+  /// taller line on every UI text style, Latin subtitles included.
+  static double _subtitleLineHeight(BuildContext context) =>
+      context.isTibetanLocale ? AppFontConfig.tibetanUiLineHeight : 1.4;
 
   /// Height of a rail of cards at [railWidth].
   static double railHeight(BuildContext context) =>

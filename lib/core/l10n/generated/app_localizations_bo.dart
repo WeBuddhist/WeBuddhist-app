@@ -372,16 +372,13 @@ class AppLocalizationsBo extends AppLocalizations {
   String get recitations_no_content => 'ཞལ་འདོན་མི་འདུག';
 
   @override
-  String get my_recitation_collection_new_title => 'ཕྱོགས་བསྡུས་གསར་པ།';
+  String get chant_book_new_title => 'ཞལ་འདོན་དེབ་གསར་པ།';
 
   @override
   String get my_recitation_collection_next => 'རྗེས་མ།';
 
   @override
   String get my_recitation_collection_create => 'གསར་བཟོ།';
-
-  @override
-  String get my_recitation_collection_create_button => 'ཕྱོགས་བསྡུས་གསར་བཟོ།';
 
   @override
   String get my_recitation_collection_change_title => 'ཁ་བྱང་བསྒྱུར།';
@@ -396,24 +393,22 @@ class AppLocalizationsBo extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'ཞལ་འདོན་འཚོལ།';
 
   @override
-  String get my_recitation_collection_add_to_collection =>
-      'ཕྱོགས་བསྡུས་ནང་སྣོན།';
+  String get chant_book_add_to => 'ཞལ་འདོན་དེབ་ནང་སྣོན།';
 
   @override
-  String get my_recitation_collection_edit => 'ཕྱོགས་བསྡུས་བཟོ་བཅོས།';
+  String get chant_book_edit => 'ཞལ་འདོན་དེབ་བཟོ་བཅོས།';
 
   @override
-  String get my_recitation_collection_delete => 'ཕྱོགས་བསྡུས་སུབས།';
+  String get chant_book_delete => 'ཞལ་འདོན་དེབ་སུབས།';
 
   @override
-  String get my_recitation_collection_delete_title => 'ཕྱོགས་བསྡུས་སུབ་བམ།';
+  String get chant_book_delete_title => 'ཞལ་འདོན་དེབ་སུབ་བམ།';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'ཕྱོགས་བསྡུས་འདི་གཏན་དུ་བསུབ་འགྲོ།';
+  String get chant_book_delete_message => 'ཞལ་འདོན་དེབ་འདི་གཏན་དུ་བསུབ་འགྲོ།';
 
   @override
-  String get my_recitation_collection_fallback_title => 'ཞལ་འདོན་ཕྱོགས་བསྡུས།';
+  String get chant_book_fallback_title => 'ཞལ་འདོན་དེབ།';
 
   @override
   String get my_recitation_collection_unavailable => 'ད་ལྟ་མི་འདུག';
@@ -443,12 +438,12 @@ class AppLocalizationsBo extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
-      'ད་དུང་དཔེ་རྟགས་བཀོད་པའི་ཞལ་འདོན་ཕྱོགས་བསྡུས་མི་འདུག';
+  String get chant_book_bookmarks_empty_title =>
+      'ད་དུང་དཔེ་རྟགས་བཀོད་པའི་ཞལ་འདོན་དེབ་མི་འདུག';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
-      'ཕྱོགས་བསྡུས་ཞིག་འདིར་ཉར་བར་དེ་ལ་དཔེ་རྟགས་འགོད་རོགས།';
+  String get chant_book_bookmarks_empty_subtitle =>
+      'ཞལ་འདོན་དེབ་ཞིག་འདིར་ཉར་བར་དེ་ལ་དཔེ་རྟགས་འགོད་རོགས།';
 
   @override
   String get notification_allow_title => 'གསར་བརྡ་གཏོང་ཆོག';
@@ -2844,8 +2839,8 @@ class AppLocalizationsBo extends AppLocalizations {
   String get group_post_updated => 'ཁྱེད་ཀྱི་བཟོ་བཅོས་ཉར་ཟིན།';
 
   @override
-  String get practice_collection_already_added =>
-      'ཕྱོགས་བསྡུས་འདི་ཁྱེད་ཀྱི་ཉམས་ལེན་ནང་སྔོན་ནས་ཡོད།';
+  String get chant_book_already_in_practices =>
+      'ཞལ་འདོན་དེབ་འདི་ཁྱེད་ཀྱི་ཉམས་ལེན་ནང་སྔོན་ནས་ཡོད།';
 
   @override
   String get practice_group_accumulator_already_added =>
@@ -4258,7 +4253,7 @@ class AppLocalizationsBo extends AppLocalizations {
   String get chants_filter_single_chants => 'ཞལ་འདོན་རེ་རེ།';
 
   @override
-  String get chants_my_chant_books => 'ངའི་ཞལ་འདོན་དེབ།';
+  String get chants_my_chant_books_title => 'ངའི་ཞལ་འདོན་དེབ།';
 
   @override
   String get chants_text_only => 'ཡི་གེ་ཁོ་ནའི་ཞལ་འདོན།';
@@ -4282,7 +4277,7 @@ class AppLocalizationsBo extends AppLocalizations {
   String get chants_other_spaces => 'ཚོགས་པ་གཞན།';
 
   @override
-  String get chants_search_hint => 'ཞལ་འདོན་དང་ཞལ་འདོན་དེབ་འཚོལ།';
+  String get chants_search_hint_chant_books => 'ཞལ་འདོན་དང་ཞལ་འདོན་དེབ་འཚོལ།';
 
   @override
   String get chants_cant_find => 'ཁྱེད་ཀྱིས་འཚོལ་བཞིན་པའི་ཡིག་ཆ་མ་རྙེད་དམ།';

@@ -411,7 +411,7 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
       case ChantsSection.myChantBooks:
         return [
           ChantSectionHeader(
-            title: l10n.chants_my_chant_books,
+            title: l10n.chants_my_chant_books_title,
             // The design has no See all while the rail holds two or fewer.
             onSeeAll:
                 myBooks.length > 2

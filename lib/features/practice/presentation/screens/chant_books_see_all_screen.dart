@@ -98,7 +98,7 @@ class _ChantBooksSeeAllScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          _isMine ? l10n.chants_my_chant_books : l10n.chants_chant_books,
+          _isMine ? l10n.chants_my_chant_books_title : l10n.chants_chant_books,
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           strutStyle: context.tibetanStrutStyle(20),
         ),

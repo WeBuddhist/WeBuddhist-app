@@ -683,10 +683,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
-  String get my_recitation_collection_new_title => TolgeeBridge.get(
+  String get chant_book_new_title => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_new_title',
-    () => _fallback.my_recitation_collection_new_title,
+    'chant_book_new_title',
+    () => _fallback.chant_book_new_title,
   );
 
   @override
@@ -701,13 +701,6 @@ class TolgeeAppLocalizations extends AppLocalizations {
     localeName,
     'my_recitation_collection_create',
     () => _fallback.my_recitation_collection_create,
-  );
-
-  @override
-  String get my_recitation_collection_create_button => TolgeeBridge.get(
-    localeName,
-    'my_recitation_collection_create_button',
-    () => _fallback.my_recitation_collection_create_button,
   );
 
   @override
@@ -739,45 +732,45 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
-  String get my_recitation_collection_add_to_collection => TolgeeBridge.get(
+  String get chant_book_add_to => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_add_to_collection',
-    () => _fallback.my_recitation_collection_add_to_collection,
+    'chant_book_add_to',
+    () => _fallback.chant_book_add_to,
   );
 
   @override
-  String get my_recitation_collection_edit => TolgeeBridge.get(
+  String get chant_book_edit => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_edit',
-    () => _fallback.my_recitation_collection_edit,
+    'chant_book_edit',
+    () => _fallback.chant_book_edit,
   );
 
   @override
-  String get my_recitation_collection_delete => TolgeeBridge.get(
+  String get chant_book_delete => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_delete',
-    () => _fallback.my_recitation_collection_delete,
+    'chant_book_delete',
+    () => _fallback.chant_book_delete,
   );
 
   @override
-  String get my_recitation_collection_delete_title => TolgeeBridge.get(
+  String get chant_book_delete_title => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_delete_title',
-    () => _fallback.my_recitation_collection_delete_title,
+    'chant_book_delete_title',
+    () => _fallback.chant_book_delete_title,
   );
 
   @override
-  String get my_recitation_collection_delete_message => TolgeeBridge.get(
+  String get chant_book_delete_message => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_delete_message',
-    () => _fallback.my_recitation_collection_delete_message,
+    'chant_book_delete_message',
+    () => _fallback.chant_book_delete_message,
   );
 
   @override
-  String get my_recitation_collection_fallback_title => TolgeeBridge.get(
+  String get chant_book_fallback_title => TolgeeBridge.get(
     localeName,
-    'my_recitation_collection_fallback_title',
-    () => _fallback.my_recitation_collection_fallback_title,
+    'chant_book_fallback_title',
+    () => _fallback.chant_book_fallback_title,
   );
 
   @override
@@ -805,17 +798,17 @@ class TolgeeAppLocalizations extends AppLocalizations {
       );
 
   @override
-  String get bookmarks_empty_chant_collections_title => TolgeeBridge.get(
+  String get chant_book_bookmarks_empty_title => TolgeeBridge.get(
     localeName,
-    'bookmarks_empty_chant_collections_title',
-    () => _fallback.bookmarks_empty_chant_collections_title,
+    'chant_book_bookmarks_empty_title',
+    () => _fallback.chant_book_bookmarks_empty_title,
   );
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle => TolgeeBridge.get(
+  String get chant_book_bookmarks_empty_subtitle => TolgeeBridge.get(
     localeName,
-    'bookmarks_empty_chant_collections_subtitle',
-    () => _fallback.bookmarks_empty_chant_collections_subtitle,
+    'chant_book_bookmarks_empty_subtitle',
+    () => _fallback.chant_book_bookmarks_empty_subtitle,
   );
 
   @override
@@ -5534,10 +5527,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
-  String get practice_collection_already_added => TolgeeBridge.get(
+  String get chant_book_already_in_practices => TolgeeBridge.get(
     localeName,
-    'practice_collection_already_added',
-    () => _fallback.practice_collection_already_added,
+    'chant_book_already_in_practices',
+    () => _fallback.chant_book_already_in_practices,
   );
 
   @override
@@ -8395,10 +8388,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
-  String get chants_my_chant_books => TolgeeBridge.get(
+  String get chants_my_chant_books_title => TolgeeBridge.get(
     localeName,
-    'chants_my_chant_books',
-    () => _fallback.chants_my_chant_books,
+    'chants_my_chant_books_title',
+    () => _fallback.chants_my_chant_books_title,
   );
 
   @override
@@ -8451,10 +8444,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
-  String get chants_search_hint => TolgeeBridge.get(
+  String get chants_search_hint_chant_books => TolgeeBridge.get(
     localeName,
-    'chants_search_hint',
-    () => _fallback.chants_search_hint,
+    'chants_search_hint_chant_books',
+    () => _fallback.chants_search_hint_chant_books,
   );
 
   @override

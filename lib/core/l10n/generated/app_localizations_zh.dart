@@ -364,16 +364,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recitations_no_content => '沒有可用的持誦';
 
   @override
-  String get my_recitation_collection_new_title => '新持誦集';
+  String get chant_book_new_title => '新持誦集';
 
   @override
   String get my_recitation_collection_next => '下一步';
 
   @override
   String get my_recitation_collection_create => '建立';
-
-  @override
-  String get my_recitation_collection_create_button => '建立持誦集';
 
   @override
   String get my_recitation_collection_change_title => '變更標題';
@@ -388,22 +385,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get my_recitation_collection_search_chants => '搜尋持誦';
 
   @override
-  String get my_recitation_collection_add_to_collection => '加入持誦集';
+  String get chant_book_add_to => '加入持誦集';
 
   @override
-  String get my_recitation_collection_edit => '編輯持誦集';
+  String get chant_book_edit => '編輯持誦集';
 
   @override
-  String get my_recitation_collection_delete => '刪除持誦集';
+  String get chant_book_delete => '刪除持誦集';
 
   @override
-  String get my_recitation_collection_delete_title => '要刪除持誦集嗎？';
+  String get chant_book_delete_title => '要刪除持誦集嗎？';
 
   @override
-  String get my_recitation_collection_delete_message => '此持誦集將被永久刪除';
+  String get chant_book_delete_message => '此持誦集將被永久刪除';
 
   @override
-  String get my_recitation_collection_fallback_title => '持誦集';
+  String get chant_book_fallback_title => '持誦集';
 
   @override
   String get my_recitation_collection_unavailable => '已無法使用';
@@ -433,10 +430,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title => '尚無加入書籤的法本';
+  String get chant_book_bookmarks_empty_title => '尚無加入書籤的持誦集';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle => '將法本加入書籤，，即可收藏於此';
+  String get chant_book_bookmarks_empty_subtitle => '將持誦集加入書籤，即可收藏於此';
 
   @override
   String get notification_allow_title => '允許通知';
@@ -2696,7 +2693,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get group_post_updated => '您的變更已儲存';
 
   @override
-  String get practice_collection_already_added => '此持誦集已在您的修持中';
+  String get chant_book_already_in_practices => '此持誦集已在您的修持中';
 
   @override
   String get practice_group_accumulator_already_added => '此共修計數已在您的修持中';
@@ -4089,7 +4086,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chants_filter_single_chants => '單篇持誦';
 
   @override
-  String get chants_my_chant_books => '我的持誦集';
+  String get chants_my_chant_books_title => '我的持誦集';
 
   @override
   String get chants_text_only => '純文字持誦';
@@ -4113,7 +4110,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chants_other_spaces => '其他社群';
 
   @override
-  String get chants_search_hint => '搜尋持誦與持誦集';
+  String get chants_search_hint_chant_books => '搜尋持誦與持誦集';
 
   @override
   String get chants_cant_find => '找不到你要的經文嗎？';
@@ -4563,16 +4560,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get recitations_no_content => '没有可用的持诵';
 
   @override
-  String get my_recitation_collection_new_title => '新持诵集';
+  String get chant_book_new_title => '新持诵集';
 
   @override
   String get my_recitation_collection_next => '下一步';
 
   @override
   String get my_recitation_collection_create => '创建';
-
-  @override
-  String get my_recitation_collection_create_button => '创建持诵集';
 
   @override
   String get my_recitation_collection_change_title => '变更标题';
@@ -4587,22 +4581,22 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get my_recitation_collection_search_chants => '搜索持诵';
 
   @override
-  String get my_recitation_collection_add_to_collection => '加入持诵集';
+  String get chant_book_add_to => '加入持诵集';
 
   @override
-  String get my_recitation_collection_edit => '编辑持诵集';
+  String get chant_book_edit => '编辑持诵集';
 
   @override
-  String get my_recitation_collection_delete => '删除持诵集';
+  String get chant_book_delete => '删除持诵集';
 
   @override
-  String get my_recitation_collection_delete_title => '要删除持诵集吗？';
+  String get chant_book_delete_title => '要删除持诵集吗？';
 
   @override
-  String get my_recitation_collection_delete_message => '此持诵集将被永久删除';
+  String get chant_book_delete_message => '此持诵集将被永久删除';
 
   @override
-  String get my_recitation_collection_fallback_title => '持诵集';
+  String get chant_book_fallback_title => '持诵集';
 
   @override
   String get my_recitation_collection_unavailable => '已无法使用';
@@ -4632,10 +4626,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title => '尚无加入书签的法本';
+  String get chant_book_bookmarks_empty_title => '尚无加入书签的持诵集';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle => '将法本加入书签，即可收藏于此';
+  String get chant_book_bookmarks_empty_subtitle => '将持诵集加入书签，即可收藏于此';
 
   @override
   String get notification_allow_title => '允许通知';
@@ -6709,7 +6703,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get group_post_updated => '您的变更已保存';
 
   @override
-  String get practice_collection_already_added => '此持诵集已在您的修持中';
+  String get chant_book_already_in_practices => '此持诵集已在您的修持中';
 
   @override
   String get practice_group_accumulator_already_added => '此共修计数已在您的修持中';
@@ -7959,7 +7953,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get chants_filter_single_chants => '单篇持诵';
 
   @override
-  String get chants_my_chant_books => '我的持诵集';
+  String get chants_my_chant_books_title => '我的持诵集';
 
   @override
   String get chants_text_only => '纯文字持诵';
@@ -7983,7 +7977,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get chants_other_spaces => '其他社群';
 
   @override
-  String get chants_search_hint => '搜索持诵与持诵集';
+  String get chants_search_hint_chant_books => '搜索持诵与持诵集';
 
   @override
   String get chants_cant_find => '找不到你要的经文吗？';

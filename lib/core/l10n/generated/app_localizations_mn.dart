@@ -373,16 +373,13 @@ class AppLocalizationsMn extends AppLocalizations {
   String get recitations_no_content => 'Уншлага байхгүй байна';
 
   @override
-  String get my_recitation_collection_new_title => 'Шинэ цуглуулга';
+  String get chant_book_new_title => 'Шинэ магтаалын ном';
 
   @override
   String get my_recitation_collection_next => 'Дараах';
 
   @override
   String get my_recitation_collection_create => 'Үүсгэх';
-
-  @override
-  String get my_recitation_collection_create_button => 'Цуглуулга үүсгэх';
 
   @override
   String get my_recitation_collection_change_title => 'Гарчиг өөрчлөх';
@@ -397,23 +394,23 @@ class AppLocalizationsMn extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'Уншлага хайх';
 
   @override
-  String get my_recitation_collection_add_to_collection => 'Цуглуулгад нэмэх';
+  String get chant_book_add_to => 'Магтаалын номд нэмэх';
 
   @override
-  String get my_recitation_collection_edit => 'Цуглуулга засах';
+  String get chant_book_edit => 'Магтаалын ном засах';
 
   @override
-  String get my_recitation_collection_delete => 'Цуглуулга устгах';
+  String get chant_book_delete => 'Магтаалын ном устгах';
 
   @override
-  String get my_recitation_collection_delete_title => 'Цуглуулгыг устгах уу?';
+  String get chant_book_delete_title => 'Магтаалын номыг устгах уу?';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'Энэ цуглуулга бүрмөсөн устгагдана';
+  String get chant_book_delete_message =>
+      'Энэ магтаалын ном бүрмөсөн устгагдана';
 
   @override
-  String get my_recitation_collection_fallback_title => 'Уншлагын цуглуулга';
+  String get chant_book_fallback_title => 'Магтаалын ном';
 
   @override
   String get my_recitation_collection_unavailable => 'Цаашид боломжгүй';
@@ -443,12 +440,12 @@ class AppLocalizationsMn extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
-      'Хараахан уншлагын цуглуулга хавчуургалаагүй байна';
+  String get chant_book_bookmarks_empty_title =>
+      'Хараахан магтаалын ном хавчуургалаагүй байна';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
-      'Энд хадгалахын тулд цуглуулга хавчуургалаарай';
+  String get chant_book_bookmarks_empty_subtitle =>
+      'Энд хадгалахын тулд магтаалын ном хавчуургалаарай';
 
   @override
   String get notification_allow_title => 'Мэдэгдэл зөвшөөрөх';
@@ -2844,8 +2841,8 @@ class AppLocalizationsMn extends AppLocalizations {
   String get group_post_updated => 'Таны өөрчлөлт хадгалагдлаа';
 
   @override
-  String get practice_collection_already_added =>
-      'Энэ цуглуулга таны дадлагад аль хэдийн байна';
+  String get chant_book_already_in_practices =>
+      'Энэ магтаалын ном таны дадлагад аль хэдийн байна';
 
   @override
   String get practice_group_accumulator_already_added =>
@@ -4259,7 +4256,7 @@ class AppLocalizationsMn extends AppLocalizations {
   String get chants_filter_single_chants => 'Дан магтаал';
 
   @override
-  String get chants_my_chant_books => 'Миний магтаалын ном';
+  String get chants_my_chant_books_title => 'Миний магтаалын ном';
 
   @override
   String get chants_text_only => 'Зөвхөн бичвэртэй магтаал';
@@ -4283,7 +4280,8 @@ class AppLocalizationsMn extends AppLocalizations {
   String get chants_other_spaces => 'Бусад орон зай';
 
   @override
-  String get chants_search_hint => 'Магтаал болон магтаалын ном хайх';
+  String get chants_search_hint_chant_books =>
+      'Магтаал болон магтаалын ном хайх';
 
   @override
   String get chants_cant_find => 'Хайж буй бичвэрээ олсонгүй юу?';

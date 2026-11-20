@@ -371,16 +371,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recitations_no_content => 'No recitations available';
 
   @override
-  String get my_recitation_collection_new_title => 'New Collection';
+  String get chant_book_new_title => 'New chant book';
 
   @override
   String get my_recitation_collection_next => 'Next';
 
   @override
   String get my_recitation_collection_create => 'Create';
-
-  @override
-  String get my_recitation_collection_create_button => 'Create collection';
 
   @override
   String get my_recitation_collection_change_title => 'Change title';
@@ -395,23 +392,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'Search chants';
 
   @override
-  String get my_recitation_collection_add_to_collection => 'Add to collection';
+  String get chant_book_add_to => 'Add to chant book';
 
   @override
-  String get my_recitation_collection_edit => 'Edit collection';
+  String get chant_book_edit => 'Edit chant book';
 
   @override
-  String get my_recitation_collection_delete => 'Delete collection';
+  String get chant_book_delete => 'Delete chant book';
 
   @override
-  String get my_recitation_collection_delete_title => 'Delete collection?';
+  String get chant_book_delete_title => 'Delete chant book?';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'This collection will be permanently removed';
+  String get chant_book_delete_message =>
+      'This chant book will be permanently removed';
 
   @override
-  String get my_recitation_collection_fallback_title => 'Chant collection';
+  String get chant_book_fallback_title => 'Chant book';
 
   @override
   String get my_recitation_collection_unavailable => 'No longer available';
@@ -441,11 +438,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
-      'No chant collections bookmarked yet';
+  String get chant_book_bookmarks_empty_title =>
+      'No chant books bookmarked yet';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
+  String get chant_book_bookmarks_empty_subtitle =>
       'Bookmark one to save it here';
 
   @override
@@ -2806,8 +2803,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get group_post_updated => 'Your changes are saved';
 
   @override
-  String get practice_collection_already_added =>
-      'This collection is already in your practices';
+  String get chant_book_already_in_practices =>
+      'This chant book is already in your practices';
 
   @override
   String get practice_group_accumulator_already_added =>
@@ -4216,7 +4213,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chants_filter_single_chants => 'Single chants';
 
   @override
-  String get chants_my_chant_books => 'My chantbooks';
+  String get chants_my_chant_books_title => 'My chant books';
 
   @override
   String get chants_text_only => 'Text-only chants';
@@ -4240,7 +4237,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chants_other_spaces => 'Other spaces';
 
   @override
-  String get chants_search_hint => 'Search chants and chantbooks';
+  String get chants_search_hint_chant_books => 'Search chants and chant books';
 
   @override
   String get chants_cant_find => 'Can\'t find the text you\'re looking for?';

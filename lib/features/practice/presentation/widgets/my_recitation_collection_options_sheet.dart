@@ -63,13 +63,13 @@ class MyRecitationCollectionOptionsSheet extends ConsumerWidget {
             ),
             _OptionsTile(
               icon: PhosphorIconsRegular.pencilSimple,
-              label: context.l10n.my_recitation_collection_edit,
+              label: context.l10n.chant_book_edit,
               onTap: () => _onEdit(context),
             ),
             Divider(height: 1, color: dividerColor),
             _OptionsTile(
               icon: AppAssets.trash,
-              label: context.l10n.my_recitation_collection_delete,
+              label: context.l10n.chant_book_delete,
               labelColor: destructiveColor,
               iconColor: destructiveColor,
               onTap: () => _onDelete(context, ref),
@@ -95,8 +95,8 @@ class MyRecitationCollectionOptionsSheet extends ConsumerWidget {
 
     final confirmed = await showDestructiveConfirmationDialog(
       context,
-      title: context.l10n.my_recitation_collection_delete_title,
-      message: context.l10n.my_recitation_collection_delete_message,
+      title: context.l10n.chant_book_delete_title,
+      message: context.l10n.chant_book_delete_message,
       barrierDismissible: false,
       onConfirmed:
           () => _deleteCollection(

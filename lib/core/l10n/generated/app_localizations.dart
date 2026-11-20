@@ -761,11 +761,11 @@ abstract class AppLocalizations {
   /// **'No recitations available'**
   String get recitations_no_content;
 
-  /// No description provided for @my_recitation_collection_new_title.
+  /// No description provided for @chant_book_new_title.
   ///
   /// In en, this message translates to:
-  /// **'New Collection'**
-  String get my_recitation_collection_new_title;
+  /// **'New chant book'**
+  String get chant_book_new_title;
 
   /// No description provided for @my_recitation_collection_next.
   ///
@@ -778,12 +778,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create'**
   String get my_recitation_collection_create;
-
-  /// No description provided for @my_recitation_collection_create_button.
-  ///
-  /// In en, this message translates to:
-  /// **'Create collection'**
-  String get my_recitation_collection_create_button;
 
   /// No description provided for @my_recitation_collection_change_title.
   ///
@@ -809,41 +803,41 @@ abstract class AppLocalizations {
   /// **'Search chants'**
   String get my_recitation_collection_search_chants;
 
-  /// No description provided for @my_recitation_collection_add_to_collection.
+  /// No description provided for @chant_book_add_to.
   ///
   /// In en, this message translates to:
-  /// **'Add to collection'**
-  String get my_recitation_collection_add_to_collection;
+  /// **'Add to chant book'**
+  String get chant_book_add_to;
 
-  /// No description provided for @my_recitation_collection_edit.
+  /// No description provided for @chant_book_edit.
   ///
   /// In en, this message translates to:
-  /// **'Edit collection'**
-  String get my_recitation_collection_edit;
+  /// **'Edit chant book'**
+  String get chant_book_edit;
 
-  /// No description provided for @my_recitation_collection_delete.
+  /// No description provided for @chant_book_delete.
   ///
   /// In en, this message translates to:
-  /// **'Delete collection'**
-  String get my_recitation_collection_delete;
+  /// **'Delete chant book'**
+  String get chant_book_delete;
 
-  /// No description provided for @my_recitation_collection_delete_title.
+  /// No description provided for @chant_book_delete_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete collection?'**
-  String get my_recitation_collection_delete_title;
+  /// **'Delete chant book?'**
+  String get chant_book_delete_title;
 
-  /// No description provided for @my_recitation_collection_delete_message.
+  /// No description provided for @chant_book_delete_message.
   ///
   /// In en, this message translates to:
-  /// **'This collection will be permanently removed'**
-  String get my_recitation_collection_delete_message;
+  /// **'This chant book will be permanently removed'**
+  String get chant_book_delete_message;
 
-  /// No description provided for @my_recitation_collection_fallback_title.
+  /// No description provided for @chant_book_fallback_title.
   ///
   /// In en, this message translates to:
-  /// **'Chant collection'**
-  String get my_recitation_collection_fallback_title;
+  /// **'Chant book'**
+  String get chant_book_fallback_title;
 
   /// No description provided for @my_recitation_collection_unavailable.
   ///
@@ -863,17 +857,17 @@ abstract class AppLocalizations {
   /// **'{count, plural,\n=0 {0 chants • me}\n=1 {1 chant • me}\nother {{count} chants • me}\n}'**
   String my_recitation_collection_chant_count_owner(int count);
 
-  /// No description provided for @bookmarks_empty_chant_collections_title.
+  /// No description provided for @chant_book_bookmarks_empty_title.
   ///
   /// In en, this message translates to:
-  /// **'No chant collections bookmarked yet'**
-  String get bookmarks_empty_chant_collections_title;
+  /// **'No chant books bookmarked yet'**
+  String get chant_book_bookmarks_empty_title;
 
-  /// No description provided for @bookmarks_empty_chant_collections_subtitle.
+  /// No description provided for @chant_book_bookmarks_empty_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Bookmark one to save it here'**
-  String get bookmarks_empty_chant_collections_subtitle;
+  String get chant_book_bookmarks_empty_subtitle;
 
   /// No description provided for @notification_allow_title.
   ///
@@ -4959,11 +4953,11 @@ abstract class AppLocalizations {
   /// **'Your changes are saved'**
   String get group_post_updated;
 
-  /// No description provided for @practice_collection_already_added.
+  /// No description provided for @chant_book_already_in_practices.
   ///
   /// In en, this message translates to:
-  /// **'This collection is already in your practices'**
-  String get practice_collection_already_added;
+  /// **'This chant book is already in your practices'**
+  String get chant_book_already_in_practices;
 
   /// No description provided for @practice_group_accumulator_already_added.
   ///
@@ -7381,11 +7375,11 @@ abstract class AppLocalizations {
   /// **'Single chants'**
   String get chants_filter_single_chants;
 
-  /// No description provided for @chants_my_chant_books.
+  /// No description provided for @chants_my_chant_books_title.
   ///
   /// In en, this message translates to:
-  /// **'My chantbooks'**
-  String get chants_my_chant_books;
+  /// **'My chant books'**
+  String get chants_my_chant_books_title;
 
   /// No description provided for @chants_text_only.
   ///
@@ -7429,11 +7423,11 @@ abstract class AppLocalizations {
   /// **'Other spaces'**
   String get chants_other_spaces;
 
-  /// No description provided for @chants_search_hint.
+  /// No description provided for @chants_search_hint_chant_books.
   ///
   /// In en, this message translates to:
-  /// **'Search chants and chantbooks'**
-  String get chants_search_hint;
+  /// **'Search chants and chant books'**
+  String get chants_search_hint_chant_books;
 
   /// No description provided for @chants_cant_find.
   ///

@@ -373,16 +373,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get recitations_no_content => 'Không có bài tụng nào';
 
   @override
-  String get my_recitation_collection_new_title => 'Tuyển tập mới';
+  String get chant_book_new_title => 'Tuyển tập mới';
 
   @override
   String get my_recitation_collection_next => 'Tiếp';
 
   @override
   String get my_recitation_collection_create => 'Tạo';
-
-  @override
-  String get my_recitation_collection_create_button => 'Tạo tuyển tập';
 
   @override
   String get my_recitation_collection_change_title => 'Đổi tiêu đề';
@@ -397,23 +394,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'Tìm kiếm bài tụng';
 
   @override
-  String get my_recitation_collection_add_to_collection => 'Thêm vào tuyển tập';
+  String get chant_book_add_to => 'Thêm vào tuyển tập';
 
   @override
-  String get my_recitation_collection_edit => 'Chỉnh sửa tuyển tập';
+  String get chant_book_edit => 'Chỉnh sửa tuyển tập';
 
   @override
-  String get my_recitation_collection_delete => 'Xóa tuyển tập';
+  String get chant_book_delete => 'Xóa tuyển tập';
 
   @override
-  String get my_recitation_collection_delete_title => 'Xóa tuyển tập?';
+  String get chant_book_delete_title => 'Xóa tuyển tập?';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'Tuyển tập này sẽ bị xóa vĩnh viễn';
+  String get chant_book_delete_message => 'Tuyển tập này sẽ bị xóa vĩnh viễn';
 
   @override
-  String get my_recitation_collection_fallback_title => 'Tuyển tập bài tụng';
+  String get chant_book_fallback_title => 'Tuyển tập bài tụng';
 
   @override
   String get my_recitation_collection_unavailable => 'Không còn khả dụng';
@@ -443,11 +439,11 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
+  String get chant_book_bookmarks_empty_title =>
       'Chưa đánh dấu tuyển tập bài tụng nào';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
+  String get chant_book_bookmarks_empty_subtitle =>
       'Đánh dấu một tuyển tập để lưu vào đây';
 
   @override
@@ -2828,7 +2824,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get group_post_updated => 'Đã lưu thay đổi của bạn';
 
   @override
-  String get practice_collection_already_added =>
+  String get chant_book_already_in_practices =>
       'Tuyển tập này đã có trong pháp tu của bạn';
 
   @override
@@ -4249,7 +4245,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chants_filter_single_chants => 'Single chants';
 
   @override
-  String get chants_my_chant_books => 'My chantbooks';
+  String get chants_my_chant_books_title => 'My chant books';
 
   @override
   String get chants_text_only => 'Text-only chants';
@@ -4273,7 +4269,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chants_other_spaces => 'Other spaces';
 
   @override
-  String get chants_search_hint => 'Search chants and chantbooks';
+  String get chants_search_hint_chant_books => 'Search chants and chant books';
 
   @override
   String get chants_cant_find => 'Can\'t find the text you\'re looking for?';

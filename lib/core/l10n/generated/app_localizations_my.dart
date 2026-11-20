@@ -373,16 +373,13 @@ class AppLocalizationsMy extends AppLocalizations {
   String get recitations_no_content => 'ရွတ်ဆိုရန်စာ မရှိပါ';
 
   @override
-  String get my_recitation_collection_new_title => 'စုစည်းမှုအသစ်';
+  String get chant_book_new_title => 'စုစည်းမှုအသစ်';
 
   @override
   String get my_recitation_collection_next => 'ရှေ့ဆက်ရန်';
 
   @override
   String get my_recitation_collection_create => 'ဖန်တီးရန်';
-
-  @override
-  String get my_recitation_collection_create_button => 'စုစည်းမှု ဖန်တီးရန်';
 
   @override
   String get my_recitation_collection_change_title => 'ခေါင်းစဉ် ပြောင်းရန်';
@@ -398,25 +395,23 @@ class AppLocalizationsMy extends AppLocalizations {
       'ရွတ်ဆိုရန်စာများ ရှာဖွေရန်';
 
   @override
-  String get my_recitation_collection_add_to_collection =>
-      'စုစည်းမှုသို့ ထည့်ရန်';
+  String get chant_book_add_to => 'စုစည်းမှုသို့ ထည့်ရန်';
 
   @override
-  String get my_recitation_collection_edit => 'စုစည်းမှု ပြင်ဆင်ရန်';
+  String get chant_book_edit => 'စုစည်းမှု ပြင်ဆင်ရန်';
 
   @override
-  String get my_recitation_collection_delete => 'စုစည်းမှု ဖျက်ရန်';
+  String get chant_book_delete => 'စုစည်းမှု ဖျက်ရန်';
 
   @override
-  String get my_recitation_collection_delete_title => 'စုစည်းမှုကို ဖျက်မလား။';
+  String get chant_book_delete_title => 'စုစည်းမှုကို ဖျက်မလား။';
 
   @override
-  String get my_recitation_collection_delete_message =>
+  String get chant_book_delete_message =>
       'ဤစုစည်းမှုကို အပြီးတိုင် ဖယ်ရှားပါမည်';
 
   @override
-  String get my_recitation_collection_fallback_title =>
-      'ရွတ်ဆိုရန်စာ စုစည်းမှု';
+  String get chant_book_fallback_title => 'ရွတ်ဆိုရန်စာ စုစည်းမှု';
 
   @override
   String get my_recitation_collection_unavailable => 'မရရှိနိုင်တော့ပါ';
@@ -446,11 +441,11 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
+  String get chant_book_bookmarks_empty_title =>
       'မှတ်ထားသော ရွတ်ဆိုရန်စာ စုစည်းမှု မရှိသေးပါ';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
+  String get chant_book_bookmarks_empty_subtitle =>
       'တစ်ခုကို မှတ်ထားပါက ဤနေရာတွင် သိမ်းထားပါမည်';
 
   @override
@@ -2845,7 +2840,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get group_post_updated => 'သင့်ပြောင်းလဲမှုများကို သိမ်းပြီးပါပြီ';
 
   @override
-  String get practice_collection_already_added =>
+  String get chant_book_already_in_practices =>
       'ဤစုစည်းမှုသည် သင့်ကျင့်စဉ်များထဲတွင် ရှိပြီးသားဖြစ်ပါသည်';
 
   @override
@@ -4289,7 +4284,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get chants_filter_single_chants => 'Single chants';
 
   @override
-  String get chants_my_chant_books => 'My chantbooks';
+  String get chants_my_chant_books_title => 'My chant books';
 
   @override
   String get chants_text_only => 'Text-only chants';
@@ -4313,7 +4308,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get chants_other_spaces => 'Other spaces';
 
   @override
-  String get chants_search_hint => 'Search chants and chantbooks';
+  String get chants_search_hint_chant_books => 'Search chants and chant books';
 
   @override
   String get chants_cant_find => 'Can\'t find the text you\'re looking for?';

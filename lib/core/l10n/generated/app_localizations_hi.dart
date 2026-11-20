@@ -372,16 +372,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get recitations_no_content => 'कोई पाठ उपलब्ध नहीं';
 
   @override
-  String get my_recitation_collection_new_title => 'नया संग्रह';
+  String get chant_book_new_title => 'नई जप पुस्तक';
 
   @override
   String get my_recitation_collection_next => 'आगे';
 
   @override
   String get my_recitation_collection_create => 'बनाएँ';
-
-  @override
-  String get my_recitation_collection_create_button => 'संग्रह बनाएँ';
 
   @override
   String get my_recitation_collection_change_title => 'शीर्षक बदलें';
@@ -396,23 +393,23 @@ class AppLocalizationsHi extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'पाठ खोजें';
 
   @override
-  String get my_recitation_collection_add_to_collection => 'संग्रह में जोड़ें';
+  String get chant_book_add_to => 'जप पुस्तक में जोड़ें';
 
   @override
-  String get my_recitation_collection_edit => 'संग्रह एडिट करें';
+  String get chant_book_edit => 'जप पुस्तक एडिट करें';
 
   @override
-  String get my_recitation_collection_delete => 'संग्रह हटाएँ';
+  String get chant_book_delete => 'जप पुस्तक हटाएँ';
 
   @override
-  String get my_recitation_collection_delete_title => 'संग्रह हटाएँ?';
+  String get chant_book_delete_title => 'जप पुस्तक हटाएँ?';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'यह संग्रह स्थायी रूप से हटा दिया जाएगा';
+  String get chant_book_delete_message =>
+      'यह जप पुस्तक स्थायी रूप से हटा दी जाएगी';
 
   @override
-  String get my_recitation_collection_fallback_title => 'पाठ संग्रह';
+  String get chant_book_fallback_title => 'जप पुस्तक';
 
   @override
   String get my_recitation_collection_unavailable => 'अब उपलब्ध नहीं';
@@ -442,12 +439,12 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
-      'अभी तक कोई पाठ संग्रह बुकमार्क नहीं किया गया';
+  String get chant_book_bookmarks_empty_title =>
+      'अभी तक कोई जप पुस्तक बुकमार्क नहीं की गई';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
-      'इसे यहाँ सहेजने के लिए किसी संग्रह को बुकमार्क करें';
+  String get chant_book_bookmarks_empty_subtitle =>
+      'इसे यहाँ सहेजने के लिए किसी जप पुस्तक को बुकमार्क करें';
 
   @override
   String get notification_allow_title => 'नोटिफिकेशन की अनुमति दें';
@@ -2832,8 +2829,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get group_post_updated => 'आपके बदलाव सहेज लिए गए';
 
   @override
-  String get practice_collection_already_added =>
-      'यह संग्रह पहले से आपके अभ्यास में है';
+  String get chant_book_already_in_practices =>
+      'यह जप पुस्तक पहले से आपके अभ्यास में है';
 
   @override
   String get practice_group_accumulator_already_added =>
@@ -4245,7 +4242,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chants_filter_single_chants => 'एकल जप';
 
   @override
-  String get chants_my_chant_books => 'मेरी जप पुस्तकें';
+  String get chants_my_chant_books_title => 'मेरी जप पुस्तकें';
 
   @override
   String get chants_text_only => 'केवल पाठ वाले जप';
@@ -4269,7 +4266,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chants_other_spaces => 'अन्य स्पेस';
 
   @override
-  String get chants_search_hint => 'जप और जप पुस्तकें खोजें';
+  String get chants_search_hint_chant_books => 'जप और जप पुस्तकें खोजें';
 
   @override
   String get chants_cant_find => 'जो पाठ आप ढूँढ रहे हैं वह नहीं मिला?';
