@@ -60,6 +60,10 @@ class ApiConfig {
   /// image and bead skin for that mantra.
   static const String userMantrasV2Path = '$v2Prefix/users/me/mantras';
 
+  /// v2 accumulation list. With `owner_type=platform` it is the preset
+  /// catalogue, and with the token each row carries the user's `last_used_at`.
+  static const String accumulationsV2Path = '$v2Prefix/accumulations';
+
   /// Full URL for a given path
   String urlFor(String path) => '$baseUrl$path';
 }

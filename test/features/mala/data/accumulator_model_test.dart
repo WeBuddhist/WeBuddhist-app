@@ -57,4 +57,39 @@ void main() {
     final restored = PresetAccumulatorModel.fromJson(model.toJson()).toEntity();
     expect(restored.deityImage?.medium, 'https://example.com/m.webp');
   });
+  test('parses last_used_at and keeps it in the local cache', () {
+    final model = PresetAccumulatorModel.fromJson({
+      ...preset(),
+      'last_used_at': '2026-11-18T07:42:10.123456+00:00',
+    });
+    final expected = DateTime.utc(2026, 11, 18, 7, 42, 10, 123, 456);
+    expect(model.toEntity().lastUsedAt, expected);
+
+    final restored = PresetAccumulatorModel.fromJson(model.toJson()).toEntity();
+    expect(restored.lastUsedAt, expected);
+  });
+
+  test('last_used_at is null when never used', () {
+    expect(
+      PresetAccumulatorModel.fromJson({
+        ...preset(),
+        'last_used_at': null,
+      }).toEntity().lastUsedAt,
+      isNull,
+    );
+    expect(PresetAccumulatorModel.fromJson(preset()).lastUsedAt, isNull);
+  });
+
+  test('the list response carries last_used_id', () {
+    final page = PresetAccumulatorsResponseModel.fromJson({
+      'accumulators': [preset()],
+      'total': 1,
+      'last_used_id': 'preset-1',
+    });
+    expect(page.lastUsedId, 'preset-1');
+    expect(
+      PresetAccumulatorsResponseModel.fromJson({'accumulators': []}).lastUsedId,
+      isNull,
+    );
+  });
 }

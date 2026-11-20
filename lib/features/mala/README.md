@@ -77,7 +77,7 @@ fetched by authenticated users, so the catch-all is safe.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/accumulators/presets` | Catalogue of preset mantras (paged, `language`). Sent with `no_cache` so it skips the 5-min HTTP cache and always returns the latest titles/images. |
+| `GET` | `/api/v2/accumulations?owner_type=platform` | Catalogue of preset mantras (paged, `language`). Same body as v1 `/accumulators/presets` plus each row's `last_used_at` (orders the carousel, see *Carousel order*). Sent with `no_cache` so it skips the 5-min HTTP cache and always returns the latest titles/images. Called as `ApiConfig.accumulationsV2Path` and listed in `ProtectedRoutes` on its own, since the `/accumulators/` catch-all doesn't cover it. |
 | `GET` | `/accumulators/{parent_id}` | The user's detail for one preset. **404 ⇒ no accumulator yet ⇒ seed at 0.** |
 | `GET` | `/accumulators/{accumulator_id}/groups` | Groups using this preset. Query `joined_only=true` returns only groups the user has joined. `{accumulator_id}` is the preset id (`Mantra.presetId`). Each row includes `user_total_count` — the user's **lifetime** total for that group (shown in the accumulations sheet). Sent with `no_cache`. |
 | `POST` | `/accumulators/user` | Lazily create the user's accumulator (`{parent_id}`, starts at 0). |
@@ -212,12 +212,63 @@ Providers:
   `mergeFromServerCounts()` reconciles with detail API, `resetCount()` for
   group reset.
 
+### Carousel order (latest used first)
+
+Each catalogue row has `last_used_at`: when the user last counted on that
+preset, personal or in a space accumulation built on it (`null` if never or
+without a token). A reset keeps it; changing images doesn't move it. It is
+cached in Hive with the rest of the row and carried onto `Mantra.lastUsedAt`.
+The list's `last_used_id` is parsed but not used: it can name a preset that
+isn't in the list.
+
+Only `MalaScreen` reorders (`latestUsedFirst` in
+`presentation/utils/mala_carousel_order.dart`): used presets newest first,
+then never-used ones in server order, then joined space mantras. The carousel
+opens on index 0, so it opens on the latest-used mantra; `initialPresetId`
+still wins. The select-session screen and the group hero card keep the
+server order.
+
+- **Pinned for the life of the screen.** The order is worked out on the first
+  non-empty catalogue and kept as preset ids (`_pinnedOrder`). A refresh
+  updates each mantra's content but not its position (`inPinnedOrder`); new
+  presets go at the end. A new order shows the next time the screen opens.
+  Otherwise a refresh (e.g. after counting on another device) would move the
+  page under the user's thumb.
+- **The shown mantra is kept by id.** A refresh can still add or drop items
+  before the one on screen: a new preset lands before the joined space
+  mantras, and a removed preset or a changed space list shifts the rest.
+  `MalaScreen` keeps the shown item's `presetId` (`_selectedId`) and finds
+  its index again on every build, so the next tap counts into the same
+  mantra. If that item itself is gone, the nearest position is shown.
+- **Local override.** The server only knows synced counts. Each counted bead
+  or added rounds on a preset (personal or group) writes `{preset_id, at}` to
+  SharedPreferences under `mala_last_used_preset_{userId}`
+  (`MalaLastUsedStore`, at most every 30 s per preset). When ordering, that
+  preset's time is the later of the server's and the local one.
+- `lastUsedAt` is not in `Mantra.props`: a `Mantra` keys `malaCounterProvider`,
+  and a refresh that only moves it must not restart the counter.
+- **Refreshed on entry.** `malaCatalogueProvider` is kept alive, so each
+  `MalaScreen` open calls `malaCatalogueRefreshProvider`, which fetches the
+  catalogue and writes it to Hive (failures are ignored). One fetch per
+  account and language runs at a time: a first load with no cache joins the
+  entry refresh instead of downloading every page again. The screen's own order is already pinned from
+  what was loaded, so counts made on another device order the next visit,
+  not this one.
+- **Per account.** Rows carry the user's own `last_used_at`, so the Hive
+  catalogue is keyed `catalogue:v3:{userId}:{language}` and
+  `malaCatalogueProvider` watches the signed-in state, rebuilding on logout
+  and login. Older shared keys (`catalogue:v2:{language}`,
+  `catalogue:{language}`) are only an offline fallback, served without usage
+  times, and deleted once a v3 catalogue is written.
+- The first open after updating from a build without this has no v3 cache,
+  so it loads from the network (or a legacy cache offline, in server order).
+
 ### Preset catalogue request and tradition filtering
 
 `MalaRemoteDataSource.fetchPresets` sends:
 
 ```
-GET /accumulators/presets?skip=0&limit=100&language=<content language>
+GET /api/v2/accumulations?owner_type=platform&skip=0&limit=100&language=<content language>
 Authorization: Bearer <token>    (AuthInterceptor)
 X-Timezone: <IANA zone>          (TimezoneInterceptor)
 ```
@@ -242,17 +293,18 @@ with no saved tradition get every preset. So `curl` without a token does
 
 If the saved traditions match no preset, the API returns
 `{accumulators: [], total: 0}` with 200 and the app caches that `[]` under
-`catalogue:v2:{language}`. `mala_screen.dart` merges presets with eligible
+`catalogue:v3:{userId}:{language}`. `mala_screen.dart` merges presets with eligible
 joined space mantras before its empty check, so the screen shows
 `mala_no_mantras` ("No mantras available") only when **both** lists are
 empty; a user with a joined space mantra still sees that one. It is the empty
 state, not an error view, so it has no retry button.
 
 Changing the saved tradition in Edit Profile does **not** refresh the Mala
-screen: `malaCatalogueProvider` is not auto-disposed and only rebuilds on
-content-language or auth changes, and saving traditions invalidates only
-`traditionTagFilterProvider`. Restart the app while online: the cached `[]`
-shows first, then the background refresh replaces it.
+screen right away: `malaCatalogueProvider` is not auto-disposed and only
+rebuilds on content-language or sign-in changes, and saving traditions
+invalidates only `traditionTagFilterProvider`. The next Mala open does: the
+cached list shows first, then the entry refresh replaces it (new presets go
+after the pinned ones, removed ones drop out).
 
 Seen on prod 2026-11-16: presets were tagged tibetan 8, pali 1, chinese (Mahayana) 0,
 untagged 0, so Mahayana-only users got an empty Mala screen.
@@ -261,8 +313,8 @@ untagged 0, so Mahayana-only users got an empty Mala screen.
 
 Hive box `mala_counts`, keys `userId:presetId`, value = JSON `LocalMalaState`
 (`total`, `syncedTotal`, `totalCounted`, `accumulatorId`, `beadImageUrl`,
-`beadImageBase64`). The same box also caches the preset catalogue under
-`catalogue:v2:{language}`. `isDirty =
+`beadImageBase64`). The same box also caches the preset catalogue per
+account under `catalogue:v3:{userId}:{language}`. `isDirty =
 total > syncedTotal`. `pruneSynced` removes fully-synced entries (keeps dirty
 tails); it currently has no caller.
 

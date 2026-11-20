@@ -57,7 +57,7 @@ class MantraText extends Equatable {
 }
 
 /// A mantra the user can accumulate — a **preset accumulator**
-/// (`GET /accumulators/presets`).
+/// (`GET /api/v2/accumulations?owner_type=platform`).
 ///
 /// [presetId] is the preset's id, used as the local namespacing key and as the
 /// `parent_id` when lazily creating the user's own accumulator. The user-owned
@@ -79,12 +79,19 @@ class Mantra extends Equatable {
   /// Embedded mantra content (script, transliteration, audio).
   final MantraText? mantra;
 
+  /// When the user last counted on this preset, from the server (`null` if
+  /// never). Orders the mala carousel. Not in [props]: a [Mantra] keys
+  /// `malaCounterProvider`, and a refresh that only moves this must not
+  /// restart the counter.
+  final DateTime? lastUsedAt;
+
   const Mantra({
     required this.presetId,
     this.targetCount,
     this.beadImageUrl,
     this.metadata = const [],
     this.mantra,
+    this.lastUsedAt,
   });
 
   String? get mantraId => mantra?.id;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_pecha/features/mala/data/datasources/mala_local_datasour
 import 'package:flutter_pecha/features/mala/domain/entities/mala_image_option.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/domain/usecases/mala_usecases.dart';
+import 'package:flutter_pecha/features/mala/presentation/providers/mala_last_used_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_manager.dart';
 import 'package:flutter_pecha/features/mala/presentation/screens/mala_screen.dart';
@@ -109,9 +111,21 @@ class _UnusedUpdate extends Fake implements UpdateUserAccumulatorUseCase {}
 /// In-memory stand-in for the Hive-backed group counts.
 class _Local extends Fake implements MalaLocalDataSource {
   final groups = <String, LocalGroupMalaState>{};
+  final presets = <String, LocalMalaState>{};
 
   @override
-  LocalMalaState read(String userId, String presetId) => const LocalMalaState();
+  LocalMalaState read(String userId, String presetId) =>
+      presets[presetId] ?? const LocalMalaState();
+
+  @override
+  Future<void> write(String userId, String presetId, LocalMalaState s) async =>
+      presets[presetId] = s;
+
+  @override
+  Future<LocalMalaState> recordTap(String userId, String presetId) async {
+    final s = read(userId, presetId);
+    return presets[presetId] = s.copyWith(total: s.total + 1);
+  }
 
   @override
   List<String> dirtyPresetIds(String userId) => const [];
@@ -396,6 +410,9 @@ Future<_Harness> _pumpCarousel(
   List<GroupAccumulator> joined, {
   List<Mantra> presets = const [_tara],
   FakeMalaAppearanceRepository? appearance,
+  Stream<Either<Failure, List<Mantra>>>? refreshes,
+  MalaLastUsedStore? lastUsed,
+  void Function()? onCatalogueRefresh,
 }) async {
   final h = _Harness(serverTotal: 42);
   final remote = _OfflineRemote();
@@ -420,7 +437,18 @@ Future<_Harness> _pumpCarousel(
         ),
         prefetchBookmarkExistsProvider.overrideWith((ref, target) {}),
         malaCatalogueProvider.overrideWith(
-          () => ScreenCacheNotifier.fixed(Right(presets)),
+          () =>
+              refreshes == null
+                  ? ScreenCacheNotifier.fixed(Right(presets))
+                  : ScreenCacheNotifier(
+                    (ref, bind) => bind.stream(Right(presets), refreshes),
+                  ),
+        ),
+        malaLastUsedStoreProvider.overrideWithValue(
+          lastUsed ?? _memoryLastUsed({}),
+        ),
+        malaCatalogueRefreshProvider.overrideWithValue(
+          () async => onCatalogueRefresh?.call(),
         ),
         joinedSpaceMantrasProvider.overrideWith(
           (ref) async => [
@@ -440,6 +468,25 @@ Future<_Harness> _pumpCarousel(
   await h.settle(tester);
   return h;
 }
+
+MalaLastUsedStore _memoryLastUsed(Map<String, String> prefs) =>
+    MalaLastUsedStore(
+      read: (key) => prefs[key],
+      write: (key, value) async => prefs[key] = value,
+    );
+
+Mantra _preset(String id, {DateTime? lastUsedAt}) => Mantra(
+  presetId: id,
+  metadata: [AccumulatorMetadata(language: 'en', name: id)],
+  mantra: MantraText(id: '$id-mantra', text: 'ཨོཾ།', title: id),
+  lastUsedAt: lastUsedAt,
+);
+
+List<String> _carouselIds(WidgetTester tester) => [
+  for (final m
+      in tester.widget<MantraSwitcher>(find.byType(MantraSwitcher)).mantras)
+    m.presetId,
+];
 
 void _goTo(WidgetTester tester, int index) {
   tester
@@ -545,6 +592,151 @@ void carouselTests() {
     expect(switcher.imageFor!(switcher.mantras.last), picked);
     // Two away either way is not on screen after one swipe.
     expect(switcher.imageFor!(switcher.mantras[2]), isNull);
+    await h.leave(tester);
+  });
+  testWidgets('opens on the latest-used preset, never-used ones after', (
+    tester,
+  ) async {
+    final h = await _pumpCarousel(
+      tester,
+      [_accumulation],
+      presets: [
+        _preset('a'),
+        _preset('b', lastUsedAt: DateTime.utc(2026, 11, 18)),
+        _preset('c'),
+        _preset('d', lastUsedAt: DateTime.utc(2026, 11, 19)),
+      ],
+    );
+
+    expect(_carouselIds(tester), [
+      'd',
+      'b',
+      'a',
+      'c',
+      'group:$_accumulationId',
+    ]);
+    final switcher = tester.widget<MantraSwitcher>(find.byType(MantraSwitcher));
+    expect(switcher.index, 0);
+    expect(find.text('d'), findsWidgets, reason: 'the title is the latest');
+    await h.leave(tester);
+  });
+
+  testWidgets('opening the screen refreshes the catalogue once', (
+    tester,
+  ) async {
+    var refreshes = 0;
+    final h = await _pumpCarousel(
+      tester,
+      const [],
+      onCatalogueRefresh: () => refreshes++,
+    );
+    expect(refreshes, 1);
+    _goTo(tester, 0);
+    await h.chant(tester, 1);
+    expect(refreshes, 1, reason: 'not on every rebuild');
+    await h.leave(tester);
+  });
+
+  testWidgets('a refresh with a new order does not move the pages', (
+    tester,
+  ) async {
+    final refreshes = StreamController<Either<Failure, List<Mantra>>>();
+    addTearDown(refreshes.close);
+    final h = await _pumpCarousel(
+      tester,
+      const [],
+      presets: [
+        _preset('a', lastUsedAt: DateTime.utc(2026, 11, 19)),
+        _preset('b', lastUsedAt: DateTime.utc(2026, 11, 18)),
+      ],
+      refreshes: refreshes.stream,
+    );
+    expect(_carouselIds(tester), ['a', 'b']);
+    _goTo(tester, 1);
+    await h.settle(tester);
+
+    // Counted on b on another device; a new preset c came out.
+    refreshes.add(
+      Right([
+        _preset('a', lastUsedAt: DateTime.utc(2026, 11, 19)),
+        _preset('c'),
+        _preset('b', lastUsedAt: DateTime.utc(2026, 11, 20)),
+      ]),
+    );
+    await h.settle(tester);
+
+    expect(_carouselIds(tester), ['a', 'b', 'c']);
+    final switcher = tester.widget<MantraSwitcher>(find.byType(MantraSwitcher));
+    expect(switcher.index, 1, reason: 'still on b');
+    expect(switcher.mantras[1].lastUsedAt, DateTime.utc(2026, 11, 20));
+    await h.leave(tester);
+  });
+
+  testWidgets('a refresh adding or removing a preset keeps the mantra shown', (
+    tester,
+  ) async {
+    final refreshes = StreamController<Either<Failure, List<Mantra>>>();
+    addTearDown(refreshes.close);
+    final h = await _pumpCarousel(
+      tester,
+      [_accumulation],
+      presets: [_preset('a')],
+      refreshes: refreshes.stream,
+    );
+    _goTo(tester, 1);
+    await h.settle(tester);
+    await h.chant(tester, 2);
+    expect(h.beads(tester).total, 44);
+
+    MantraSwitcher switcher() =>
+        tester.widget<MantraSwitcher>(find.byType(MantraSwitcher));
+    final space = 'group:$_accumulationId';
+
+    // A new preset lands before the space mantra.
+    refreshes.add(Right([_preset('a'), _preset('b')]));
+    await h.settle(tester);
+    expect(_carouselIds(tester), ['a', 'b', space]);
+    expect(switcher().index, 2, reason: 'still on the space mantra');
+    await h.chant(tester, 1);
+    expect(h.beads(tester).total, 45, reason: 'taps still count into it');
+
+    // A preset before it is removed.
+    refreshes.add(Right([_preset('b')]));
+    await h.settle(tester);
+    expect(_carouselIds(tester), ['b', space]);
+    expect(switcher().index, 1);
+    expect(h.beads(tester).total, 45);
+
+    await h.leave(tester);
+    expect(h.server.total, 45);
+  });
+
+  testWidgets('a counted bead puts its preset first next time', (tester) async {
+    final prefs = <String, String>{};
+    final presets = [
+      _preset('a', lastUsedAt: DateTime.utc(2026, 11, 19)),
+      _preset('b'),
+    ];
+    var h = await _pumpCarousel(
+      tester,
+      const [],
+      presets: presets,
+      lastUsed: _memoryLastUsed(prefs),
+    );
+    _goTo(tester, 1);
+    await h.settle(tester);
+    await h.chant(tester, 1);
+    expect(prefs.keys, ['mala_last_used_preset_$_userId']);
+    await h.leave(tester);
+
+    // The server hasn't got the count yet: the local entry orders it.
+    h = await _pumpCarousel(
+      tester,
+      const [],
+      presets: presets,
+      lastUsed: _memoryLastUsed(prefs),
+    );
+    expect(_carouselIds(tester), ['b', 'a']);
     await h.leave(tester);
   });
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_pecha/core/config/api_config.dart';
 import 'package:flutter_pecha/core/error/exceptions.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/mala/data/models/accumulator_group_model.dart';
@@ -12,7 +13,9 @@ class MalaRemoteDataSource {
 
   static const int _pageSize = 100;
 
-  /// `GET /accumulators/presets` — preset accumulators (catalogue). Pages all.
+  /// `GET /api/v2/accumulations?owner_type=platform` — preset accumulators
+  /// (catalogue). Pages all. Same body as v1 `/accumulators/presets`, plus
+  /// each row's `last_used_at` for the signed-in user.
   /// [language] localizes the embedded mantra title/text/pronunciation.
   /// [search] filters presets server-side by name when non-empty.
   Future<List<PresetAccumulatorModel>> fetchPresets({
@@ -25,8 +28,9 @@ class MalaRemoteDataSource {
       var skip = 0;
       while (true) {
         final response = await dio.get(
-          '/accumulators/presets',
+          ApiConfig.accumulationsV2Path,
           queryParameters: {
+            'owner_type': 'platform',
             'skip': skip,
             'limit': _pageSize,
             if (language != null) 'language': language,

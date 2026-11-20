@@ -63,6 +63,9 @@ class ProtectedRoutes {
     '${ApiConfig.mantrasV2Path}/',
     ApiConfig.malaSkinsV2Path,
     '${ApiConfig.userMantrasV2Path}/',
+    // v2 preset catalogue: without the token every `last_used_at` is null and
+    // the server can't filter by the user's saved traditions.
+    ApiConfig.accumulationsV2Path,
     // Group join / follow
     '/author/groups/{groupId}/join',
     '/author/groups/{groupId}/follow',

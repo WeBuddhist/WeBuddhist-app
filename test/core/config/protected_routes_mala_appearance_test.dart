@@ -9,6 +9,8 @@ void main() {
       '${ApiConfig.mantrasV2Path}/m1/images',
       ApiConfig.malaSkinsV2Path,
       '${ApiConfig.userMantrasV2Path}/m1/appearance',
+      // The catalogue: without the token every last_used_at is null.
+      ApiConfig.accumulationsV2Path,
     ]) {
       expect(ProtectedRoutes.isProtected(path), isTrue, reason: path);
     }

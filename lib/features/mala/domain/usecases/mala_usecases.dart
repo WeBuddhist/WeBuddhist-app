@@ -5,15 +5,27 @@ import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/domain/repositories/mala_repository.dart';
 import 'package:flutter_pecha/shared/domain/base_classes/usecase.dart';
 
-/// Loads the preset catalogue. The parameter is the language code used to
-/// localize the embedded mantra content (null = server default).
-class GetCatalogueUseCase extends UseCase<List<Mantra>, String?> {
+/// What [GetCatalogueUseCase] loads: [language] localizes the embedded
+/// mantra content (null = server default); [userId] is the account the local
+/// cache is kept under (null = no cache).
+class GetCatalogueParams {
+  const GetCatalogueParams({this.language, this.userId});
+
+  final String? language;
+  final String? userId;
+}
+
+/// Loads the preset catalogue.
+class GetCatalogueUseCase extends UseCase<List<Mantra>, GetCatalogueParams> {
   GetCatalogueUseCase(this._repository);
   final MalaRepository _repository;
 
   @override
-  Future<Either<Failure, List<Mantra>>> call(String? language) =>
-      _repository.getCatalogue(language: language);
+  Future<Either<Failure, List<Mantra>>> call(GetCatalogueParams params) =>
+      _repository.getCatalogue(
+        language: params.language,
+        userId: params.userId,
+      );
 }
 
 /// Seeds the user's count for one preset (`GET /accumulators/{parent_id}`).

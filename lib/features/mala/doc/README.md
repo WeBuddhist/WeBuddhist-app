@@ -51,7 +51,9 @@ mala/
 | `malaAccumulationSelectionProvider` | Personal vs group (SharedPreferences) |
 | `malaSettingsProvider` | Sound, vibration, left-handed, play animation, mantra speed |
 | `malaAppearanceProvider` | The user's deity image and bead skin for a mantra, by mantra id (server, API v2) |
-| `malaCatalogueProvider` | Preset catalogue (re-fetches on UI locale change) |
+| `malaCatalogueProvider` | Preset catalogue, cached per account (re-fetches on content language or sign-in change), in server order |
+| `malaCatalogueRefreshProvider` | Background catalogue fetch the mala screen runs on entry, so the next visit has fresh usage times |
+| `malaLastUsedStoreProvider` | Last preset counted on this device, per user (SharedPreferences); orders the carousel before the count syncs |
 
 ## Critical invariants
 
@@ -61,7 +63,9 @@ mala/
 4. **Session vs lifetime** — counter uses session counts; the accumulations sheet shows lifetime for both the personal row (`total_counted` + dirty tail) and group rows (`user_total_count` + dirty tail).
 5. **Presigned bead URLs** — cache as base64 in Hive; widget uses bytes only.
 
-6. **Catalogue is tradition-filtered server-side** — `GET /accumulators/presets` is sent with the bearer token and no `tradition`, so the backend returns only the user's saved traditions plus untagged presets. No match ⇒ `200 {accumulators: [], total: 0}` ⇒ cached `[]` ⇒ "No mantras available" (only if there are also no joined space mantras). Changing traditions doesn't refresh the catalogue; an app restart does. Reproduce with the user's token, not anonymous `curl` (which returns everything). Details in `../README.md` → *Preset catalogue request and tradition filtering*.
+6. **Catalogue is tradition-filtered server-side** — `GET /api/v2/accumulations?owner_type=platform` is sent with the bearer token and no `tradition`, so the backend returns only the user's saved traditions plus untagged presets. No match ⇒ `200 {accumulators: [], total: 0}` ⇒ cached `[]` ⇒ "No mantras available" (only if there are also no joined space mantras). Changing traditions doesn't refresh the catalogue; an app restart does. Reproduce with the user's token, not anonymous `curl` (which returns everything). Details in `../README.md` → *Preset catalogue request and tradition filtering*.
+
+7. **Carousel order is pinned per screen** — `MalaScreen` sorts presets latest-used first (`last_used_at`, or the local last tap if later) once, on open, and keeps that order through refreshes. Details in `../README.md` → *Carousel order*.
 
 ## Cross-feature dependencies
 

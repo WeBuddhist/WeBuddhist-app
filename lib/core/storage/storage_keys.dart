@@ -199,6 +199,11 @@ class StorageKeys {
   static const String malaAccumulationSelectionPrefix =
       'mala_accumulation_selection_';
 
+  /// Per user (`{prefix}{userId}`): the preset the user last counted on here,
+  /// as JSON `{preset_id, at}`. Orders the mala carousel before the server
+  /// has the count.
+  static const String malaLastUsedPresetPrefix = 'mala_last_used_preset_';
+
   /// Space the Connect tab last showed, by group id.
   static const String connectLastSpaceId = 'connect_last_space_id';
 
