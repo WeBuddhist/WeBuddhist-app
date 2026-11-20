@@ -97,16 +97,69 @@ void main() {
       );
     });
 
-    test('a RENEW_FAILED is NOT permanent on its own (restore path tolerates it)',
-        () {
-      final error = CredentialsManagerException('RENEW_FAILED', 'msg', const {});
+    test('a retryable RENEW_FAILED (offline/429/5xx) is NOT permanent', () {
+      final error = CredentialsManagerException('RENEW_FAILED', 'msg', const {
+        '_isRetryable': true,
+      });
       expect(AuthService.isSessionPermanentlyLost(error), isFalse);
+    });
+
+    test('a RENEW_FAILED Auth0 rejected (not retryable) IS permanent', () {
+      final error = CredentialsManagerException('RENEW_FAILED', 'msg', const {
+        '_isRetryable': false,
+      });
+      expect(AuthService.isSessionPermanentlyLost(error), isTrue);
+    });
+  });
+
+  group('isRefreshTokenRejected', () {
+    test('true for a non-retryable RENEW_FAILED', () {
+      expect(
+        AuthService.isRefreshTokenRejected(
+          CredentialsManagerException('RENEW_FAILED', 'm', const {}),
+        ),
+        isTrue,
+      );
+    });
+
+    test('false for a retryable RENEW_FAILED', () {
+      expect(
+        AuthService.isRefreshTokenRejected(
+          CredentialsManagerException('RENEW_FAILED', 'm', const {
+            '_isRetryable': true,
+          }),
+        ),
+        isFalse,
+      );
+    });
+
+    test('true when the IdP session ceiling was reached', () {
+      expect(
+        AuthService.isRefreshTokenRejected(
+          CredentialsManagerException('SESSION_EXPIRED', 'm', const {}),
+        ),
+        isTrue,
+      );
+    });
+
+    test('false for unrelated errors', () {
+      expect(AuthService.isRefreshTokenRejected(AuthException('x')), isFalse);
+      expect(
+        AuthService.isRefreshTokenRejected(
+          CredentialsManagerException('NO_CREDENTIALS', 'm', const {}),
+        ),
+        isFalse,
+      );
     });
   });
 
   group('isTokenRenewalFailed', () {
     test('detects a RENEW_FAILED credentials-manager error', () {
-      final error = CredentialsManagerException('RENEW_FAILED', 'msg', const {});
+      final error = CredentialsManagerException(
+        'RENEW_FAILED',
+        'msg',
+        const {},
+      );
       expect(AuthService.isTokenRenewalFailed(error), isTrue);
     });
 

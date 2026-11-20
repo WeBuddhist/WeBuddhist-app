@@ -47,6 +47,17 @@ class AuthService {
   /// A call whose awaiters timed out; the next fetch waits (bounded) behind it.
   Future<Credentials>? _staleCredentials;
 
+  /// Set once Auth0 has *rejected* the stored refresh token (see
+  /// [isRefreshTokenRejected]). While set, every credentials call fails fast
+  /// with this error instead of sending the same dead token to Auth0 again —
+  /// otherwise each API request on screen opens one more failed exchange
+  /// (`fertft` in the Auth0 logs). Cleared by a new login or a logout.
+  CredentialsManagerException? _rejectedRenewal;
+
+  /// Bumped on every login/logout so a rejection that lands after the user
+  /// has already signed in again cannot wipe the new session.
+  int _sessionGeneration = 0;
+
   /// In-flight [initialize], shared so concurrent callers never double-assign [_auth0].
   Future<void>? _initializing;
 
@@ -94,6 +105,7 @@ class AuthService {
 
       // Store credentials in the credentials manager
       await _auth0.credentialsManager.storeCredentials(credentials);
+      _resetRenewalGuard();
       _logger.info('Credentials stored successfully');
 
       // VERIFY STORAGE IMMEDIATELY AFTER STORING
@@ -130,15 +142,16 @@ class AuthService {
       // launch/restore path and the API path never disagree on when to renew —
       // and a low threshold keeps a safe margin below any configured Auth0
       // access-token lifetime (the SDK throws when minTtl exceeds it).
-      return await _auth0.credentialsManager
-          .credentials(minTtl: _kMinTokenTtlSeconds)
-          .timeout(_kCredentialsTimeout);
+      return await _guardRenewal(
+        () =>
+            _auth0.credentialsManager.credentials(minTtl: _kMinTokenTtlSeconds),
+      ).timeout(_kCredentialsTimeout);
     } on CredentialsManagerException catch (e) {
       // Surface the SDK code at the boundary for diagnostics, then rethrow so
-      // the repository maps it: no-credentials / no-refresh-token / opaque →
-      // AuthenticationFailure (re-login), everything else (incl. RENEW_FAILED,
-      // which at launch is almost always offline) → NetworkFailure (keep the
-      // session and renew on the next request). See
+      // the repository maps it: no-credentials / no-refresh-token / opaque /
+      // rejected refresh token → AuthenticationFailure (re-login), everything
+      // else (incl. a retryable RENEW_FAILED, i.e. offline/429/5xx) →
+      // NetworkFailure (keep the session and renew on the next request). See
       // [AuthRepositoryImpl._credentialFailure] and [isSessionPermanentlyLost].
       _logger.warning('credentials() failed: ${e.code} ${e.message}');
       rethrow;
@@ -171,6 +184,7 @@ class AuthService {
   Future<void> localLogout() async {
     try {
       await _auth0.credentialsManager.clearCredentials();
+      _resetRenewalGuard();
       await _clearLocalIdentity();
       _logger.info('Local logout successful');
     } catch (e) {
@@ -187,6 +201,7 @@ class AuthService {
           )
           .logout(useHTTPS: defaultTargetPlatform != TargetPlatform.macOS);
       await _auth0.credentialsManager.clearCredentials();
+      _resetRenewalGuard();
       await _clearLocalIdentity();
       _logger.info('Global logout successful');
     } catch (e) {
@@ -310,7 +325,10 @@ class AuthService {
           _inflightIsForced = false;
           _staleCredentials = tracked;
         }
-        throw TimeoutException('Credentials call timed out', _kCredentialsTimeout);
+        throw TimeoutException(
+          'Credentials call timed out',
+          _kCredentialsTimeout,
+        );
       },
     );
   }
@@ -332,7 +350,13 @@ class AuthService {
     return _fetchCredentials(force: force);
   }
 
-  Future<Credentials> _fetchCredentials({required bool force}) async {
+  Future<Credentials> _fetchCredentials({required bool force}) {
+    return _guardRenewal(() => _fetchFromCredentialsManager(force: force));
+  }
+
+  Future<Credentials> _fetchFromCredentialsManager({
+    required bool force,
+  }) async {
     final Credentials creds;
     if (force) {
       // Forced (reactive 401) renewal. `renewCredentials()` unconditionally
@@ -355,6 +379,45 @@ class AuthService {
       );
     }
     return creds;
+  }
+
+  /// Runs a credentials-manager call, but stops calling Auth0 once it has
+  /// rejected the refresh token.
+  ///
+  /// On the first rejection the dead credentials are cleared from the device,
+  /// so later launches see "no credentials" and go straight to login without
+  /// another network call. Offline, 429 and 5xx failures are retryable and
+  /// pass through untouched (the session is kept).
+  Future<Credentials> _guardRenewal(
+    Future<Credentials> Function() fetch,
+  ) async {
+    final rejected = _rejectedRenewal;
+    if (rejected != null) throw rejected;
+
+    final generation = _sessionGeneration;
+    try {
+      return await fetch();
+    } on CredentialsManagerException catch (e) {
+      // Ignore a rejection that lands after the user signed in again.
+      if (isRefreshTokenRejected(e) && generation == _sessionGeneration) {
+        _rejectedRenewal = e;
+        _logger.warning(
+          'Auth0 rejected the refresh token (${e.code}) — clearing it and '
+          'requiring sign-in instead of retrying',
+        );
+        try {
+          await _auth0.credentialsManager.clearCredentials();
+        } catch (clearError) {
+          _logger.warning('Failed to clear rejected credentials: $clearError');
+        }
+      }
+      rethrow;
+    }
+  }
+
+  void _resetRenewalGuard() {
+    _sessionGeneration++;
+    _rejectedRenewal = null;
   }
 
   /// API bearer. Proactive renewal happens inside the credentials manager when
@@ -406,17 +469,32 @@ class AuthService {
   /// gone and the user must sign in again — as opposed to a transient/offline
   /// failure we should tolerate (keep the user signed in and renew later).
   ///
-  /// Only a missing credential, a missing refresh token, or an opaque
-  /// (non-JWT) access token is treated as permanent. `RENEW_FAILED` is treated
-  /// as transient: at app open it is almost always a connectivity problem, and
-  /// wiping a valid session for that is the bug we are fixing.
+  /// Permanent: a missing credential, a missing refresh token, an opaque
+  /// (non-JWT) access token, or a refresh token Auth0 *rejected*
+  /// ([isRefreshTokenRejected]). A retryable `RENEW_FAILED` (offline, 429,
+  /// 5xx) stays transient: at app open it is usually a connectivity problem,
+  /// and wiping a valid session for that would be a bug.
   static bool isSessionPermanentlyLost(Object error) {
     if (error is AuthException && error.code == opaqueAccessTokenCode) {
       return true;
     }
     return error is CredentialsManagerException &&
-        (error.isNoCredentialsFound || error.isNoRefreshTokenFound);
+        (error.isNoCredentialsFound ||
+            error.isNoRefreshTokenFound ||
+            isRefreshTokenRejected(error));
   }
+
+  /// Whether Auth0 answered and refused the refresh token (revoked, expired,
+  /// rotated, or the user was deleted), as opposed to a failure worth retrying.
+  ///
+  /// The SDK marks offline, HTTP 429 and HTTP 5xx failures as
+  /// [CredentialsManagerException.isRetryable]; a non-retryable `RENEW_FAILED`
+  /// is Auth0's `invalid_grant`. Retrying it can never succeed and only adds
+  /// "Failed Exchange" entries to the Auth0 logs.
+  static bool isRefreshTokenRejected(Object error) =>
+      error is CredentialsManagerException &&
+      ((error.isTokenRenewFailed && !error.isRetryable) ||
+          error.isSessionExpired);
 
   /// Whether [error] is a failed token *renewal* (`RENEW_FAILED` — the refresh
   /// token could not be exchanged).
