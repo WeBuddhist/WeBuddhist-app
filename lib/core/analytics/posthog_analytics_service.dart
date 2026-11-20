@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pecha/core/analytics/analytics_events.dart';
 import 'package:flutter_pecha/core/analytics/analytics_service.dart';
+import 'package:flutter_pecha/core/analytics/app_open_analytics.dart';
+import 'package:flutter_pecha/core/analytics/foreground_gate.dart';
 import 'package:flutter_pecha/core/analytics/no_op_analytics_service.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/env.dart';
@@ -50,6 +53,14 @@ class PostHogAnalyticsService implements AnalyticsService {
       return;
     }
 
+    // Before setup: from setup on, the SDK's stored version is this build's,
+    // which would hide whether this device had an earlier install.
+    final AppOpenStore openStore = SharedPreferencesAppOpenStore();
+    await AppOpenAnalytics.migrate(
+      store: openStore,
+      probe: () => readLegacyInstall(posthogToken: apiKey),
+    );
+
     final PostHogConfig config = PostHogConfig(apiKey);
     config.host = Env.posthogHost;
     config.debug = Env.isDebug;
@@ -57,6 +68,10 @@ class PostHogAnalyticsService implements AnalyticsService {
     config.beforeSend = [_redactPii];
     // Our own push_notification_opened already counts every push tap.
     config.capturePushNotificationOpened = false;
+    // The SDKs send these at setup, so audio_service's headless engine and
+    // iOS background launches counted as installs and opens. AppOpenAnalytics
+    // sends them only once the UI is shown.
+    config.captureApplicationLifecycleEvents = false;
 
     if (kReleaseMode) {
       config.sessionReplay = true;
@@ -70,8 +85,19 @@ class PostHogAnalyticsService implements AnalyticsService {
     // Before registering: setSuperProperties is a no-op until this is set.
     _isInitialized = true;
     await _registerDefaultSuperProperties();
+
+    AppOpenAnalytics(
+      store: openStore,
+      capture: _captureLifecycleEvent,
+      onFirstOpen: _foregroundGate.open,
+    ).attach();
     _logger.info('PostHog initialized for ${Env.appFlavor}');
   }
+
+  /// Holds events, identifies and screen views until the UI is first shown,
+  /// so a headless start sends nothing. Super properties and reset() only
+  /// change local state and stay immediate.
+  final ForegroundGate _foregroundGate = ForegroundGate();
 
   @override
   Future<void> identify({
@@ -80,9 +106,11 @@ class PostHogAnalyticsService implements AnalyticsService {
   }) async {
     if (!_isInitialized) return;
 
-    await Posthog().identify(
-      userId: userId,
-      userProperties: _sanitizeProperties(properties),
+    await _foregroundGate.run(
+      () => Posthog().identify(
+        userId: userId,
+        userProperties: _sanitizeProperties(properties),
+      ),
     );
   }
 
@@ -90,20 +118,21 @@ class PostHogAnalyticsService implements AnalyticsService {
   Future<void> reset() async {
     if (!_isInitialized) return;
 
+    // Anything held back belonged to the identity being dropped.
+    _foregroundGate.discardPending();
     await Posthog().reset();
     await _registerDefaultSuperProperties();
   }
 
   @override
-  Future<void> track(
-    String event, {
-    Map<String, Object?>? properties,
-  }) async {
+  Future<void> track(String event, {Map<String, Object?>? properties}) async {
     if (!_isInitialized) return;
 
-    await Posthog().capture(
-      eventName: event,
-      properties: _sanitizeProperties(withSanghaGroup(properties)),
+    final Map<String, Object>? sanitized = _sanitizeProperties(
+      withSanghaGroup(properties),
+    );
+    await _foregroundGate.run(
+      () => Posthog().capture(eventName: event, properties: sanitized),
     );
   }
 
@@ -119,8 +148,38 @@ class PostHogAnalyticsService implements AnalyticsService {
     }
   }
 
+  /// Lifecycle events decide when the gate opens, so they skip it.
+  Future<void> _captureLifecycleEvent(
+    String event,
+    Map<String, Object> properties,
+  ) {
+    return Posthog().capture(
+      eventName: event,
+      properties: properties.isEmpty ? null : properties,
+    );
+  }
+
   @override
-  List<NavigatorObserver> get routeObservers => [PosthogObserver()];
+  List<NavigatorObserver> get routeObservers => [
+    PosthogObserver(routeFilter: _screenRouteFilter),
+  ];
+
+  /// While the UI has not been shown, PosthogObserver would still send
+  /// screens: it takes a missing lifecycle state, as in audio_service's
+  /// headless engine, for the foreground. Those screens are queued on the
+  /// gate instead, named as PosthogObserver names them.
+  bool _screenRouteFilter(Route<dynamic>? route) {
+    if (!defaultPostHogRouteFilter(route)) return false;
+    if (_foregroundGate.isOpen) return true;
+    final String? name = route?.settings.name;
+    if (_isInitialized && name != null && name.trim().isNotEmpty) {
+      final String screenName = name == '/' ? "root ('/')" : name;
+      unawaited(
+        _foregroundGate.run(() => Posthog().screen(screenName: screenName)),
+      );
+    }
+    return false;
+  }
 
   /// Session replay only records inside [PostHogWidget]; it must mount after
   /// [initialize], which main() guarantees. Returns [child] untouched when

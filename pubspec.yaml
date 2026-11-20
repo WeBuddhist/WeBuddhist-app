@@ -122,6 +122,9 @@ dependencies:
 
   # Shared preferences
   shared_preferences: ^2.5.3
+  # Reads the PostHog Android SDK's own preferences file (by name) once, to
+  # tell existing installs from new ones; see app_open_analytics.dart.
+  shared_preferences_android: ^2.4.23
   share_plus: ^12.0.2
   app_links: ^6.4.0
   screenshot: ^3.0.0
