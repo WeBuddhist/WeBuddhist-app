@@ -18,6 +18,9 @@ version: 2.42.0+105
 
 environment:
   sdk: ^3.7.2
+  # The Flutter CI builds with; see README "Requirements". Pub reads only the
+  # lower bound, so older Flutter fails here and newer is caught by CI.
+  flutter: 3.41.9
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions

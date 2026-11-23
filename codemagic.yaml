@@ -81,7 +81,7 @@ workflows:
     integrations:
       app_store_connect: AppStoreConnect   # must match the integration name in Codemagic (Team > Integrations)
     environment:
-      flutter: stable
+      flutter: 3.41.9
       xcode: latest
       cocoapods: default
       groups:
@@ -144,7 +144,7 @@ workflows:
     integrations:
       app_store_connect: AppStoreConnect   # must match the integration name in Codemagic (Team > Integrations)
     environment:
-      flutter: stable
+      flutter: 3.41.9
       xcode: latest
       cocoapods: default
       groups:

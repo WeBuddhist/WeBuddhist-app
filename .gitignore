@@ -76,3 +76,6 @@ CLAUDE.md
 
 # Test coverage output (flutter test --coverage)
 coverage/
+
+# FVM (the Flutter version is pinned in .fvmrc)
+.fvm/
