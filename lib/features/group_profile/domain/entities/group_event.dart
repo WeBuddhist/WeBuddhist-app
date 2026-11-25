@@ -209,6 +209,9 @@ class GroupEvent {
   /// Whether the event's chat room (prayer requests) is switched on.
   final bool chatEnabled;
 
+  /// Whether members can upload photos and videos to the event's chat room.
+  final bool chatMediaEnabled;
+
   /// Null until the room is created on first use.
   final String? chatRoomId;
 
@@ -251,11 +254,12 @@ class GroupEvent {
     this.locationId,
     this.location,
     this.eventFormat,
-    this.myParticipationType,
-    this.chatEnabled = false,
-    this.chatRoomId,
-    this.prayerRequestCount = 0,
-  });
+      this.myParticipationType,
+      this.chatEnabled = false,
+      this.chatMediaEnabled = true,
+      this.chatRoomId,
+      this.prayerRequestCount = 0,
+    });
 
   /// A plan, a series or a recitation collection marks the event as a puja
   /// to enter.

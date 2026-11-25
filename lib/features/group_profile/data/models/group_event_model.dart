@@ -283,6 +283,7 @@ class GroupEventModel {
   final String? eventFormat;
   final String? myParticipationType;
   final bool chatEnabled;
+  final bool chatMediaEnabled;
   final String? chatRoomId;
   final int prayerRequestCount;
 
@@ -322,6 +323,7 @@ class GroupEventModel {
     this.eventFormat,
     this.myParticipationType,
     this.chatEnabled = false,
+    this.chatMediaEnabled = true,
     this.chatRoomId,
     this.prayerRequestCount = 0,
   });
@@ -377,6 +379,7 @@ class GroupEventModel {
       eventFormat: json['event_format'] as String?,
       myParticipationType: json['my_participation_type'] as String?,
       chatEnabled: json['chat_enabled'] as bool? ?? false,
+      chatMediaEnabled: json['chat_media_enabled'] as bool? ?? true,
       chatRoomId: json['chat_room_id'] as String?,
       prayerRequestCount: (json['prayer_request_count'] as num?)?.toInt() ?? 0,
     );
@@ -423,6 +426,7 @@ class GroupEventModel {
         myParticipationType,
       ),
       chatEnabled: chatEnabled,
+      chatMediaEnabled: chatMediaEnabled,
       chatRoomId: chatRoomId,
       prayerRequestCount: prayerRequestCount,
     );

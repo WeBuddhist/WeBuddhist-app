@@ -9,6 +9,7 @@ import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_user_d
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_member_dto.dart';
 import 'package:flutter_pecha/features/group_chat/domain/chat_bulk_delete_unsupported.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 
 int _pageInt(Object? value) => value is num ? value.toInt() : 0;
 
@@ -258,6 +259,7 @@ class GroupChatRemoteDatasource {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   }) async {
     return _sendMessage(
       '/chat/groups/$groupId/messages',
@@ -265,6 +267,7 @@ class GroupChatRemoteDatasource {
       parentMessageId: parentMessageId,
       messageType: messageType,
       intention: intention,
+      mediaIds: mediaIds,
     );
   }
 
@@ -274,6 +277,7 @@ class GroupChatRemoteDatasource {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   }) async {
     return _sendMessage(
       '/chat/events/$eventId/messages',
@@ -281,6 +285,7 @@ class GroupChatRemoteDatasource {
       parentMessageId: parentMessageId,
       messageType: messageType,
       intention: intention,
+      mediaIds: mediaIds,
     );
   }
 
@@ -291,11 +296,13 @@ class GroupChatRemoteDatasource {
     String userId, {
     required String body,
     String? parentMessageId,
+    List<String>? mediaIds,
   }) async {
     return _sendMessage(
       '/chat/users/$userId/messages',
       body: body,
       parentMessageId: parentMessageId,
+      mediaIds: mediaIds,
     );
   }
 
@@ -305,6 +312,7 @@ class GroupChatRemoteDatasource {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   }) async {
     try {
       final response = await _dio.post(
@@ -314,6 +322,7 @@ class GroupChatRemoteDatasource {
           if (parentMessageId != null) 'parent_message_id': parentMessageId,
           if (messageType != null) 'message_type': messageType,
           if (intention != null) 'intention': intention,
+          if (mediaIds != null) 'media_ids': mediaIds,
         },
       );
       return ChatMessageDTO.fromJson(response.data as Map<String, dynamic>);
@@ -673,6 +682,45 @@ class GroupChatRemoteDatasource {
           if (messageType != null) 'message_type': messageType,
         },
       );
+    } on DioException catch (e) {
+      throw _unwrap(e);
+    }
+  }
+
+  Future<ChatMessageMedia> uploadChatMedia({
+    required List<int> fileBytes,
+    required String filename,
+    required String mediaType, // IMAGE or VIDEO
+    String quality = 'STANDARD',
+    List<int>? posterBytes,
+    String? posterFilename,
+    int? width,
+    int? height,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(fileBytes, filename: filename),
+        'media_type': mediaType,
+        'quality': quality,
+        if (posterBytes != null && posterFilename != null)
+          'poster': MultipartFile.fromBytes(posterBytes, filename: posterFilename),
+        if (width != null) 'width': width,
+        if (height != null) 'height': height,
+      });
+
+      final response = await _dio.post(
+        '/chat/media',
+        data: formData,
+      );
+      return ChatMessageMedia.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw _unwrap(e);
+    }
+  }
+
+  Future<void> deleteChatMedia(String mediaId) async {
+    try {
+      await _dio.delete('/chat/media/$mediaId');
     } on DioException catch (e) {
       throw _unwrap(e);
     }

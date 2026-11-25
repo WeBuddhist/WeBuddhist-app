@@ -2,6 +2,7 @@ import 'package:flutter_pecha/core/error/exception_mapper.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/group_chat/data/datasource/group_chat_remote_datasource.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_reaction_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_intention_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_summary_dto.dart';
@@ -95,6 +96,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   }) async {
     try {
       return Right(
@@ -104,6 +106,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
           parentMessageId: parentMessageId,
           messageType: messageType,
           intention: intention,
+          mediaIds: mediaIds,
         ),
       );
     } catch (e) {
@@ -118,6 +121,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   }) async {
     try {
       return Right(
@@ -127,6 +131,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
           parentMessageId: parentMessageId,
           messageType: messageType,
           intention: intention,
+          mediaIds: mediaIds,
         ),
       );
     } catch (e) {
@@ -139,6 +144,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
     String userId, {
     required String body,
     String? parentMessageId,
+    List<String>? mediaIds,
   }) async {
     try {
       return Right(
@@ -146,10 +152,50 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
           userId,
           body: body,
           parentMessageId: parentMessageId,
+          mediaIds: mediaIds,
         ),
       );
     } catch (e) {
       return Left(ExceptionMapper.map(e, context: 'sendDirectMessage'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ChatMessageMedia>> uploadChatMedia({
+    required List<int> fileBytes,
+    required String filename,
+    required String mediaType,
+    String quality = 'STANDARD',
+    List<int>? posterBytes,
+    String? posterFilename,
+    int? width,
+    int? height,
+  }) async {
+    try {
+      return Right(
+        await _remote.uploadChatMedia(
+          fileBytes: fileBytes,
+          filename: filename,
+          mediaType: mediaType,
+          quality: quality,
+          posterBytes: posterBytes,
+          posterFilename: posterFilename,
+          width: width,
+          height: height,
+        ),
+      );
+    } catch (e) {
+      return Left(ExceptionMapper.map(e, context: 'uploadChatMedia'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> deleteChatMedia(String mediaId) async {
+    try {
+      await _remote.deleteChatMedia(mediaId);
+      return const Right(unit);
+    } catch (e) {
+      return Left(ExceptionMapper.map(e, context: 'deleteChatMedia'));
     }
   }
 
