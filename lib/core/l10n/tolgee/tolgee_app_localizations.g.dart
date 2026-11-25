@@ -4041,12 +4041,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String group_removed_message(String group, String duration) =>
-      TolgeeBridge.format(
-        localeName,
-        'group_removed_message',
-        <String, Object>{'group': group, 'duration': duration},
-        () => _fallback.group_removed_message(group, duration),
-      );
+      TolgeeBridge.format(localeName, 'group_removed_message', <String, Object>{
+        'group': group,
+        'duration': duration,
+      }, () => _fallback.group_removed_message(group, duration));
 
   @override
   String group_removed_message_no_date(String group) => TolgeeBridge.format(
@@ -5423,6 +5421,59 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get group_chat_preview_photo => TolgeeBridge.get(
+    localeName,
+    'group_chat_preview_photo',
+    () => _fallback.group_chat_preview_photo,
+  );
+
+  @override
+  String group_chat_preview_photos(int count) => TolgeeBridge.format(
+    localeName,
+    'group_chat_preview_photos',
+    <String, Object>{'count': count},
+    () => _fallback.group_chat_preview_photos(count),
+  );
+
+  @override
+  String get group_chat_preview_video => TolgeeBridge.get(
+    localeName,
+    'group_chat_preview_video',
+    () => _fallback.group_chat_preview_video,
+  );
+
+  @override
+  String group_chat_preview_videos(int count) => TolgeeBridge.format(
+    localeName,
+    'group_chat_preview_videos',
+    <String, Object>{'count': count},
+    () => _fallback.group_chat_preview_videos(count),
+  );
+
+  @override
+  String get group_chat_preview_media => TolgeeBridge.get(
+    localeName,
+    'group_chat_preview_media',
+    () => _fallback.group_chat_preview_media,
+  );
+
+  @override
+  String get group_chat_media_upload_failed => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_upload_failed',
+    () => _fallback.group_chat_media_upload_failed,
+  );
+
+  @override
+  String group_chat_media_sending(int current, int total) =>
+      TolgeeBridge.format(
+        localeName,
+        'group_chat_media_sending',
+        <String, Object>{'current': current, 'total': total},
+        () => _fallback.group_chat_media_sending(current, total),
+      );
+
+  @override
   String get group_tab_posts => TolgeeBridge.get(
     localeName,
     'group_tab_posts',
@@ -5729,12 +5780,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String event_replay_session(String day, String session) =>
-      TolgeeBridge.format(
-        localeName,
-        'event_replay_session',
-        <String, Object>{'day': day, 'session': session},
-        () => _fallback.event_replay_session(day, session),
-      );
+      TolgeeBridge.format(localeName, 'event_replay_session', <String, Object>{
+        'day': day,
+        'session': session,
+      }, () => _fallback.event_replay_session(day, session));
 
   @override
   String get event_replay_recording => TolgeeBridge.get(
@@ -8528,12 +8577,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_round_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_round_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_round_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_round_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_round_position(current, total));
 
   @override
   String reader_round_number(String current) => TolgeeBridge.format(
@@ -8545,12 +8592,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_count_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_count_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_count_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_count_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_count_position(current, total));
 
   @override
   String reader_show_script_in(String language) => TolgeeBridge.format(

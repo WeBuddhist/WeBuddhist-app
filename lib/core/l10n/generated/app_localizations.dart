@@ -4857,6 +4857,48 @@ abstract class AppLocalizations {
   /// **'That message is no longer available, so the quote was removed. Send again to post your message'**
   String get group_chat_reply_parent_gone;
 
+  /// No description provided for @group_chat_preview_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get group_chat_preview_photo;
+
+  /// No description provided for @group_chat_preview_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {1 photo} other {{count} photos}}'**
+  String group_chat_preview_photos(int count);
+
+  /// No description provided for @group_chat_preview_video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get group_chat_preview_video;
+
+  /// No description provided for @group_chat_preview_videos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {1 video} other {{count} videos}}'**
+  String group_chat_preview_videos(int count);
+
+  /// No description provided for @group_chat_preview_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get group_chat_preview_media;
+
+  /// No description provided for @group_chat_media_upload_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload media. Try again'**
+  String get group_chat_media_upload_failed;
+
+  /// No description provided for @group_chat_media_sending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending {current} of {total}…'**
+  String group_chat_media_sending(int current, int total);
+
   /// No description provided for @group_tab_posts.
   ///
   /// In en, this message translates to:

@@ -2655,6 +2655,46 @@ class AppLocalizationsZh extends AppLocalizations {
   String get group_chat_reply_parent_gone => '該訊息已無法使用，因此已移除引用。請重新傳送以發布您的訊息';
 
   @override
+  String get group_chat_preview_photo => 'Photo';
+
+  @override
+  String group_chat_preview_photos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get group_chat_preview_video => 'Video';
+
+  @override
+  String group_chat_preview_videos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count videos',
+      one: '1 video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get group_chat_preview_media => 'Media';
+
+  @override
+  String get group_chat_media_upload_failed =>
+      'Couldn\'t upload media. Try again';
+
+  @override
+  String group_chat_media_sending(int current, int total) {
+    return 'Sending $current of $total…';
+  }
+
+  @override
   String get group_tab_posts => '貼文';
 
   @override

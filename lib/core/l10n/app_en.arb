@@ -1458,6 +1458,37 @@
   "group_chat_you": "You",
   "group_chat_tap_to_remove": "Tap to remove",
   "group_chat_reply_parent_gone": "That message is no longer available, so the quote was removed. Send again to post your message",
+  "group_chat_preview_photo": "Photo",
+  "group_chat_preview_photos": "{count, plural, =1 {1 photo} other {{count} photos}}",
+  "@group_chat_preview_photos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "group_chat_preview_video": "Video",
+  "group_chat_preview_videos": "{count, plural, =1 {1 video} other {{count} videos}}",
+  "@group_chat_preview_videos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "group_chat_preview_media": "Media",
+  "group_chat_media_upload_failed": "Couldn't upload media. Try again",
+  "group_chat_media_sending": "Sending {current} of {total}…",
+  "@group_chat_media_sending": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "group_tab_posts": "Posts",
   "group_tab_events": "Events",
   "group_posts_empty_title": "No posts yet",
