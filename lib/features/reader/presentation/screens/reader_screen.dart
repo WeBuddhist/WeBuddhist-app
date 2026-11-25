@@ -620,18 +620,23 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     }
     if (!mounted || recordings.isEmpty || _audioController != null) return;
     final recording = recordings.first;
+    final controller = PlanSegmentAudioController(
+      url: null,
+      startMs: 0,
+      endMs: null,
+      // The file ends and the button goes back to play; nothing advances.
+      onSegmentComplete: () {},
+      resolveUrl:
+          () async => (await library.getRecordingAudioUrl(recording.id)).url,
+    );
     setState(() {
       _libraryRecording = recording;
-      _audioController = PlanSegmentAudioController(
-        url: null,
-        startMs: 0,
-        endMs: null,
-        // The file ends and the button goes back to play; nothing advances.
-        onSegmentComplete: () {},
-        resolveUrl:
-            () async => (await library.getRecordingAudioUrl(recording.id)).url,
-      );
+      _audioController = controller;
     });
+    // Opened from the list's play button: start as soon as it is ready.
+    if (widget.navigationContext?.autoPlay ?? false) {
+      unawaited(controller.maybeAutoPlay());
+    }
   }
 
   /// The recording play will start: the menu choice, or the first one.

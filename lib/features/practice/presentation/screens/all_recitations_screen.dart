@@ -22,6 +22,7 @@ import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chan
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_load_notice.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_rows.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/library_chant_row.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/space_chant_rows.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
@@ -466,14 +467,14 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
             if (i < others.length)
               _SpaceChantItem(chant: others[i])
             else
-              _TextChantItem(
+              _LibraryChantItem(
                 recitation: catalogue.recitations[i - others.length],
-                openLabel: l10n.chants_open_chant,
-                onTap:
-                    () => openRecitationReader(
+                onOpen:
+                    ({required bool play}) => openRecitationReader(
                       context,
                       catalogue.recitations[i - others.length],
                       listLanguage: languageCode,
+                      play: play,
                     ),
               ),
           if (isFullList && catalogue.isLoadingMore)
@@ -630,28 +631,17 @@ class _ChantBookRail extends StatelessWidget {
   }
 }
 
-class _TextChantItem extends StatelessWidget {
-  const _TextChantItem({
-    required this.recitation,
-    required this.openLabel,
-    required this.onTap,
-  });
+class _LibraryChantItem extends StatelessWidget {
+  const _LibraryChantItem({required this.recitation, required this.onOpen});
 
   final RecitationModel recitation;
-  final String openLabel;
-  final VoidCallback onTap;
+  final void Function({required bool play}) onOpen;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      child: TextChantRow(
-        title: recitation.title,
-        openLabel: openLabel,
-        language: recitation.language,
-        firstVerse: recitation.firstSegment?.content,
-        onTap: onTap,
-      ),
+      child: LibraryChantRow(chant: recitation, onOpen: onOpen),
     );
   }
 }

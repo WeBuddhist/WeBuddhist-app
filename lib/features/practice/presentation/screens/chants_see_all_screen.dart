@@ -11,7 +11,7 @@ import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_a
 import 'package:flutter_pecha/features/practice/presentation/utils/recitation_reader_navigation.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_load_notice.dart';
-import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_rows.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/library_chant_row.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/space_chant_rows.dart';
 import 'package:flutter_pecha/features/recitation/presentation/widgets/recitation_list_skeleton.dart';
@@ -219,16 +219,14 @@ class _ChantsSeeAllScreenState extends ConsumerState<ChantsSeeAllScreen> {
           if (i == total) return tail!;
           if (i < others.length) return _spaceRow(others[i]);
           final chant = chants[i - others.length];
-          return TextChantRow(
-            title: chant.title,
-            openLabel: l10n.chants_open_chant,
-            language: chant.language,
-            firstVerse: chant.firstSegment?.content,
-            onTap:
-                () => openRecitationReader(
+          return LibraryChantRow(
+            chant: chant,
+            onOpen:
+                ({required bool play}) => openRecitationReader(
                   context,
                   chant,
                   listLanguage: languageCode,
+                  play: play,
                 ),
           );
         },

@@ -17,7 +17,7 @@ import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_s
 import 'package:flutter_pecha/features/practice/presentation/utils/recitation_reader_navigation.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_book_card.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_filter_pills.dart';
-import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_rows.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/chants/library_chant_row.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_section_header.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/space_chant_rows.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
@@ -493,17 +493,15 @@ class _RecitationsSearchScreenState
   Widget _chantRow(BuildContext context, RecitationModel chant, int position) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      child: TextChantRow(
-        title: chant.title,
-        openLabel: context.l10n.chants_open_chant,
-        language: chant.language,
-        firstVerse: chant.firstSegment?.content,
-        onTap: () {
+      child: LibraryChantRow(
+        chant: chant,
+        onOpen: ({required bool play}) {
           _trackResultOpened(position, itemType: 'chant', itemId: chant.textId);
           openRecitationReader(
             context,
             chant,
             listLanguage: widget.languageCode,
+            play: play,
           );
         },
       ),

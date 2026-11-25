@@ -130,6 +130,7 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
           textId: text.primaryEditionId!,
           title: text.displayTitle,
           language: text.language,
+          hasAudio: text.audioIds.isNotEmpty,
         ),
     ];
     return RecitationsPageResponse(

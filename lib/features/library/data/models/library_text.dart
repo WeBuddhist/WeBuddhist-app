@@ -13,6 +13,10 @@ class LibraryText {
   final List<String> commentaries;
   final List<String> tagIds;
 
+  /// Ids of the text's recorded performances (`audios`). Non-empty means
+  /// the text has audio.
+  final List<String> audioIds;
+
   const LibraryText({
     required this.id,
     required this.title,
@@ -24,6 +28,7 @@ class LibraryText {
     this.translations = const [],
     this.commentaries = const [],
     this.tagIds = const [],
+    this.audioIds = const [],
   });
 
   factory LibraryText.fromJson(Map<String, dynamic> json) {
@@ -38,6 +43,7 @@ class LibraryText {
       translations: stringListFromJson(json['translations']),
       commentaries: stringListFromJson(json['commentaries']),
       tagIds: stringListFromJson(json['tag_ids']),
+      audioIds: stringListFromJson(json['audios']),
     );
   }
 

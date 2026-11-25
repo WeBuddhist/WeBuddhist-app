@@ -9,10 +9,14 @@ import 'package:go_router/go_router.dart';
 /// [listLanguage] is the language currently selected on the chant screen.
 /// When provided it is used so the reader matches the list picker. Otherwise
 /// [RecitationModel.language] is used.
+///
+/// With [play] the reader starts the chant's library recording once it
+/// has loaded it (the list's play button).
 void openRecitationReader(
   BuildContext context,
   RecitationModel recitation, {
   String? listLanguage,
+  bool play = false,
 }) {
   final fromList = listLanguage?.trim();
   final fromModel = recitation.language?.trim();
@@ -26,6 +30,7 @@ void openRecitationReader(
     extra: NavigationContext(
       source: NavigationSource.recitationList,
       language: language,
+      autoPlay: play,
     ),
   );
 }

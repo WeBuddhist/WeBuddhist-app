@@ -9,6 +9,10 @@ class RecitationModel {
   final String? language;
   final int? displayOrder;
 
+  /// The library has a recorded performance of this chant, so the list
+  /// shows it with a play button.
+  final bool hasAudio;
+
   RecitationModel({
     required this.textId,
     required this.title,
@@ -16,6 +20,7 @@ class RecitationModel {
     this.firstSegment,
     this.language,
     this.displayOrder,
+    this.hasAudio = false,
   });
 
   factory RecitationModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +36,7 @@ class RecitationModel {
               : null,
       language: json['language'] as String?,
       displayOrder: json['display_order'] as int?,
+      hasAudio: json['has_audio'] as bool? ?? false,
     );
   }
 
@@ -42,6 +48,7 @@ class RecitationModel {
       if (firstSegment != null) 'first_segment': firstSegment!.toJson(),
       'language': language,
       if (displayOrder != null) 'display_order': displayOrder,
+      if (hasAudio) 'has_audio': true,
     };
   }
 
@@ -52,6 +59,7 @@ class RecitationModel {
     RecitationFirstSegmentModel? firstSegment,
     String? language,
     int? displayOrder,
+    bool? hasAudio,
   }) {
     return RecitationModel(
       textId: textId ?? this.textId,
@@ -60,6 +68,7 @@ class RecitationModel {
       firstSegment: firstSegment ?? this.firstSegment,
       language: language ?? this.language,
       displayOrder: displayOrder ?? this.displayOrder,
+      hasAudio: hasAudio ?? this.hasAudio,
     );
   }
 
