@@ -6,6 +6,7 @@ import 'package:flutter_pecha/features/library/data/models/library_alignment.dar
 import 'package:flutter_pecha/features/library/data/models/library_edition.dart';
 import 'package:flutter_pecha/features/library/data/models/library_page.dart';
 import 'package:flutter_pecha/features/library/data/models/library_reader_models.dart';
+import 'package:flutter_pecha/features/library/data/models/library_recording.dart';
 import 'package:flutter_pecha/features/library/data/models/library_search_result.dart';
 import 'package:flutter_pecha/features/library/data/models/library_segment.dart';
 import 'package:flutter_pecha/features/library/data/models/library_text.dart';
@@ -51,6 +52,7 @@ class LibraryRepository {
   final Map<String, Future<List<LibraryTocSection>>> _tocs = {};
   final Map<String, Future<List<LibraryLineSpan>>> _yigchungs = {};
   final Map<String, Future<Map<String, List<String>>>> _alignments = {};
+  final Map<String, Future<List<LibraryRecording>>> _recordings = {};
 
   /// Coverage by `original>translation`: a number each, so not capped.
   final Map<String, Future<double>> _coverages = {};
@@ -103,6 +105,21 @@ class LibraryRepository {
       return getEdition(editionId);
     });
   }
+
+  /// Recordings that follow the edition [id] resolves to (an edition id, or
+  /// a text id for its first edition). Memoized like the rest of the
+  /// library metadata; a failed lookup is retried on the next call.
+  Future<List<LibraryRecording>> getEditionRecordings(String id) {
+    return _memo(_recordings, id, () async {
+      final edition = await resolveEdition(id);
+      return _datasource.fetchEditionRecordings(edition.id);
+    }, capacity: segmentCacheSize * 4);
+  }
+
+  /// A fresh presigned link to [recordingId]'s audio. Never memoized: the
+  /// link expires, and a player that errors asks for a new one.
+  Future<LibraryRecordingAudioUrl> getRecordingAudioUrl(String recordingId) =>
+      _datasource.fetchRecordingAudioUrl(recordingId);
 
   Future<LibrarySegment> getSegment(String segmentId) =>
       _datasource.fetchSegment(segmentId);
@@ -544,6 +561,7 @@ class LibraryRepository {
       }
       return null;
     }
+
     final last = orNext ? source.length - 1 : sourceIndex;
     for (var i = sourceIndex; i <= last; i++) {
       final index = at(i);

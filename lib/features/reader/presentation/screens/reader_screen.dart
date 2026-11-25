@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/config/router/app_router.dart';
 import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/error/load_error_kind.dart';
+import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
+import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/core/utils/audio_url.dart';
+import 'package:flutter_pecha/features/library/data/models/library_recording.dart';
+import 'package:flutter_pecha/features/library/presentation/providers/library_providers.dart';
 import 'package:flutter_pecha/core/widgets/slide_away_header.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_button.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_accumulator_providers.dart';
@@ -63,6 +67,8 @@ import 'package:flutter_pecha/features/recitation/presentation/widgets/recitatio
 import 'package:flutter_pecha/features/texts/data/models/text_detail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+final _audioLog = AppLogger('ReaderAudio');
 
 /// Main reader screen - thin orchestrator that composes child widgets
 class ReaderScreen extends ConsumerStatefulWidget {
@@ -215,6 +221,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   bool get _hasCollectionAudioChoices =>
       widget.navigationContext?.hasCollectionAudioChoices ?? false;
 
+  /// A chant opened from the library chant list. Its audio comes from the
+  /// library: the recordings that follow the edition on screen.
+  bool get _isLibraryChant =>
+      widget.navigationContext?.source == NavigationSource.recitationList;
+
+  /// The library recording loaded into [_audioController], if any.
+  LibraryRecording? _libraryRecording;
+
   bool get _hasAudio =>
       (_audioController?.hasAudio ?? false) || _hasCollectionAudioChoices;
 
@@ -231,6 +245,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     _params = _sources.first;
     _activeParams = _params;
     _initAudio();
+    if (_isLibraryChant) unawaited(_loadLibraryRecording());
     _initGroupAccumulatorChantSession();
   }
 
@@ -587,6 +602,36 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     }
     _selectedCollectionTrack = track;
     _replaceCollectionAudio(track);
+  }
+
+  /// Looks up the library recordings of the edition on screen and readies
+  /// the first one. The play button appears once it is found; a chant with
+  /// none, or a failed lookup, has no audio. Each play asks the library for
+  /// a fresh presigned link, and the controller asks again when a link
+  /// expires mid-file.
+  Future<void> _loadLibraryRecording() async {
+    final library = ref.read(libraryRepositoryProvider);
+    final List<LibraryRecording> recordings;
+    try {
+      recordings = await library.getEditionRecordings(_params.textId);
+    } catch (e) {
+      _audioLog.warning('No library recordings for ${_params.textId}', e);
+      return;
+    }
+    if (!mounted || recordings.isEmpty || _audioController != null) return;
+    final recording = recordings.first;
+    setState(() {
+      _libraryRecording = recording;
+      _audioController = PlanSegmentAudioController(
+        url: null,
+        startMs: 0,
+        endMs: null,
+        // The file ends and the button goes back to play; nothing advances.
+        onSegmentComplete: () {},
+        resolveUrl:
+            () async => (await library.getRecordingAudioUrl(recording.id)).url,
+      );
+    });
   }
 
   /// The recording play will start: the menu choice, or the first one.
@@ -1201,8 +1246,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
         PlanAudioPlayerBar(
           controller: _audioController,
           versionTitle: title,
+          // A library chant plays its one recording: no versions to pick.
           onVersionTap:
-              title == null
+              title == null || _libraryRecording != null
                   ? null
                   : () => unawaited(_openCollectionAudioSheet()),
         ),
@@ -1212,6 +1258,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
 
   /// Recording name from the backend, for a group recitation that has one.
   String? get _audioVersionTitle {
+    final recording = _libraryRecording;
+    if (recording != null) {
+      final title = recording.displayTitle(
+        ref.read(localeProvider).languageCode,
+      );
+      return title.isEmpty ? null : title;
+    }
     if (!_hasCollectionAudioChoices) return null;
     final title = _currentCollectionTrack?.title.trim();
     if (title == null || title.isEmpty) return null;

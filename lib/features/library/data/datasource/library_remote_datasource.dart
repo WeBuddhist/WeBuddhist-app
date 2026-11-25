@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_pecha/features/library/data/models/library_alignment.dart';
 import 'package:flutter_pecha/features/library/data/models/library_edition.dart';
 import 'package:flutter_pecha/features/library/data/models/library_language.dart';
+import 'package:flutter_pecha/features/library/data/models/library_recording.dart';
 import 'package:flutter_pecha/features/library/data/models/library_search_result.dart';
 import 'package:flutter_pecha/features/library/data/models/library_segment.dart';
 import 'package:flutter_pecha/features/library/data/models/library_text.dart';
@@ -97,6 +98,31 @@ class LibraryRemoteDatasource {
     return _asList(response.data, '/v2/editions/{id}/table-of-contents')
         .map(LibraryTableOfContents.fromJson)
         .toList(growable: false);
+  }
+
+  /// Recordings that follow [editionId], so they can play with its text.
+  Future<List<LibraryRecording>> fetchEditionRecordings(
+    String editionId,
+  ) async {
+    final response = await dio.get('/v2/editions/$editionId/recordings');
+    return _asList(response.data, '/v2/editions/{id}/recordings')
+        .map(LibraryRecording.fromJson)
+        .where((recording) => recording.id.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  /// A fresh presigned link to [recordingId]'s audio. Never served from the
+  /// HTTP cache: a cached link may already have expired.
+  Future<LibraryRecordingAudioUrl> fetchRecordingAudioUrl(
+    String recordingId,
+  ) async {
+    final response = await dio.get(
+      '/v2/recordings/$recordingId/audio-url',
+      options: Options(extra: {'no_cache': true}),
+    );
+    return LibraryRecordingAudioUrl.fromJson(
+      _asMap(response.data, '/v2/recordings/{id}/audio-url'),
+    );
   }
 
   Future<List<LibraryYigchung>> fetchYigchungs(String editionId) async {

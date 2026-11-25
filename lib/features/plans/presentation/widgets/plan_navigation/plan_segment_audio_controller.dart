@@ -36,6 +36,7 @@ class PlanSegmentAudioController extends ChangeNotifier {
     required this.startMs,
     required this.endMs,
     required this.onSegmentComplete,
+    this.resolveUrl,
   }) : progress = ValueNotifier(
          describePlanAudioProgress(
            position: Duration.zero,
@@ -61,7 +62,17 @@ class PlanSegmentAudioController extends ChangeNotifier {
   /// Fired once when the segment finishes playing.
   final VoidCallback onSegmentComplete;
 
+  /// Fetches a link to play, used instead of [url] when set. Called on every
+  /// start, and again when the player errors: an expiring (presigned) link
+  /// is then swapped for a fresh one and playback continues where it was.
+  final Future<String?> Function()? resolveUrl;
+
+  /// Shortest gap between two link refreshes, so a link that fails at once
+  /// cannot refresh in a loop.
+  static const Duration minRefreshInterval = Duration(seconds: 10);
+
   AudioPlayer? _player;
+  StreamSubscription<PlaybackEvent>? _eventSub;
   StreamSubscription<PlayerState>? _playerStateSub;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration?>? _durationSub;
@@ -78,7 +89,17 @@ class PlanSegmentAudioController extends ChangeNotifier {
 
   bool get repeat => preferredRepeat;
 
-  bool get hasAudio => hasPlayableAudio(url);
+  bool get hasAudio => resolveUrl != null || hasPlayableAudio(url);
+
+  /// Last position heard, where a refreshed link picks up again.
+  Duration _lastPosition = Duration.zero;
+
+  /// Where the next start seeks to instead of [startMs]: set when the link
+  /// failed while paused, so play continues from there.
+  Duration? _resumeAt;
+
+  /// When the link was last refreshed after an error.
+  DateTime? _lastRefreshAt;
 
   /// True when the slice is the whole file, so the player can loop it itself.
   bool get _loopsEntireFile => (startMs ?? 0) == 0 && endMs == null;
@@ -189,7 +210,13 @@ class PlanSegmentAudioController extends ChangeNotifier {
           return;
         }
         final ps = _player!.processingState;
-        if (ps == ProcessingState.idle || ps == ProcessingState.completed) {
+        if (_resumeAt != null || ps == ProcessingState.idle) {
+          // The link failed while paused, or the player stopped: load it
+          // again and continue from where it was.
+          await _startAudio(from: _resumeAt);
+          return;
+        }
+        if (ps == ProcessingState.completed) {
           // Full restart — URL/seek needed again.
           await _startAudio();
           return;
@@ -212,10 +239,14 @@ class PlanSegmentAudioController extends ChangeNotifier {
   /// called while this method is suspended on an `await`, it increments the
   /// session id and the guard aborts before subscribing or calling play —
   /// preventing phantom audio during the page-exit animation.
-  Future<void> _startAudio() async {
+  ///
+  /// [from] continues at that position instead of [startMs], after a link
+  /// refresh.
+  Future<void> _startAudio({Duration? from}) async {
     if (!hasAudio || _buttonState == PlanAudioButtonState.loading) return;
 
     _pauseRequested = false;
+    _resumeAt = null;
     final sessionId = ++_audioSessionId;
     _setButtonState(PlanAudioButtonState.loading);
 
@@ -223,14 +254,21 @@ class PlanSegmentAudioController extends ChangeNotifier {
       _player ??= AudioPlayer();
 
       // Tear down stale subscriptions before rebinding.
+      _eventSub?.cancel();
       _playerStateSub?.cancel();
       _positionSub?.cancel();
       _durationSub?.cancel();
+      _eventSub = null;
       _playerStateSub = null;
       _positionSub = null;
       _durationSub = null;
 
-      await _player!.setUrl(url!);
+      final resolve = resolveUrl;
+      final source = resolve != null ? normalizeAudioUrl(await resolve()) : url;
+      if (_isDisposed || sessionId != _audioSessionId) return;
+      if (source == null) throw StateError('No playable audio link');
+
+      await _player!.setUrl(source);
       if (_isDisposed || sessionId != _audioSessionId) return;
 
       await _player!.setSpeed(preferredSpeed);
@@ -239,7 +277,7 @@ class PlanSegmentAudioController extends ChangeNotifier {
       await _applyLoopMode();
       if (_isDisposed || sessionId != _audioSessionId) return;
 
-      await _player!.seek(Duration(milliseconds: startMs ?? 0));
+      await _player!.seek(from ?? Duration(milliseconds: startMs ?? 0));
       if (_isDisposed || sessionId != _audioSessionId) return;
 
       _hasCompleted = false;
@@ -250,6 +288,15 @@ class PlanSegmentAudioController extends ChangeNotifier {
       // skip(1) discards the BehaviorSubject's stale initial emit
       // (playing: false, ready) which would otherwise race with
       // the pause state set below and incorrectly reset the button.
+      // Playback errors (an expired link, a dropped connection) arrive here.
+      // Only a resolved link can be refreshed, so a fixed [url] keeps the
+      // player's own handling.
+      if (resolveUrl != null) {
+        _eventSub = _player!.playbackEventStream.listen(
+          (_) {},
+          onError: (Object error, StackTrace _) => _onPlaybackError(sessionId),
+        );
+      }
       _playerStateSub = _player!.playerStateStream
           .skip(1)
           .listen(_onPlayerState);
@@ -265,8 +312,36 @@ class PlanSegmentAudioController extends ChangeNotifier {
       _setButtonState(PlanAudioButtonState.pause);
     } catch (_) {
       // Presigned URL expired, network failure, etc. — reset to idle.
+      if (sessionId == _audioSessionId) _resumeAt = from;
       _setButtonState(PlanAudioButtonState.play);
     }
+  }
+
+  /// The player failed mid-file. With [resolveUrl], fetch a fresh link and
+  /// continue from the last position heard; while paused, the next play
+  /// does that instead. Without it, or when the link was refreshed less than
+  /// [minRefreshInterval] ago, the button goes back to play.
+  void _onPlaybackError(int sessionId) {
+    if (_isDisposed || sessionId != _audioSessionId || _hasCompleted) return;
+    final resumeAt = _lastPosition;
+    final now = DateTime.now();
+    final last = _lastRefreshAt;
+    final canRefresh =
+        resolveUrl != null &&
+        (last == null || now.difference(last) >= minRefreshInterval);
+    if (!canRefresh) {
+      _resumeAt = resumeAt;
+      _setButtonState(PlanAudioButtonState.play);
+      return;
+    }
+    if (_pauseRequested) {
+      _resumeAt = resumeAt;
+      return;
+    }
+    _lastRefreshAt = now;
+    // Hand the button back first: a start ignores calls made while loading.
+    _buttonState = PlanAudioButtonState.play;
+    unawaited(_startAudio(from: resumeAt));
   }
 
   /// Handles player stops. A natural completion advances the segment; any
@@ -309,6 +384,7 @@ class PlanSegmentAudioController extends ChangeNotifier {
   /// [endMs] boundary is reached. Only relevant when a window is defined.
   /// Repeat seeks back to [startMs] and keeps the same task on screen.
   void _onPosition(Duration position) {
+    _lastPosition = position;
     _publishProgress(position);
     if (_hasCompleted || _loopRestarting) return;
     final end = endMs;
@@ -409,6 +485,9 @@ class PlanSegmentAudioController extends ChangeNotifier {
     _pauseRequested = false;
     _loopRestarting = false;
     _staleEndSkips = 0;
+    _resumeAt = null;
+    _eventSub?.cancel();
+    _eventSub = null;
     _playerStateSub?.cancel();
     _positionSub?.cancel();
     _durationSub?.cancel();
