@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/config/router/app_routes.dart';
@@ -17,6 +18,10 @@ import 'package:flutter_pecha/features/group_chat/presentation/providers/group_c
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_composer_controller.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_upload_banner.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/push_notifications/domain/entities/push_message.dart';
 import 'package:flutter_pecha/features/push_notifications/presentation/providers/push_notification_providers.dart';
@@ -73,6 +78,9 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   StreamSubscription<PushMessage>? _pushSub;
   bool _redirecting = false;
   bool _sending = false;
+  ChatMediaUploader? _mediaUpload;
+  int? _mediaUploadCurrent;
+  int? _mediaUploadTotal;
   bool _resolvingRoom = false;
   _RoomState _roomState = _RoomState.resolving;
   String? _roomId;
@@ -385,6 +393,125 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     setState(() => _selection = selection);
   }
 
+  void _openMediaPicker() {
+    showChatMediaAttachSheet(
+      context,
+      onMediaSelected: (files, mediaType, caption) {
+        unawaited(_sendMedia(files, mediaType, caption));
+      },
+    );
+  }
+
+  void _cancelMediaUpload() {
+    _mediaUpload?.cancel();
+  }
+
+  Future<void> _sendMedia(
+    List<File> files,
+    String mediaType,
+    String caption,
+  ) async {
+    if (_sending || files.isEmpty) return;
+    final parent = _replyingTo;
+    final repository = _providers.read(groupChatRepositoryProvider);
+    final session = startChatMediaUpload(
+      repository: repository,
+      files: files,
+      mediaType: mediaType,
+      onProgress: (current, total) {
+        if (!mounted) return;
+        setState(() {
+          _mediaUploadCurrent = current;
+          _mediaUploadTotal = total;
+        });
+      },
+    );
+    setState(() {
+      _sending = true;
+      _mediaUpload = session.uploader;
+      _mediaUploadCurrent = 0;
+      _mediaUploadTotal = files.length;
+    });
+    var pendingMediaIds = <String>[];
+    try {
+      final upload = await session.future;
+      pendingMediaIds = List<String>.from(upload.mediaIds);
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      if (upload.isCancelled) return;
+      if (upload.failed || pendingMediaIds.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.group_chat_media_upload_failed)),
+        );
+        return;
+      }
+
+      final analytics = _providers.read(groupChatAnalyticsProvider);
+      final result = await repository.sendGroupMessage(
+        widget.groupId,
+        body: caption,
+        parentMessageId: parent?.id,
+        mediaIds: pendingMediaIds,
+      );
+      result.map((message) {
+        _trackOpened(message.roomId, source: ChatOpenSource.firstSend);
+        analytics.messageSent(
+          groupId: widget.groupId,
+          roomId: message.roomId,
+          messageId: message.id,
+          parentMessageId: parent?.id,
+        );
+      });
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      await result.fold(
+        (failure) async {
+          await deletePendingChatMedia(repository, pendingMediaIds);
+          pendingMediaIds = [];
+          final lostParent =
+              chatSendErrorKind(failure) == ChatSendErrorKind.invalidParent;
+          setState(() {
+            if (lostParent) _replyingTo = null;
+          });
+          if (!mounted) return;
+          presentChatSendError(context, failure);
+        },
+        (message) async {
+          pendingMediaIds = [];
+          await _persistRoomId(message.roomId);
+          if (!mounted) return;
+          final newRoom = _roomId != message.roomId;
+          setState(() {
+            _replyingTo = null;
+            _roomId = message.roomId;
+            _roomState = _RoomState.joined;
+          });
+          _providers
+              .read(groupChatThreadProvider(message.roomId).notifier)
+              .appendLive(message);
+          unawaited(_markRoomRead());
+          if (newRoom) _attachLive(message.roomId);
+        },
+      );
+    } finally {
+      if (pendingMediaIds.isNotEmpty) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+      }
+      if (mounted) {
+        setState(() {
+          _sending = false;
+          _mediaUpload = null;
+          _mediaUploadCurrent = null;
+          _mediaUploadTotal = null;
+        });
+      }
+    }
+  }
+
   Future<void> _send() async {
     final body = _bodyController.text.trim();
     if (body.isEmpty || _sending) return;
@@ -632,12 +759,19 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                         currentUserEmail: _viewerEmail,
                       ),
                     ),
+                  if (_mediaUploadTotal != null && _mediaUploadCurrent != null)
+                    ChatMediaUploadBanner(
+                      current: _mediaUploadCurrent!,
+                      total: _mediaUploadTotal!,
+                      onCancel: _cancelMediaUpload,
+                    ),
                   GroupChatComposer(
                     controller: _bodyController,
                     focusNode: _bodyFocusNode,
                     hintText: context.l10n.group_chat_message_hint,
                     isSending: _sending,
                     onSubmit: _send,
+                    onAddMediaPressed: _openMediaPicker,
                     avatarUrl: user?.avatarUrl,
                     displayName: user?.visibleNameOrNull ?? user?.email,
                   ),

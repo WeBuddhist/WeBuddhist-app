@@ -387,6 +387,20 @@ class GroupChatThreadNotifier extends StateNotifier<GroupChatThreadState> {
     );
   }
 
+  void removeMessage(String messageId) {
+    state = state.copyWith(
+      messages: state.messages.where((m) => m.id != messageId).toList(),
+      skip: state.skip > 0 ? state.skip - 1 : 0,
+      total: state.total > 0 ? state.total - 1 : 0,
+    );
+  }
+
+  void updateMessage(ChatMessageDTO updated) {
+    state = state.copyWith(
+      messages: state.messages.map((m) => m.id == updated.id ? updated : m).toList(),
+    );
+  }
+
   /// Re-reads the newest page after a signal, a push or a return from the
   /// background and merges by id, so nothing is duplicated and an own send
   /// or reaction still in flight keeps its optimistic row. False on failure.

@@ -21,6 +21,8 @@ class GroupChatComposer extends StatelessWidget {
     this.enabled = true,
     this.avatarUrl,
     this.displayName,
+    this.chatMediaEnabled = true,
+    this.onAddMediaPressed,
   });
 
   final TextEditingController controller;
@@ -33,6 +35,10 @@ class GroupChatComposer extends StatelessWidget {
   /// Own avatar and name for the leading circle.
   final String? avatarUrl;
   final String? displayName;
+
+  /// Chat media uploading state
+  final bool chatMediaEnabled;
+  final VoidCallback? onAddMediaPressed;
 
   static const double _fieldHeight = 44;
   static const double _sendButtonSize = 44;
@@ -61,6 +67,13 @@ class GroupChatComposer extends StatelessWidget {
             displayName: displayName,
             isDark: isDark,
           ),
+          if (chatMediaEnabled && onAddMediaPressed != null) ...[
+            const SizedBox(width: 10),
+            _AddMediaButton(
+              onPressed: enabled && !isSending ? onAddMediaPressed : null,
+              isDark: isDark,
+            ),
+          ],
           const SizedBox(width: 10),
           Expanded(
             child: _MessageField(
@@ -91,6 +104,43 @@ class GroupChatComposer extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddMediaButton extends StatelessWidget {
+  const _AddMediaButton({
+    required this.onPressed,
+    required this.isDark,
+  });
+
+  final VoidCallback? onPressed;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDark ? AppColors.grey300 : AppColors.grey600;
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
+        shape: BoxShape.circle,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: Icon(
+            AppAssets.plus,
+            size: 18,
+            color: color,
+          ),
+        ),
       ),
     );
   }

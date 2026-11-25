@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
@@ -12,6 +13,11 @@ import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.d
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/chat_send_error.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/direct_chat_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_upload_banner.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
@@ -56,6 +62,9 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
   ModalRoute<dynamic>? _route;
   bool _disposed = false;
   bool _sending = false;
+  ChatMediaUploader? _mediaUpload;
+  int? _mediaUploadCurrent;
+  int? _mediaUploadTotal;
 
   /// The message a reply is being composed for, quoted above the composer.
   ChatMessageDTO? _replyingTo;
@@ -153,6 +162,108 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
   void _onSelectionChanged(ChatSelection? selection) {
     if (!mounted || _disposed) return;
     setState(() => _selection = selection);
+  }
+
+  void _openMediaPicker() {
+    showChatMediaAttachSheet(
+      context,
+      onMediaSelected: (files, mediaType, caption) {
+        unawaited(_sendMedia(files, mediaType, caption));
+      },
+    );
+  }
+
+  void _cancelMediaUpload() {
+    _mediaUpload?.cancel();
+  }
+
+  Future<void> _sendMedia(
+    List<File> files,
+    String mediaType,
+    String caption,
+  ) async {
+    if (_sending || files.isEmpty) return;
+    final parent = _replyingTo;
+    final repository = _providers.read(groupChatRepositoryProvider);
+    final session = startChatMediaUpload(
+      repository: repository,
+      files: files,
+      mediaType: mediaType,
+      onProgress: (current, total) {
+        if (!mounted) return;
+        setState(() {
+          _mediaUploadCurrent = current;
+          _mediaUploadTotal = total;
+        });
+      },
+    );
+    setState(() {
+      _sending = true;
+      _mediaUpload = session.uploader;
+      _mediaUploadCurrent = 0;
+      _mediaUploadTotal = files.length;
+    });
+    var pendingMediaIds = <String>[];
+    try {
+      final upload = await session.future;
+      pendingMediaIds = List<String>.from(upload.mediaIds);
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      if (upload.isCancelled) return;
+      if (upload.failed || pendingMediaIds.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.group_chat_media_upload_failed)),
+        );
+        return;
+      }
+
+      final result = await _notifier.send(
+        caption,
+        parentMessageId: parent?.id,
+        mediaIds: pendingMediaIds,
+      );
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      result.fold(
+        (_) {},
+        (message) => _providers.read(groupChatAnalyticsProvider).directMessageSent(
+              roomId: widget.roomId,
+              messageId: message.id,
+              isReply: parent != null,
+            ),
+      );
+      await result.fold(
+        (failure) async {
+          await deletePendingChatMedia(repository, pendingMediaIds);
+          pendingMediaIds = [];
+          if (chatSendErrorKind(failure) == ChatSendErrorKind.invalidParent) {
+            setState(() => _replyingTo = null);
+          }
+          if (!mounted) return;
+          presentChatSendError(context, failure);
+        },
+        (_) async {
+          pendingMediaIds = [];
+          setState(() => _replyingTo = null);
+        },
+      );
+    } finally {
+      if (pendingMediaIds.isNotEmpty) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+      }
+      if (mounted) {
+        setState(() {
+          _sending = false;
+          _mediaUpload = null;
+          _mediaUploadCurrent = null;
+          _mediaUploadTotal = null;
+        });
+      }
+    }
   }
 
   Future<void> _send() async {
@@ -283,12 +394,19 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
                 currentUserEmail: user?.email,
               ),
             ),
+          if (_mediaUploadTotal != null && _mediaUploadCurrent != null)
+            ChatMediaUploadBanner(
+              current: _mediaUploadCurrent!,
+              total: _mediaUploadTotal!,
+              onCancel: _cancelMediaUpload,
+            ),
           GroupChatComposer(
             controller: _bodyController,
             focusNode: _bodyFocusNode,
             hintText: context.l10n.group_chat_message_hint,
             isSending: _sending,
             onSubmit: _send,
+            onAddMediaPressed: _openMediaPicker,
             enabled: canSend,
             avatarUrl: user?.avatarUrl,
             displayName: user?.visibleNameOrNull ?? user?.email,
