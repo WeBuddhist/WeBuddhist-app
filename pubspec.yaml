@@ -151,6 +151,12 @@ dependencies:
 
   # WebView
   webview_flutter: ^4.10.0
+  # Chat media dependencies
+  photo_manager: ^3.3.0
+  photo_manager_image_provider: ^2.2.0
+  video_player: ^2.9.1
+  gal: ^3.0.1
+  video_compress: ^3.1.2
   # QR code generation
   qr_flutter: ^4.1.0
   skeletonizer: ^2.1.2
