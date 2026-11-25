@@ -14,6 +14,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_messag
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_time.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_link_preview_card.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_message_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_quoted_message.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_reaction_badges.dart';
 import 'package:intl/intl.dart';
@@ -288,7 +289,10 @@ class GroupChatMessageBubble extends StatelessWidget {
                       isParentDeleted || message.parent!.deletedAt != null,
                   onTap: onTapQuote,
                 ),
-              _body(context, textColor, isDark),
+              if (message.media.isNotEmpty)
+                ChatMessageMediaBubble(media: message.media, isDark: isDark),
+              if (message.body.trim().isNotEmpty)
+                _body(context, textColor, isDark),
               if (previewUrl != null)
                 GroupChatLinkPreviewCard(url: previewUrl, onOpen: _openUrl),
             ],
@@ -310,7 +314,8 @@ class GroupChatMessageBubble extends StatelessWidget {
 
   Widget _maybeIntrinsic(Widget column) {
     final isReply = message.parent != null && !isDeleted;
-    return isReply ? column : IntrinsicWidth(child: column);
+    final hasMedia = message.media.isNotEmpty;
+    return isReply || hasMedia ? column : IntrinsicWidth(child: column);
   }
 
   TextStyle _timeStyle(bool isDark) {

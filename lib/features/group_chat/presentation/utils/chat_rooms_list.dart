@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_pecha/features/feedback/domain/help_context_line.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_time.dart';
 
@@ -199,12 +200,20 @@ bool chatPushTargets(
 /// carrying its body, and showing that here would contradict the tombstone one
 /// tap away. A Help & contact message previews what the user wrote, not the
 /// "Sent from Help & contact" line above it.
-String? chatRoomPreviewBody(ChatRoomDTO room, {required String deletedLabel}) {
+String? chatRoomPreviewBody(
+  ChatRoomDTO room, {
+  required String deletedLabel,
+  String Function(List<ChatMessageMedia> media)? mediaPreview,
+}) {
   final message = room.lastMessage;
   if (message == null) return null;
   if (message.deletedAt != null) return deletedLabel;
 
   final text = parseHelpContext(message.body)?.body ?? message.body;
   final body = text.replaceAll(RegExp(r'\s*\n\s*'), ' ').trim();
-  return body.isEmpty ? null : body;
+  if (body.isNotEmpty) return body;
+  if (message.media.isNotEmpty && mediaPreview != null) {
+    return mediaPreview(message.media);
+  }
+  return null;
 }

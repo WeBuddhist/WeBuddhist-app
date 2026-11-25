@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_parent_dto.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_media_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_quoted_message.dart';
 
 /// The pinned quote above the composer while a reply is being written.
@@ -64,6 +66,21 @@ class GroupChatReplyPreview extends StatelessWidget {
       senderAvatarUrl: message.senderAvatarUrl,
       body: message.body,
       createdAt: message.createdAt,
+      mediaSummary: _mediaSummary(message),
+    );
+  }
+
+  static ChatMessageMediaSummary? _mediaSummary(ChatMessageDTO message) {
+    if (message.media.isEmpty) return null;
+    final first = message.media.first;
+    final type =
+        chatMediaIsVideo(first.mediaType)
+            ? 'VIDEO'
+            : 'IMAGE';
+    return ChatMessageMediaSummary(
+      mediaType: type,
+      count: message.media.length,
+      thumbnailUrl: first.thumbnailUrl ?? first.url,
     );
   }
 }
