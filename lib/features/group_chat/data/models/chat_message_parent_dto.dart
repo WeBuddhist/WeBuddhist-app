@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_visible_name.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 
 class ChatMessageParentDTO extends Equatable {
   final String id;
@@ -20,6 +21,7 @@ class ChatMessageParentDTO extends Equatable {
   /// any original still in its loaded window, and a `message_deleted` frame
   /// stamps it onto every loaded reply — see `applyDeletion`.
   final String? deletedAt;
+  final ChatMessageMediaSummary? mediaSummary;
 
   const ChatMessageParentDTO({
     required this.id,
@@ -30,9 +32,11 @@ class ChatMessageParentDTO extends Equatable {
     required this.body,
     required this.createdAt,
     this.deletedAt,
+    this.mediaSummary,
   });
 
   factory ChatMessageParentDTO.fromJson(Map<String, dynamic> json) {
+    final mediaSummaryJson = json['media_summary'];
     return ChatMessageParentDTO(
       id: json['id'] as String? ?? '',
       senderId: json['sender_id'] as String? ?? '',
@@ -42,6 +46,9 @@ class ChatMessageParentDTO extends Equatable {
       body: json['body'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
       deletedAt: json['deleted_at'] as String?,
+      mediaSummary: mediaSummaryJson is Map<String, dynamic>
+          ? ChatMessageMediaSummary.fromJson(mediaSummaryJson)
+          : null,
     );
   }
 
@@ -52,7 +59,7 @@ class ChatMessageParentDTO extends Equatable {
 
   /// [deletedAt] only ever goes from null to a timestamp — nothing undeletes
   /// a message — so `?? this` loses nothing.
-  ChatMessageParentDTO copyWith({String? deletedAt}) {
+  ChatMessageParentDTO copyWith({String? deletedAt, ChatMessageMediaSummary? mediaSummary}) {
     return ChatMessageParentDTO(
       id: id,
       senderId: senderId,
@@ -62,6 +69,7 @@ class ChatMessageParentDTO extends Equatable {
       body: body,
       createdAt: createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      mediaSummary: mediaSummary ?? this.mediaSummary,
     );
   }
 
@@ -75,18 +83,20 @@ class ChatMessageParentDTO extends Equatable {
       'body': body,
       'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (mediaSummary != null) 'media_summary': mediaSummary!.toJson(),
     };
   }
 
   @override
   List<Object?> get props => [
-    id,
-    senderId,
-    senderEmail,
-    senderName,
-    senderAvatarUrl,
-    body,
-    createdAt,
-    deletedAt,
-  ];
+        id,
+        senderId,
+        senderEmail,
+        senderName,
+        senderAvatarUrl,
+        body,
+        createdAt,
+        deletedAt,
+        mediaSummary,
+      ];
 }

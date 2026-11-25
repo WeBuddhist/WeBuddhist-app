@@ -6,6 +6,7 @@ import 'package:flutter_pecha/features/group_chat/data/models/chat_message_trans
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_intention_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_request_source_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_user_dto.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 
 class ChatMessageDTO extends Equatable {
   /// `message_type` values the API accepts.
@@ -34,6 +35,7 @@ class ChatMessageDTO extends Equatable {
 
   final ChatMessageParentDTO? parent;
   final List<ChatMessageReactionDTO> reactions;
+  final List<ChatMessageMedia> media;
 
   /// `TEXT` or `PRAYER`; rows from before the field existed read as `TEXT`.
   final String messageType;
@@ -57,6 +59,13 @@ class ChatMessageDTO extends Equatable {
   final ChatMessageTranslationDTO? translation;
   final bool canTranslate;
 
+  /// Local-only fields for media uploads
+  final bool isOptimisticSending;
+  final bool isOptimisticFailed;
+  final int sendingProgressCurrent;
+  final int sendingProgressTotal;
+  final List<String>? optimisticLocalFilePaths;
+
   /// An accomplished request stays listed with its counts; nobody prays for it.
   final bool isCompleted;
   final String? completedAt;
@@ -79,6 +88,7 @@ class ChatMessageDTO extends Equatable {
     this.deletedAt,
     this.parent,
     this.reactions = const [],
+    this.media = const [],
     this.messageType = typeText,
     this.intention,
     this.prayerCount = 0,
@@ -89,6 +99,11 @@ class ChatMessageDTO extends Equatable {
     this.sourceLanguage,
     this.translation,
     this.canTranslate = false,
+    this.isOptimisticSending = false,
+    this.isOptimisticFailed = false,
+    this.sendingProgressCurrent = 0,
+    this.sendingProgressTotal = 0,
+    this.optimisticLocalFilePaths,
     this.isCompleted = false,
     this.completedAt,
     this.group,
@@ -133,6 +148,11 @@ class ChatMessageDTO extends Equatable {
           (json['reactions'] as List<dynamic>?)
               ?.whereType<Map<String, dynamic>>()
               .map(ChatMessageReactionDTO.fromJson)
+              .toList() ??
+          const [],
+      media: (json['media'] as List<dynamic>?)
+              ?.whereType<Map<String, dynamic>>()
+              .map(ChatMessageMedia.fromJson)
               .toList() ??
           const [],
       messageType: json['message_type'] as String? ?? typeText,
@@ -189,6 +209,7 @@ class ChatMessageDTO extends Equatable {
     String? deletedAt,
     ChatMessageParentDTO? parent,
     List<ChatMessageReactionDTO>? reactions,
+    List<ChatMessageMedia>? media,
     ChatPrayerIntentionDTO? intention,
     int? prayerCount,
     int? totalPrayerCount,
@@ -199,6 +220,11 @@ class ChatMessageDTO extends Equatable {
     ChatMessageTranslationDTO? translation,
     bool? canTranslate,
     bool clearTranslation = false,
+    bool? isOptimisticSending,
+    bool? isOptimisticFailed,
+    int? sendingProgressCurrent,
+    int? sendingProgressTotal,
+    List<String>? optimisticLocalFilePaths,
     bool? isCompleted,
     String? completedAt,
     bool clearCompletedAt = false,
@@ -215,6 +241,7 @@ class ChatMessageDTO extends Equatable {
       deletedAt: deletedAt ?? this.deletedAt,
       parent: parent ?? this.parent,
       reactions: reactions ?? this.reactions,
+      media: media ?? this.media,
       messageType: messageType,
       intention: intention ?? this.intention,
       prayerCount: prayerCount ?? this.prayerCount,
@@ -226,6 +253,11 @@ class ChatMessageDTO extends Equatable {
           sourceLanguage ?? (clearTranslation ? null : this.sourceLanguage),
       translation: translation ?? (clearTranslation ? null : this.translation),
       canTranslate: canTranslate ?? this.canTranslate,
+      isOptimisticSending: isOptimisticSending ?? this.isOptimisticSending,
+      isOptimisticFailed: isOptimisticFailed ?? this.isOptimisticFailed,
+      sendingProgressCurrent: sendingProgressCurrent ?? this.sendingProgressCurrent,
+      sendingProgressTotal: sendingProgressTotal ?? this.sendingProgressTotal,
+      optimisticLocalFilePaths: optimisticLocalFilePaths ?? this.optimisticLocalFilePaths,
       isCompleted: isCompleted ?? this.isCompleted,
       completedAt: completedAt ?? (clearCompletedAt ? null : this.completedAt),
       group: group,
@@ -246,6 +278,7 @@ class ChatMessageDTO extends Equatable {
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (parent != null) 'parent': parent!.toJson(),
       'reactions': reactions.map((reaction) => reaction.toJson()).toList(),
+      'media': media.map((m) => m.toJson()).toList(),
       'message_type': messageType,
       if (isPrayerRequest) ...{
         if (intention != null) 'intention': intention!.toJson(),
@@ -278,6 +311,7 @@ class ChatMessageDTO extends Equatable {
     deletedAt,
     parent,
     reactions,
+    media,
     messageType,
     intention,
     prayerCount,
@@ -288,6 +322,11 @@ class ChatMessageDTO extends Equatable {
     sourceLanguage,
     translation,
     canTranslate,
+    isOptimisticSending,
+    isOptimisticFailed,
+    sendingProgressCurrent,
+    sendingProgressTotal,
+    optimisticLocalFilePaths,
     isCompleted,
     completedAt,
     group,
