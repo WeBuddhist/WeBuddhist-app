@@ -126,8 +126,12 @@ readerTitlePair({
 /// their own edition's language, so the translation's sections are matched
 /// to the original's by the verse they open at: the [translation]'s are
 /// numbered like the original's verses. Of those opening at the same verse
-/// the one at the same depth wins, else the nearest in depth. A section with
-/// no match is left out.
+/// the one at the same depth wins, else the nearest in depth.
+///
+/// A section none opens at takes the first at its depth opening inside it,
+/// before any other section of the original opens: an original whose front
+/// matter the translation leaves out opens a verse before it (84000's
+/// sutras). A section with no match is left out.
 Map<String, String> matchTranslationTitles(
   TextOutline original,
   TextOutline translation,
@@ -141,7 +145,13 @@ Map<String, String> matchTranslationTitles(
   final titles = <String, String>{};
   for (final section in original.sections) {
     final candidates = byNumber[section.number];
-    if (candidates == null) continue;
+    if (candidates == null) {
+      final inside = _openingInside(section, original, byNumber);
+      if (inside != null) {
+        titles[section.id] = inside.titleFor(translation.language)!;
+      }
+      continue;
+    }
     TextOutlineSection? best;
     for (final candidate in candidates) {
       if (best == null ||
@@ -153,6 +163,34 @@ Map<String, String> matchTranslationTitles(
     titles[section.id] = best!.titleFor(translation.language)!;
   }
   return titles;
+}
+
+/// The first of the translation's titled sections ([byNumber]) at
+/// [section]'s depth that opens inside it, after its first verse and before
+/// the next of the [original]'s sections opens; null when none does.
+TextOutlineSection? _openingInside(
+  TextOutlineSection section,
+  TextOutline original,
+  Map<int, List<TextOutlineSection>> byNumber,
+) {
+  var bound = section.endNumber;
+  for (final other in original.sections) {
+    if (other.number > section.number && other.number <= bound) {
+      bound = other.number - 1;
+    }
+  }
+  TextOutlineSection? first;
+  for (final MapEntry(key: number, value: candidates) in byNumber.entries) {
+    if (number <= section.number || number > bound) continue;
+    if (first != null && number >= first.number) continue;
+    for (final candidate in candidates) {
+      if (candidate.depth == section.depth) {
+        first = candidate;
+        break;
+      }
+    }
+  }
+  return first;
 }
 
 /// A section's title as the reader shows it, and the language it is in:
@@ -184,6 +222,33 @@ Map<String, String> matchTranslationTitles(
     }
   }
   return (title: textTitle, language: textLanguage);
+}
+
+/// The title a text's own row carries, alike in the sections pill and the
+/// sections sheet: of the title of the heading naming it ([heading]) and the
+/// text's own title ([text]), the one in the shown translation's language
+/// ([translationLanguage]), the heading's first. With no translation, or
+/// neither in its language, the heading's while it is drawn
+/// ([headingShown]), else the text's.
+({String title, String language}) readerTextRowTitle({
+  required ({String title, String language}) heading,
+  required ({String title, String language}) text,
+  String? translationLanguage,
+  bool headingShown = true,
+}) {
+  if (translationLanguage != null) {
+    final wanted = TransliterationService.normalizeLanguage(
+      translationLanguage,
+    );
+    for (final candidate in [heading, text]) {
+      if (candidate.title.trim().isNotEmpty &&
+          TransliterationService.normalizeLanguage(candidate.language) ==
+              wanted) {
+        return candidate;
+      }
+    }
+  }
+  return headingShown ? heading : text;
 }
 
 String? _titleIn(Map<String, String> titles, String language) {
