@@ -129,9 +129,11 @@ readerTitlePair({
 /// the one at the same depth wins, else the nearest in depth.
 ///
 /// A section none opens at takes the first at its depth opening inside it,
-/// before any other section of the original opens: an original whose front
-/// matter the translation leaves out opens a verse before it (84000's
-/// sutras). A section with no match is left out.
+/// before any other section of the original opens, and holding the rest of
+/// it: an original whose front matter the translation leaves out opens a
+/// verse before it (84000's sutras). A translation's first chapter, at a
+/// depth its own outline puts it at, never names the whole original. A
+/// section with no match is left out.
 Map<String, String> matchTranslationTitles(
   TextOutline original,
   TextOutline translation,
@@ -167,7 +169,8 @@ Map<String, String> matchTranslationTitles(
 
 /// The first of the translation's titled sections ([byNumber]) at
 /// [section]'s depth that opens inside it, after its first verse and before
-/// the next of the [original]'s sections opens; null when none does.
+/// the next of the [original]'s sections opens, and runs on to its last
+/// verse; null when none does.
 TextOutlineSection? _openingInside(
   TextOutlineSection section,
   TextOutline original,
@@ -190,6 +193,7 @@ TextOutlineSection? _openingInside(
       }
     }
   }
+  if (first == null || first.endNumber < section.endNumber) return null;
   return first;
 }
 

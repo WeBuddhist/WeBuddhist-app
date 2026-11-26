@@ -102,6 +102,19 @@ void main() {
       expect(matchTranslationTitles(sutra, translation), isEmpty);
     });
 
+    test('a flat translation\'s first chapter does not name it', () {
+      // No title over the chapters, so they sit at the title's depth.
+      final translation = TextOutline(
+        language: 'en',
+        sections: [
+          _section('c1', 2, 39, titles: {'en': 'Chapter 1'}),
+          _section('c2', 40, 400, titles: {'en': 'Chapter 2'}),
+        ],
+      );
+
+      expect(matchTranslationTitles(sutra, translation), isEmpty);
+    });
+
     test('nor one opening after the next section of the original', () {
       final translation = TextOutline(
         language: 'en',
