@@ -25,6 +25,7 @@ void main() {
       'from': 'en',
       'to': 'bo',
       'source': 'settings',
+      r'$set': {'content_language': 'bo'},
     });
   });
 
@@ -32,5 +33,16 @@ void main() {
     analytics.contentLanguageChanged(from: 'en', to: 'zh');
 
     expect(service.events.single.properties['source'], isNull);
+  });
+
+  test('uiLanguageChanged also updates the profile language', () {
+    analytics.uiLanguageChanged(from: 'en', to: 'bo');
+
+    expect(service.eventNames, [AnalyticsEvents.uiLanguageChanged]);
+    expect(service.events.single.properties, {
+      'from': 'en',
+      'to': 'bo',
+      r'$set': {'ui_language': 'bo'},
+    });
   });
 }

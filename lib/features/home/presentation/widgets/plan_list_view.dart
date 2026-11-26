@@ -344,7 +344,7 @@ class FeaturedPlanCard extends ConsumerWidget {
   Future<void> _onEnrollTap(BuildContext context, WidgetRef ref) async {
     final isGuest = ref.read(authProvider).isGuest;
     if (isGuest) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'plan_enroll');
       return;
     }
 

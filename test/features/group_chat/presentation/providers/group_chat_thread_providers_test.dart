@@ -165,7 +165,10 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   );
 
   @override
-  Future<Either<Failure, Unit>> markRoomRead(String roomId) async =>
+  Future<Either<Failure, Unit>> markRoomRead(
+    String roomId, {
+    String? messageType,
+  }) async =>
       const Right(unit);
 
   @override

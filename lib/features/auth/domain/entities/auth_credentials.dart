@@ -2,15 +2,12 @@ import 'package:equatable/equatable.dart';
 
 /// Authentication credentials entity.
 ///
-/// This domain entity represents authentication credentials
-/// independently of any specific auth provider (Auth0, Firebase, etc.).
-/// This allows the domain layer to remain framework-agnostic.
+/// The backend's own session tokens, whichever provider (Google, Apple,
+/// phone) proved the sign-in.
 class AuthCredentials extends Equatable {
-  /// The access token used for API requests
+  /// The API bearer. A JWT whose `sub` is the backend user id; it also
+  /// carries the account's `email` and `phone_number`.
   final String accessToken;
-
-  /// The ID token containing user identity information
-  final String idToken;
 
   /// The token type (typically "Bearer")
   final String tokenType;
@@ -29,7 +26,6 @@ class AuthCredentials extends Equatable {
 
   const AuthCredentials({
     required this.accessToken,
-    required this.idToken,
     required this.tokenType,
     required this.expiresIn,
     required this.obtainedAt,
@@ -52,7 +48,6 @@ class AuthCredentials extends Equatable {
   @override
   List<Object?> get props => [
     accessToken,
-    idToken,
     tokenType,
     expiresIn,
     obtainedAt,
@@ -63,7 +58,6 @@ class AuthCredentials extends Equatable {
   /// Create a copy with some fields replaced
   AuthCredentials copyWith({
     String? accessToken,
-    String? idToken,
     String? tokenType,
     int? expiresIn,
     DateTime? obtainedAt,
@@ -72,7 +66,6 @@ class AuthCredentials extends Equatable {
   }) {
     return AuthCredentials(
       accessToken: accessToken ?? this.accessToken,
-      idToken: idToken ?? this.idToken,
       tokenType: tokenType ?? this.tokenType,
       expiresIn: expiresIn ?? this.expiresIn,
       obtainedAt: obtainedAt ?? this.obtainedAt,

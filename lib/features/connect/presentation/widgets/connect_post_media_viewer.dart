@@ -41,6 +41,7 @@ class ConnectPostMediaViewer extends StatefulWidget {
   }) {
     return Navigator.of(context, rootNavigator: true).push(
       PageRouteBuilder<void>(
+        settings: const RouteSettings(name: 'connect-post-media'),
         opaque: false,
         // The scaffold paints the black, so it can fade while dragging down.
         barrierColor: Colors.transparent,
@@ -431,7 +432,7 @@ class _ConnectPostMediaViewerActionsState
 
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref, useRootNavigator: true);
+      LoginDrawer.show(context, ref, useRootNavigator: true, feature: 'post_like');
       return;
     }
 
@@ -447,6 +448,7 @@ class _ConnectPostMediaViewerActionsState
           optimisticLikeCount: _likeCount,
           includeUnfollowed: widget.includeUnfollowed,
           groupId: widget.groupId,
+          surface: 'media_viewer',
         );
 
     if (result.isSuccess) onLikeChanged?.call(result.updatedPost!);

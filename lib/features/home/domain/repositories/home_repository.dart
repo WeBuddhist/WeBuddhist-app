@@ -28,14 +28,28 @@ abstract class TagsRepositoryInterface extends Repository {
 }
 
 /// Verse of the Day repository interface.
+///
+/// `tradition` picks that tradition's verses (see `verseOfDayTradition`);
+/// null is the All traditions feed. Each tradition is cached on its own.
 abstract class VerseOfDayRepositoryInterface extends Repository {
-  Future<Either<Failure, VerseOfDay>> getVerseOfDay({required String language});
-  Stream<Either<Failure, VerseOfDay>> watchVerseOfDay({
+  Future<Either<Failure, VerseOfDay>> getVerseOfDay({
     required String language,
+    String? tradition,
   });
 
-  /// Pull-to-refresh: fetches and stores; the watch stream delivers the result.
-  Future<Either<Failure, Unit>> refreshVerseOfDay({required String language});
+  /// The verse-of-the-day week: today and the six days before it, newest
+  /// first, skipping days with no verse. Cached first, then refreshed.
+  Stream<Either<Failure, List<VerseOfDay>>> watchRecentVerses({
+    required String language,
+    String? tradition,
+  });
+
+  /// Pull-to-refresh for [watchRecentVerses]. Also stores today's verse for
+  /// [getVerseOfDay].
+  Future<Either<Failure, Unit>> refreshRecentVerses({
+    required String language,
+    String? tradition,
+  });
   Future<Either<Failure, VerseOfDayLikes>> getLikes(String verseId);
   Future<Either<Failure, Unit>> likeVerse(String verseId);
   Future<Either<Failure, Unit>> unlikeVerse(String verseId);

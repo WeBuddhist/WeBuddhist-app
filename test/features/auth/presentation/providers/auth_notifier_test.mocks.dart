@@ -114,17 +114,17 @@ class MockInitializeAuthUseCase extends _i1.Mock
   }
 
   @override
-  _i5.Future<_i6.Either<_i7.Failure, void>> call(_i11.NoParams? params) =>
+  _i5.Future<_i6.Either<_i7.Failure, bool>> call(_i11.NoParams? params) =>
       (super.noSuchMethod(
             Invocation.method(#call, [params]),
-            returnValue: _i5.Future<_i6.Either<_i7.Failure, void>>.value(
-              _i9.dummyValue<_i6.Either<_i7.Failure, void>>(
+            returnValue: _i5.Future<_i6.Either<_i7.Failure, bool>>.value(
+              _i9.dummyValue<_i6.Either<_i7.Failure, bool>>(
                 this,
                 Invocation.method(#call, [params]),
               ),
             ),
           )
-          as _i5.Future<_i6.Either<_i7.Failure, void>>);
+          as _i5.Future<_i6.Either<_i7.Failure, bool>>);
 }
 
 /// A class which mocks [HasValidCredentialsUseCase].

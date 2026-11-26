@@ -1,19 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/my_prayer_requests_providers.dart';
-import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_delete_dialog.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/new_prayer_request_sheet.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_request_tile.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_supporters_sheet.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_skeleton.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Every prayer request the viewer has posted, in any space or event,
 /// active ones first and accomplished ones under their own heading.
@@ -37,6 +39,7 @@ class _MyPrayerRequestsScreenState
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    ref.read(groupChatAnalyticsProvider).prayerRequestsOpened(scope: 'mine');
   }
 
   @override
@@ -63,6 +66,12 @@ class _MyPrayerRequestsScreenState
           (body, intention) =>
               _notifier.edit(request.id, body: body, intention: intention),
     );
+  }
+
+  /// Opens the event or space [request] was posted in, on its prayer list.
+  void _openSource(ChatMessageDTO request) {
+    final path = myPrayerRequestSourcePath(request);
+    if (path != null) unawaited(context.push(path));
   }
 
   Future<void> _toggleCompleted(ChatMessageDTO request) async {
@@ -157,8 +166,8 @@ class _MyPrayerRequestsScreenState
     }
 
     final user = ref.watch(userProvider).user;
-    final selfName =
-        joinChatName(user?.firstName, user?.lastName) ?? l10n.event_prayer_you;
+    // Your own name as others see it: the display name, then first and last.
+    final selfName = user?.visibleNameOrNull ?? l10n.event_prayer_you;
     final rows = <_Row>[
       if (state.active.isNotEmpty) ...[
         _SectionRow(l10n.event_prayer_section_active),
@@ -205,11 +214,30 @@ class _MyPrayerRequestsScreenState
             onEdit: () => unawaited(_edit(request)),
             onDelete: () => unawaited(_delete(request)),
             onToggleCompleted: () => unawaited(_toggleCompleted(request)),
+            onOpenSource:
+                myPrayerRequestSourcePath(request) == null
+                    ? null
+                    : () => _openSource(request),
           );
         },
       ),
     );
   }
+}
+
+/// Where tapping a request's "posted in" row goes: the event's page when it
+/// was made in an event, else the space's, each opened on its prayer list.
+/// Null when the server named neither.
+String? myPrayerRequestSourcePath(ChatMessageDTO request) {
+  final eventId = request.event?.id ?? '';
+  if (eventId.isNotEmpty) {
+    return AppRoutes.groupEventPath(eventId, openPrayerRequests: true);
+  }
+  final groupId = request.group?.id ?? '';
+  if (groupId.isNotEmpty) {
+    return AppRoutes.groupProfilePath(groupId, openPrayerRequests: true);
+  }
+  return null;
 }
 
 /// Space under the last card: the usual 24px gap, plus whatever is actually

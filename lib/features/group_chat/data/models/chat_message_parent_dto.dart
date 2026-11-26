@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_visible_name.dart';
 
 class ChatMessageParentDTO extends Equatable {
   final String id;
@@ -36,13 +37,18 @@ class ChatMessageParentDTO extends Equatable {
       id: json['id'] as String? ?? '',
       senderId: json['sender_id'] as String? ?? '',
       senderEmail: json['sender_email'] as String? ?? '',
-      senderName: json['sender_name'] as String?,
+      senderName: _senderNameFromJson(json),
       senderAvatarUrl: json['sender_avatar_url'] as String?,
       body: json['body'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
       deletedAt: json['deleted_at'] as String?,
     );
   }
+
+  /// The sender's display name from Edit profile, then `sender_name` for
+  /// messages without one.
+  static String? _senderNameFromJson(Map<String, dynamic> json) =>
+      chatVisibleName(json['sender_display_name'], json['sender_name']);
 
   /// [deletedAt] only ever goes from null to a timestamp — nothing undeletes
   /// a message — so `?? this` loses nothing.

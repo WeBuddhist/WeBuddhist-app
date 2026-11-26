@@ -91,7 +91,10 @@ Future<Either<Failure, void>> joinGroupEventEnsuringGroupMembership({
       );
       container
           .read(groupFollowProvider(followKey).notifier)
-          .markAutoJoinedFromPracticeEnrollment(group: groupProfile);
+          .markAutoJoinedFromPracticeEnrollment(
+            group: groupProfile,
+            via: 'event',
+          );
     }
   }
 

@@ -47,8 +47,8 @@ final groupMyPermissionProvider = AsyncNotifierProvider.autoDispose
 
         return bind.source(
           ref.watch(groupPostRepositoryProvider).postPermissionSource(groupId),
-          select:
-              (result) => result.fold((_) => null, (permission) => permission),
+          select: (result) =>
+              result.fold((_) => null, (permission) => permission),
         );
       });
     });
@@ -171,16 +171,13 @@ class GroupPostsNotifier extends StateNotifier<GroupPostsState> {
 
     if (!mounted || generation != _requestGeneration) return;
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          error: state.posts.isEmpty ? failure.message : null,
-          hasLoaded: true,
-        );
-      },
-      _applyFirstPage,
-    );
+    result.fold((failure) {
+      state = state.copyWith(
+        isLoading: false,
+        error: state.posts.isEmpty ? failure.message : null,
+        hasLoaded: true,
+      );
+    }, _applyFirstPage);
     if (_refreshAgain) {
       _refreshAgain = false;
       unawaited(refreshLatest());
@@ -258,18 +255,14 @@ class GroupPostsNotifier extends StateNotifier<GroupPostsState> {
     try {
       read = await readLoadedWindow(
         window: () => math.max(_limit, state.skip),
-        fetch:
-            (skip, limit) async => (await _repository.getGroupPosts(
-              _groupId,
-              skip: skip,
-              limit: limit,
-            )).map((page) => (page.posts, page.total)),
+        fetch: (skip, limit) async => (await _repository.getGroupPosts(
+          _groupId,
+          skip: skip,
+          limit: limit,
+        )).map((page) => (page.posts, page.total)),
         idOf: (post) => post.id,
-        isCurrent:
-            () =>
-                mounted &&
-                generation == _requestGeneration &&
-                seq == _refreshSeq,
+        isCurrent: () =>
+            mounted && generation == _requestGeneration && seq == _refreshSeq,
         pageLimit: _windowLimit,
       );
     } finally {
@@ -318,8 +311,9 @@ class GroupPostsNotifier extends StateNotifier<GroupPostsState> {
   void prependPost(ConnectPost post) {
     _changes?.added[post.id] = post;
     _changes?.deleted.remove(post.id);
-    final withoutDuplicate =
-        state.posts.where((item) => item.id != post.id).toList();
+    final withoutDuplicate = state.posts
+        .where((item) => item.id != post.id)
+        .toList();
     state = state.copyWith(
       posts: [post, ...withoutDuplicate],
       total: state.total + 1,
@@ -347,8 +341,7 @@ class GroupPostsNotifier extends StateNotifier<GroupPostsState> {
     return result.fold((_) => false, (_) {
       _changes?.deleted.add(postId);
       _changes?.added.remove(postId);
-      final remaining =
-          state.posts.where((post) => post.id != postId).toList();
+      final remaining = state.posts.where((post) => post.id != postId).toList();
       if (remaining.length == state.posts.length) return true;
       state = state.copyWith(
         posts: remaining,

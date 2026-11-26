@@ -101,16 +101,17 @@ class _GroupPostAddLinkSheetState extends ConsumerState<GroupPostAddLinkSheet> {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
     final url = _resolvedUrl;
     final isYoutube = url != null && ConnectPostLinkUtils.isYoutube(url);
     final previewAsync =
         url != null && ChatLinkPreviewService.isPreviewableUrl(url)
-            ? ref.watch(chatLinkPreviewProvider(url))
-            : null;
+        ? ref.watch(chatLinkPreviewProvider(url))
+        : null;
 
     final _LinkStatus status;
     if (url == null) {
@@ -193,10 +194,9 @@ class _GroupPostAddLinkSheetState extends ConsumerState<GroupPostAddLinkSheet> {
                   decoration: InputDecoration(
                     hintText: l10n.group_post_link_field_hint,
                     filled: true,
-                    fillColor:
-                        isDark
-                            ? AppColors.surfaceVariantDark
-                            : AppColors.surfaceWhite,
+                    fillColor: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceWhite,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: borderColor),
@@ -204,10 +204,9 @@ class _GroupPostAddLinkSheetState extends ConsumerState<GroupPostAddLinkSheet> {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color:
-                            isDark
-                                ? AppColors.textPrimaryDark
-                                : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.textPrimaryDark
+                            : AppColors.textPrimary,
                       ),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
@@ -260,23 +259,22 @@ class _GroupPostAddLinkSheetState extends ConsumerState<GroupPostAddLinkSheet> {
                 SizedBox(
                   height: 48,
                   child: ElevatedButton(
-                    onPressed:
-                        canAttach ? () => _attach(url!, previewTitle) : null,
+                    onPressed: canAttach
+                        ? () => _attach(url!, previewTitle)
+                        : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark
-                              ? AppColors.surfaceWhite
-                              : AppColors.textPrimary,
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimary
-                              : AppColors.surfaceWhite,
-                      disabledBackgroundColor:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.grey100,
-                      disabledForegroundColor:
-                          isDark ? AppColors.grey500 : AppColors.grey600,
+                      backgroundColor: isDark
+                          ? AppColors.surfaceWhite
+                          : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimary
+                          : AppColors.surfaceWhite,
+                      disabledBackgroundColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.grey100,
+                      disabledForegroundColor: isDark
+                          ? AppColors.grey500
+                          : AppColors.grey600,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
@@ -335,8 +333,9 @@ class _PreviewFailed extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color:
-                isDark ? AppColors.surfaceVariantDark : AppColors.surfaceWhite,
+            color: isDark
+                ? AppColors.surfaceVariantDark
+                : AppColors.surfaceWhite,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: borderColor),
           ),

@@ -616,7 +616,7 @@ class _ConnectPracticeCardState extends ConsumerState<ConnectPracticeCard> {
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'practice_with_us');
       return;
     }
 
@@ -680,7 +680,7 @@ class _ConnectPracticeCardState extends ConsumerState<ConnectPracticeCard> {
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_accumulator_join');
       return;
     }
 
@@ -693,6 +693,7 @@ class _ConnectPracticeCardState extends ConsumerState<ConnectPracticeCard> {
       accumulatorId: accumulator.id,
       groupId: groupId,
       awaitRefresh: false,
+      source: 'connect_card',
     );
 
     if (!mounted) return;

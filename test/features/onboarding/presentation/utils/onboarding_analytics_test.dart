@@ -53,38 +53,32 @@ void main() {
     expect(service.events.single.properties, {'ui_language': 'bo'});
   });
 
-  test('eventPlanSelected names the plan', () {
-    analytics.eventPlanSelected(planId: 'p1', planName: 'Daily Tipitaka');
-
-    expect(service.eventNames, [AnalyticsEvents.onboardingEventPlanSelected]);
-    expect(service.events.single.properties, {
-      'plan_id': 'p1',
-      'plan_name': 'Daily Tipitaka',
-    });
-  });
-
   test('onboardingCompleted measures from the start and counts traditions', () {
     analytics.onboardingStarted();
     analytics.traditionsChosen(count: 1);
     now = now.add(const Duration(seconds: 42));
 
-    analytics.onboardingCompleted(eventPlanSelected: true);
+    analytics.onboardingCompleted();
 
     expect(service.events.last.name, AnalyticsEvents.onboardingCompleted);
     expect(service.events.last.properties, {
       'duration_ms': 42000,
       'traditions_count': 1,
-      'event_plan_selected': true,
+      r'$set_once': {
+        'onboarding_completed_at': now.toUtc().toIso8601String(),
+      },
     });
   });
 
   test('completing without a seen start has no duration', () {
-    analytics.onboardingCompleted(eventPlanSelected: false);
+    analytics.onboardingCompleted();
 
     expect(service.events.single.properties, {
       'duration_ms': null,
       'traditions_count': 0,
-      'event_plan_selected': false,
+      r'$set_once': {
+        'onboarding_completed_at': now.toUtc().toIso8601String(),
+      },
     });
   });
 
@@ -92,7 +86,7 @@ void main() {
     analytics.onboardingStarted();
     analytics.traditionsChosen(count: 1);
     analytics.onboardingStarted();
-    analytics.onboardingCompleted(eventPlanSelected: false);
+    analytics.onboardingCompleted();
 
     expect(service.events.last.properties['traditions_count'], 0);
   });

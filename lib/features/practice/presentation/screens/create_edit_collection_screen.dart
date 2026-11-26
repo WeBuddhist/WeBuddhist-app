@@ -16,6 +16,7 @@ import 'package:flutter_pecha/features/practice/presentation/screens/add_chants_
 import 'package:flutter_pecha/features/practice/presentation/widgets/collection_name_dialog.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_model.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart' show Either;
 import 'package:image_picker/image_picker.dart';
@@ -107,7 +108,7 @@ class _CreateEditCollectionScreenState
   bool _ensureSignedIn() {
     final auth = ref.read(authProvider);
     if (auth.isLoggedIn && !auth.isGuest) return true;
-    LoginDrawer.show(context, ref);
+    LoginDrawer.show(context, ref, feature: 'recitation_collection_edit');
     return false;
   }
 
@@ -333,6 +334,8 @@ class _CreateEditCollectionScreenState
     setState(() => _isSubmitting = true);
 
     final textIds = _chants.map((c) => c.textId).toList();
+    final analytics = ref.read(practiceAnalyticsProvider);
+    final hasImage = (_uploadedImageKey ?? '').isNotEmpty;
     final result = await ref
         .read(myRecitationCollectionsRepositoryProvider)
         .createCollectionWithItems(
@@ -362,6 +365,11 @@ class _CreateEditCollectionScreenState
       },
       (collection) {
         _createdCollectionId = collection.id;
+        analytics.collectionCreated(
+          collectionId: collection.id,
+          itemCount: textIds.length,
+          hasImage: hasImage,
+        );
         final languageCode = ref.read(practiceRecitationsLanguageProvider);
         ref.invalidate(practiceRecitationsPaginatedProvider(languageCode));
         Navigator.of(context).pop();
@@ -380,6 +388,15 @@ class _CreateEditCollectionScreenState
 
     setState(() => _isSubmitting = true);
     final repository = ref.read(myRecitationCollectionsRepositoryProvider);
+    final analytics = ref.read(practiceAnalyticsProvider);
+
+    // Counted before the steps below change what is known about the server.
+    final submitted = _chants.map((c) => c.textId).toList();
+    final removedCount =
+        _originalTextIds.difference(submitted.toSet()).length;
+    final addedCount =
+        submitted.where((id) => !_originalTextIds.contains(id)).length;
+    final renamed = _name.trim() != collection.name.trim();
 
     final imageKey = _uploadedImageKey?.trim();
     final updateFailure = _failureOf(
@@ -509,6 +526,16 @@ class _CreateEditCollectionScreenState
         (item) => item.displayOrder,
       );
     }
+
+    analytics.collectionUpdated(
+      collectionId: collection.id,
+      itemCount: submitted.length,
+      itemsAdded: addedCount,
+      itemsRemoved: removedCount,
+      reordered: updates.isNotEmpty,
+      renamed: renamed,
+      imageChanged: imageKey != null && imageKey.isNotEmpty,
+    );
 
     final languageCode = ref.read(practiceRecitationsLanguageProvider);
     ref.invalidate(practiceRecitationsPaginatedProvider(languageCode));

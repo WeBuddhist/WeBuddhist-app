@@ -11,7 +11,11 @@ import 'package:flutter_pecha/features/reader/presentation/providers/reader_font
 import 'package:flutter_pecha/features/reader/presentation/providers/reader_script_preference_provider.dart';
 import 'package:flutter_pecha/features/reader/presentation/providers/reader_text_size_provider.dart';
 import 'package:flutter_pecha/features/reader/presentation/providers/reader_verse_numbers_provider.dart';
+import 'package:flutter_pecha/features/reader/presentation/style/reader_background.dart';
+import 'package:flutter_pecha/features/reader/presentation/style/reader_fonts.dart';
 import 'package:flutter_pecha/features/reader/presentation/style/reader_style.dart';
+import 'package:flutter_pecha/features/reader/presentation/style/reader_text_size.dart';
+import 'package:flutter_pecha/features/reader/presentation/utils/reader_analytics.dart';
 import 'package:flutter_pecha/features/reader/presentation/widgets/reader_settings/reader_sheet.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -73,6 +77,62 @@ class _ReaderDisplaySheetState extends ConsumerState<ReaderDisplaySheet> {
   static const double _groupGap = 10;
 
   bool _moreSettings = false;
+
+  // What the settings were when the sheet opened, and what they are now.
+  // Compared on close, so stepping the size several times is one event.
+  late final ReaderAnalytics _analytics;
+  late final ReaderTextSize _startSize;
+  late final bool _startVerseNumbers;
+  late final ReaderBackground _startBackground;
+  late final ReaderFontChoices _startFonts;
+  late ReaderTextSize _size;
+  late bool _verseNumbers;
+  late ReaderBackground _background;
+  late ReaderFontChoices _fonts;
+
+  @override
+  void initState() {
+    super.initState();
+    _analytics = ref.read(readerAnalyticsProvider);
+    _startSize = _size = ref.read(readerTextSizeProvider);
+    _startVerseNumbers = _verseNumbers = ref.read(readerVerseNumbersProvider);
+    _startBackground = _background = ref.read(readerBackgroundProvider);
+    _startFonts = _fonts = ref.read(readerFontsProvider);
+    ref.listenManual(readerTextSizeProvider, (_, next) => _size = next);
+    ref.listenManual(
+      readerVerseNumbersProvider,
+      (_, next) => _verseNumbers = next,
+    );
+    ref.listenManual(readerBackgroundProvider, (_, next) => _background = next);
+    ref.listenManual(readerFontsProvider, (_, next) => _fonts = next);
+  }
+
+  @override
+  void dispose() {
+    _trackChanges();
+    super.dispose();
+  }
+
+  void _trackChanges() {
+    void changed(ReaderSetting setting, [Object? value]) =>
+        _analytics.settingChanged(setting: setting, value: value);
+    if (_size.originalStep != _startSize.originalStep) {
+      changed(ReaderSetting.originalSize, _size.originalStep);
+    }
+    if (_size.translationStep != _startSize.translationStep) {
+      changed(ReaderSetting.translationSize, _size.translationStep);
+    }
+    if (_size.spacing != _startSize.spacing) {
+      changed(ReaderSetting.spacing, _size.spacing.name);
+    }
+    if (_verseNumbers != _startVerseNumbers) {
+      changed(ReaderSetting.verseNumbers, _verseNumbers);
+    }
+    if (_background != _startBackground) {
+      changed(ReaderSetting.background, _background.name);
+    }
+    if (_fonts != _startFonts) changed(ReaderSetting.font);
+  }
 
   /// More settings dims the page more than Display (WF19, WF17).
   void _showMoreSettings(bool shown) {

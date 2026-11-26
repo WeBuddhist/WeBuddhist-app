@@ -85,10 +85,7 @@ class _GroupProfileMembersTabState
       member: member,
     );
     if (removed != true || !mounted) return;
-    final name =
-        member.fullname.trim().isNotEmpty
-            ? member.fullname.trim()
-            : member.username;
+    final name = member.displayName;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(context.l10n.group_remove_member_success(name))),
     );
@@ -114,15 +111,11 @@ class _GroupProfileMembersTabState
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: ErrorStateWidget(
             error: membersState.error!,
-            onRetry:
-                () =>
-                    ref
-                        .read(groupMembersProvider(widget.groupId).notifier)
-                        .retry(),
-            customMessage:
-                widget.groupType.isPage
-                    ? context.l10n.group_followers_load_error
-                    : context.l10n.group_members_load_error,
+            onRetry: () =>
+                ref.read(groupMembersProvider(widget.groupId).notifier).retry(),
+            customMessage: widget.groupType.isPage
+                ? context.l10n.group_followers_load_error
+                : context.l10n.group_members_load_error,
           ),
         ),
       );
@@ -153,10 +146,9 @@ class _GroupProfileMembersTabState
                         : context.l10n.group_members_empty,
                     style: TextStyle(
                       fontSize: 15,
-                      color:
-                          widget.isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textSecondary,
+                      color: widget.isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textSecondary,
                       height: widget.lineHeight,
                     ),
                   ),
@@ -192,16 +184,16 @@ class _GroupProfileMembersTabState
                 if (memberIndex < membersState.members.length) {
                   final member = membersState.members[memberIndex];
                   final isSelf =
-                      currentUserId.isNotEmpty && member.userId == currentUserId;
+                      currentUserId.isNotEmpty &&
+                      member.userId == currentUserId;
                   return _GroupMemberRow(
                     member: member,
                     isDark: widget.isDark,
                     lineHeight: widget.lineHeight,
                     showRoleBadge: member.isAdmin,
-                    onRemove:
-                        canRemove && member.canBeRemovedByAdmin && !isSelf
-                            ? () => _removeMember(member)
-                            : null,
+                    onRemove: canRemove && member.canBeRemovedByAdmin && !isSelf
+                        ? () => _removeMember(member)
+                        : null,
                   );
                 }
 
@@ -263,12 +255,10 @@ class _GroupMemberRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final displayName =
-        member.fullname.trim().isNotEmpty
-            ? member.fullname.trim()
-            : member.username;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final displayName = member.displayName;
 
     return Column(
       children: [
@@ -282,16 +272,16 @@ class _GroupMemberRow extends StatelessWidget {
                   height: 44,
                   child:
                       member.avatarUrl != null && member.avatarUrl!.isNotEmpty
-                          ? CachedNetworkImageWidget(
-                            key: networkImageKey(member.avatarUrl),
-                            imageUrl: member.avatarUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: AvatarFallback(
-                              isDark: isDark,
-                              iconSize: 22,
-                            ),
-                          )
-                          : AvatarFallback(isDark: isDark, iconSize: 22),
+                      ? CachedNetworkImageWidget(
+                          key: networkImageKey(member.avatarUrl),
+                          imageUrl: member.avatarUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: AvatarFallback(
+                            isDark: isDark,
+                            iconSize: 22,
+                          ),
+                        )
+                      : AvatarFallback(isDark: isDark, iconSize: 22),
                 ),
               ),
               const SizedBox(width: 12),
@@ -329,10 +319,9 @@ class _GroupMemberRow extends StatelessWidget {
               if (showRoleBadge) ...[
                 const SizedBox(width: 8),
                 _RoleBadge(
-                  label:
-                      member.isOwner
-                          ? context.l10n.group_member_owner
-                          : context.l10n.group_member_admin,
+                  label: member.isOwner
+                      ? context.l10n.group_member_owner
+                      : context.l10n.group_member_admin,
                   isDark: isDark,
                 ),
               ] else if (onRemove != null) ...[
@@ -342,14 +331,16 @@ class _GroupMemberRow extends StatelessWidget {
                   tooltip: context.l10n.group_remove_member(displayName),
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  constraints: const BoxConstraints(
+                    minWidth: 36,
+                    minHeight: 36,
+                  ),
                   icon: Icon(
                     Icons.close,
                     size: 22,
-                    color:
-                        isDark
-                            ? AppColors.textTertiaryDark
-                            : AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textTertiaryDark
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],

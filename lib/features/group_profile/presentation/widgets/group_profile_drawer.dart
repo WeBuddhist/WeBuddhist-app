@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/widgets/error_state_widget.dart';
+import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_body.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_skeleton.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_space_room_buttons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class GroupProfileDrawer extends ConsumerWidget {
@@ -31,6 +33,10 @@ class GroupProfileDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(groupProfileProvider(groupId));
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final profile = profileAsync.valueOrNull?.fold(
+      (_) => null,
+      (profile) => profile,
+    );
 
     return DraggableScrollableSheet(
       initialChildSize: _initialSize,
@@ -48,36 +54,28 @@ class GroupProfileDrawer extends ConsumerWidget {
             shadowColor: Colors.black.withValues(alpha: 0.18),
             child: Column(
               children: [
-                _buildDragHandle(context),
+                _buildHandleRow(context, profile),
                 Expanded(
                   child: profileAsync.when(
-                    data:
-                        (either) => either.fold(
-                          (failure) => Center(
-                            child: ErrorStateWidget(
-                              error: failure,
-                              onRetry:
-                                  () => ref.invalidate(
-                                    groupProfileProvider(groupId),
-                                  ),
-                            ),
-                          ),
-                          (profile) => GroupProfileBody(
-                            profile: profile,
-                            isDark: isDark,
-                          ),
+                    data: (either) => either.fold(
+                      (failure) => Center(
+                        child: ErrorStateWidget(
+                          error: failure,
+                          onRetry: () =>
+                              ref.invalidate(groupProfileProvider(groupId)),
                         ),
+                      ),
+                      (profile) =>
+                          GroupProfileBody(profile: profile, isDark: isDark),
+                    ),
                     loading: () => const GroupProfileSkeleton(),
-                    error:
-                        (error, _) => Center(
-                          child: ErrorStateWidget(
-                            error: error,
-                            onRetry:
-                                () => ref.invalidate(
-                                  groupProfileProvider(groupId),
-                                ),
-                          ),
-                        ),
+                    error: (error, _) => Center(
+                      child: ErrorStateWidget(
+                        error: error,
+                        onRetry: () =>
+                            ref.invalidate(groupProfileProvider(groupId)),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -85,6 +83,25 @@ class GroupProfileDrawer extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  /// The drag handle, with a community's prayer requests and chat on the
+  /// right: the drawer has no app bar, which is where the space page keeps
+  /// them.
+  Widget _buildHandleRow(BuildContext context, GroupProfile? profile) {
+    final showsRoomButtons = profile != null && !profile.groupType.isPage;
+    if (!showsRoomButtons) return _buildDragHandle(context);
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        _buildDragHandle(context),
+        Positioned(
+          right: 8,
+          child: GroupSpaceRoomButtons(profile: profile, hiddenWidth: 0),
+        ),
+      ],
     );
   }
 

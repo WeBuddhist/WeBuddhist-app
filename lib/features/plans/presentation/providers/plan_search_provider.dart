@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter_pecha/features/plans/domain/entities/plan.dart';
 import 'package:flutter_pecha/features/plans/domain/usecases/plans_usecases.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_pecha/features/plans/presentation/utils/plan_analytics.dart';
 
 /// State for plan search with pagination
 class PlanSearchState {
@@ -49,7 +48,6 @@ class PlanSearchState {
 class PlanSearchNotifier extends StateNotifier<PlanSearchState> {
   final GetPlansUseCase getPlansUseCase;
   final String languageCode;
-  final PlanAnalytics? analytics;
   Timer? _debounceTimer;
   static const int _limit = 20;
   static const Duration _debounceDuration = Duration(milliseconds: 500);
@@ -57,7 +55,6 @@ class PlanSearchNotifier extends StateNotifier<PlanSearchState> {
   PlanSearchNotifier({
     required this.getPlansUseCase,
     required this.languageCode,
-    this.analytics,
   }) : super(const PlanSearchState());
 
   /// Search with debounce
@@ -118,12 +115,6 @@ class PlanSearchNotifier extends StateNotifier<PlanSearchState> {
       },
       (results) {
         if (mounted) {
-          if (reset) {
-            analytics?.planSearched(
-              queryLength: query.trim().length,
-              resultCount: results.length,
-            );
-          }
           final hasMore = results.length >= _limit;
           final newSkip = skip + results.length;
 

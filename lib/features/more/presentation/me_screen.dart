@@ -8,8 +8,11 @@ import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/features/auth/presentation/providers/last_sign_in_method_provider.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/utils/auth_analytics.dart';
+import 'package:flutter_pecha/features/auth/presentation/utils/start_sign_in.dart';
+import 'package:flutter_pecha/features/auth/presentation/widgets/login_form_widgets.dart';
 import 'package:flutter_pecha/features/more/domain/entities/user_stats.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_pecha/shared/widgets/main_tab_app_bar.dart';
@@ -180,15 +183,17 @@ class _GuestView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final authNotifier = ref.read(authProvider.notifier);
     void startLogin(String connection) {
-      ref
-          .read(authAnalyticsProvider)
-          .loginStarted(method: connection, source: AuthSource.meScreen);
-      authNotifier.login(connection: connection, source: AuthSource.meScreen);
+      startSignIn(
+        context,
+        ref,
+        connection: connection,
+        source: AuthSource.meScreen,
+      );
     }
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isIOS = Platform.isIOS;
+    final lastUsed = ref.watch(lastSignInMethodProvider);
 
     final localizations = AppLocalizations.of(context)!;
 
@@ -231,13 +236,15 @@ class _GuestView extends ConsumerWidget {
                   ).textTheme.bodyMedium?.copyWith(color: AppColors.grey600),
                 ),
                 const SizedBox(height: 40),
-                if (authState.isLoading)
+                if (authState.isLoading || authState.isSigningIn)
                   const SizedBox(
                     height: 52,
                     child: Center(child: CircularProgressIndicator()),
                   )
                 else ...[
+                  LoginErrorText(reason: authState.loginError),
                   _SocialButton(
+                    lastUsed: isLastUsedConnection(lastUsed, 'google'),
                     onTap: () => startLogin('google'),
                     backgroundColor: isDark ? AppColors.cardDark : Colors.white,
                     foregroundColor: isDark ? Colors.white : Colors.black87,
@@ -253,6 +260,7 @@ class _GuestView extends ConsumerWidget {
                   if (isIOS) ...[
                     const SizedBox(height: 14),
                     _SocialButton(
+                      lastUsed: isLastUsedConnection(lastUsed, 'apple'),
                       onTap: () => startLogin('apple'),
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
@@ -267,6 +275,7 @@ class _GuestView extends ConsumerWidget {
                   ],
                   const SizedBox(height: 14),
                   _SocialButton(
+                    lastUsed: isLastUsedConnection(lastUsed, 'sms'),
                     onTap: () => startLogin('sms'),
                     backgroundColor: isDark ? AppColors.cardDark : Colors.white,
                     foregroundColor: isDark ? Colors.white : Colors.black87,
@@ -297,8 +306,11 @@ class _SocialButton extends StatelessWidget {
     required this.borderColor,
     required this.label,
     required this.icon,
+    this.lastUsed = false,
   });
 
+  /// Whether this phone last signed in with this method.
+  final bool lastUsed;
   final VoidCallback onTap;
   final Color backgroundColor;
   final Color foregroundColor;
@@ -308,6 +320,10 @@ class _SocialButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return LastUsedTag(show: lastUsed, child: _button());
+  }
+
+  Widget _button() {
     return SizedBox(
       width: double.infinity,
       height: 52,

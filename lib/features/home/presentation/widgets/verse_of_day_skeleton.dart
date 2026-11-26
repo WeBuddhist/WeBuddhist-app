@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/features/home/presentation/widgets/verse_of_day_card.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 
+/// Placeholder the size of the verse carousel: the fixed-height card, then
+/// the page dots' row.
 class VerseOfDaySkeleton extends StatelessWidget {
   const VerseOfDaySkeleton({super.key});
 
@@ -8,50 +11,52 @@ class VerseOfDaySkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Skeletonizer(
       enabled: true,
-      child: ColoredBox(
-        color: Theme.of(context).colorScheme.surface,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const AspectRatio(
-              aspectRatio: 1.65,
-              child: Bone(
-                width: double.infinity,
-                height: double.infinity,
-                borderRadius: BorderRadius.zero,
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: verseOfDayCardHeight,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                const Bone(
+                  width: double.infinity,
+                  height: double.infinity,
+                  borderRadius: BorderRadius.zero,
+                ),
+                Positioned(
+                  left: 18,
+                  right: 18,
+                  bottom: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Bone(
+                        width: double.infinity,
+                        height: 18,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 10),
+                      Bone(
+                        width: 240,
+                        height: 18,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 14),
+                      Bone(
+                        width: 120,
+                        height: 14,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-              child: Column(
-                children: [
-                  Bone(
-                    width: double.infinity,
-                    height: 16,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  const SizedBox(height: 8),
-                  Bone(
-                    width: 220,
-                    height: 16,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  const SizedBox(height: 16),
-                  Bone(
-                    width: 80,
-                    height: 14,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Bone.circle(size: 28),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+          // Same height as the dots row, so the page doesn't jump.
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

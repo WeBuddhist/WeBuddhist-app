@@ -83,9 +83,13 @@ final multilingualSearchProvider = FutureProvider.family<Either<Failure, Multili
   // Use provided language parameter, otherwise fall back to locale
   final language = params.language ?? ref.watch(contentLanguageProvider);
 
-  return multilingualSearchUseCase(MultilingualSearchParams(
+  final result = await multilingualSearchUseCase(MultilingualSearchParams(
     query: params.query,
     language: language,
     textId: params.textId,
   ));
+  // `search_performed` is sent by the reader search screen, once per search
+  // the user submits: this provider is cached, and re-runs when the content
+  // language changes, so it can't tell real searches apart.
+  return result;
 });

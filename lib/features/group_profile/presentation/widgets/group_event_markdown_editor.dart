@@ -43,10 +43,9 @@ class _GroupEventMarkdownEditorState extends State<GroupEventMarkdownEditor> {
   Future<void> _insertLink() async {
     final selection = widget.controller.selection;
     final text = widget.controller.text;
-    final selected =
-        selection.isValid && !selection.isCollapsed
-            ? text.substring(selection.start, selection.end)
-            : '';
+    final selected = selection.isValid && !selection.isCollapsed
+        ? text.substring(selection.start, selection.end)
+        : '';
     final link = await _MarkdownLinkDialog.show(
       context,
       initialLabel: selected,
@@ -61,11 +60,13 @@ class _GroupEventMarkdownEditorState extends State<GroupEventMarkdownEditor> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final fillColor =
-        isDark ? AppColors.surfaceVariantDark : AppColors.surfaceWhite;
+    final fillColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.surfaceWhite;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -93,46 +94,42 @@ class _GroupEventMarkdownEditorState extends State<GroupEventMarkdownEditor> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: borderColor),
           ),
-          child:
-              _isPreview
-                  ? _buildPreview(
-                    l10n.group_event_preview_empty,
-                    secondaryColor,
-                  )
-                  : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _buildToolbar(isDark, borderColor),
-                      TextField(
-                        controller: widget.controller,
-                        focusNode: _focusNode,
-                        enabled: widget.enabled,
-                        maxLines: null,
-                        minLines: 3,
-                        keyboardType: TextInputType.multiline,
-                        textCapitalization: TextCapitalization.sentences,
-                        style: const TextStyle(fontSize: 15, height: 1.4),
-                        decoration: InputDecoration(
-                          hintText: widget.hint,
-                          hintStyle: TextStyle(
-                            fontSize: 15,
-                            color: secondaryColor,
-                          ),
-                          filled: false,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          contentPadding: const EdgeInsets.fromLTRB(
-                            14,
-                            12,
-                            14,
-                            12,
-                          ),
+          child: _isPreview
+              ? _buildPreview(l10n.group_event_preview_empty, secondaryColor)
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildToolbar(isDark, borderColor),
+                    TextField(
+                      controller: widget.controller,
+                      focusNode: _focusNode,
+                      enabled: widget.enabled,
+                      maxLines: null,
+                      minLines: 3,
+                      keyboardType: TextInputType.multiline,
+                      textCapitalization: TextCapitalization.sentences,
+                      style: const TextStyle(fontSize: 15, height: 1.4),
+                      decoration: InputDecoration(
+                        hintText: widget.hint,
+                        hintStyle: TextStyle(
+                          fontSize: 15,
+                          color: secondaryColor,
+                        ),
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.fromLTRB(
+                          14,
+                          12,
+                          14,
+                          12,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
         ),
       ],
     );
@@ -187,13 +184,12 @@ class _GroupEventMarkdownEditorState extends State<GroupEventMarkdownEditor> {
     final content = widget.controller.text.trim();
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-      child:
-          content.isEmpty
-              ? Text(
-                emptyLabel,
-                style: TextStyle(fontSize: 15, color: secondaryColor),
-              )
-              : PlanInlineMarkdownView(content: content, fontSize: 15),
+      child: content.isEmpty
+          ? Text(
+              emptyLabel,
+              style: TextStyle(fontSize: 15, color: secondaryColor),
+            )
+          : PlanInlineMarkdownView(content: content, fontSize: 15),
     );
   }
 }
@@ -252,15 +248,16 @@ class _WritePreviewToggle extends StatelessWidget {
   }
 
   Widget _segment(String label, bool selected, VoidCallback onTap) {
-    final activeColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final inactiveColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final activeColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final inactiveColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return Material(
-      color:
-          selected
-              ? (isDark ? AppColors.surfaceDark : AppColors.surfaceWhite)
-              : Colors.transparent,
+      color: selected
+          ? (isDark ? AppColors.surfaceDark : AppColors.surfaceWhite)
+          : Colors.transparent,
       borderRadius: BorderRadius.circular(6),
       elevation: selected ? 1 : 0,
       shadowColor: Colors.black.withValues(alpha: 0.2),
@@ -362,11 +359,9 @@ class _MarkdownLinkDialogState extends State<_MarkdownLinkDialog> {
           child: Text(l10n.cancel),
         ),
         TextButton(
-          onPressed:
-              _canInsert
-                  ? () =>
-                      Navigator.of(context).pop((_label.text, _url.text.trim()))
-                  : null,
+          onPressed: _canInsert
+              ? () => Navigator.of(context).pop((_label.text, _url.text.trim()))
+              : null,
           child: Text(l10n.group_event_link_insert),
         ),
       ],

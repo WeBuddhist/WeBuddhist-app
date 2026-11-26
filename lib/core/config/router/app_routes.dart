@@ -50,13 +50,21 @@ class AppRoutes {
   /// prayer-request sheet after it is showing.
   static const String eventPrayersQuery = 'prayers';
 
+  /// Query on `/home/events/:eventId` naming where the event was opened from,
+  /// for `group_event_viewed`. Not used for navigation.
+  static const String eventSourceQuery = 'from';
+
   static String groupEventPath(
     String eventId, {
     bool openPrayerRequests = false,
+    String? source,
   }) {
+    final query = [
+      if (openPrayerRequests) '$eventPrayersQuery=1',
+      if (source != null) '$eventSourceQuery=${Uri.encodeQueryComponent(source)}',
+    ];
     final path = '/home/events/$eventId';
-    if (!openPrayerRequests) return path;
-    return '$path?$eventPrayersQuery=1';
+    return query.isEmpty ? path : '$path?${query.join('&')}';
   }
 
   /// Online view of an event whose practice is a recitation collection: the

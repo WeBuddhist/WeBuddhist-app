@@ -12,7 +12,36 @@
           "package_name": "org.pecha.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "551646315172-7i0r4lb12bfnap21rpp9np01kn94n2bg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.pecha.app",
+            "certificate_hash": "5bc5537b27443e3093be8d9aab409750ba8d259a"
+          }
+        },
+        {
+          "client_id": "551646315172-9cd3k6r7faaip0vvmcigtgif99nro0td.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.pecha.app",
+            "certificate_hash": "a61cc6610b359ab1d5bac511f85f83e5d135d902"
+          }
+        },
+        {
+          "client_id": "551646315172-g5d6rapb0qe8pbfu643on3s46c1b2ic6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "org.pecha.app",
+            "certificate_hash": "1998c075149773f73549cdd4bd8b63fcc8606e72"
+          }
+        },
+        {
+          "client_id": "551646315172-kfkbg97ojbn7nus3gi2sju0jocnph2mu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBRo5ms8zEQ4qyQlZfyBH3OOe9ajkuDiuA"
@@ -20,7 +49,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "551646315172-kfkbg97ojbn7nus3gi2sju0jocnph2mu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "551646315172-gqk6dkovt3loao84lhertpoflqkn94d0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.pecha.app"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +72,12 @@
           "package_name": "org.pecha.app.dev"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "551646315172-kfkbg97ojbn7nus3gi2sju0jocnph2mu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBRo5ms8zEQ4qyQlZfyBH3OOe9ajkuDiuA"
@@ -39,7 +85,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "551646315172-kfkbg97ojbn7nus3gi2sju0jocnph2mu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "551646315172-gqk6dkovt3loao84lhertpoflqkn94d0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.pecha.app"
+              }
+            }
+          ]
         }
       }
     }

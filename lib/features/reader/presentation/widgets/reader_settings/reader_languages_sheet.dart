@@ -17,6 +17,7 @@ import 'package:flutter_pecha/features/reader/presentation/widgets/reader_app_ba
     show readerOriginalTitle, readerShownLines;
 import 'package:flutter_pecha/features/reader/presentation/widgets/reader_settings/picker_state_views.dart';
 import 'package:flutter_pecha/features/reader/presentation/widgets/reader_settings/reader_sheet.dart';
+import 'package:flutter_pecha/features/reader/presentation/utils/reader_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// A text the Languages sheet drives besides the one it shows: its settings
@@ -109,6 +110,9 @@ class _ReaderLanguagesSheetState extends ConsumerState<ReaderLanguagesSheet> {
   }
 
   Future<void> _onToggle(bool value) async {
+    ref
+        .read(readerAnalyticsProvider)
+        .settingChanged(setting: ReaderSetting.translation, value: value);
     _notifier.setSecondaryEnabled(value);
     for (final text in _others) {
       _notifierOf(text.scope).setSecondaryEnabled(value);
@@ -236,6 +240,9 @@ class _ReaderLanguagesSheetState extends ConsumerState<ReaderLanguagesSheet> {
   /// Hiding the original needs a translation on screen, so it switches the
   /// translation on and picks a version the way the Translation switch does.
   Future<void> _onOriginalToggle(bool visible) async {
+    ref
+        .read(readerAnalyticsProvider)
+        .settingChanged(setting: ReaderSetting.original, value: visible);
     _notifier.setOriginalVisible(visible);
     for (final text in _others) {
       _notifierOf(text.scope).setOriginalVisible(visible);

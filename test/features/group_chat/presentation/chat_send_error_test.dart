@@ -34,6 +34,18 @@ void main() {
       );
     });
 
+    test('maps EVENT_ENDED to eventEnded', () {
+      expect(
+        chatSendErrorKind(
+          const ValidationFailure(
+            'Event has ended',
+            code: ChatModeration.eventEnded,
+          ),
+        ),
+        ChatSendErrorKind.eventEnded,
+      );
+    });
+
     test('other failures stay generic', () {
       expect(
         chatSendErrorKind(const ValidationFailure('bad request')),

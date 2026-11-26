@@ -11,6 +11,9 @@ class ErrorInterceptor extends Interceptor {
 
   final AppLogger _logger;
 
+  /// A machine code such as `EVENT_ENDED`, as opposed to a readable sentence.
+  static final _bareCode = RegExp(r'^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$');
+
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final requestId = err.requestOptions.extra['requestId'] ?? 'unknown';
@@ -88,7 +91,12 @@ class ErrorInterceptor extends Interceptor {
         detailBody?['message'] as String? ??
         (detail is String ? detail : null);
     final message = serverMessage ?? 'Server error';
-    final code = body?['code'] as String? ?? detailBody?['code'] as String?;
+    // A third shape: `detail` is the code itself (`{"detail": "EVENT_ENDED"}`).
+    // Without this, the code only reached the UI as raw message text.
+    final code =
+        body?['code'] as String? ??
+        detailBody?['code'] as String? ??
+        (detail is String && _bareCode.hasMatch(detail) ? detail : null);
 
     switch (statusCode) {
       case 400:

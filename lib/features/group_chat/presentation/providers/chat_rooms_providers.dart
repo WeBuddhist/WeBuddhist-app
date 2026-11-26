@@ -96,6 +96,9 @@ class ChatRoomsState extends Equatable {
 }
 
 /// What one walk down `/chat/rooms` brought back.
+/// A room the viewer read: [messageType] null means every type.
+typedef _LocalRead = ({String roomId, String? messageType});
+
 class _RoomsWalk {
   const _RoomsWalk({
     required this.rooms,
@@ -389,6 +392,29 @@ class ChatRoomsNotifier extends StateNotifier<ChatRoomsState>
   /// old list able to page on from where it was.
   Future<void> refresh() => loadInitial();
 
+  /// Clears [roomId]'s unread [messageType] (every type when null) once the
+  /// server has been told the viewer read it. Marking a room read moves no
+  /// signal, so without this every dot would wait for the next refetch.
+  /// Callers check `exists` first, so a read never starts a fetch of its own.
+  ///
+  /// A walk already out may have read the counts before the server was told,
+  /// so the read is also kept against every walk in flight and applied again
+  /// to what it brings back; otherwise its older counts would bring the dot
+  /// back.
+  void markReadLocally(String roomId, {String? messageType}) {
+    if (!mounted) return;
+    for (final reads in _readsDuringWalk) {
+      reads.add((roomId: roomId, messageType: messageType));
+    }
+    final rooms = roomsWithRoomRead(
+      state.rooms,
+      roomId,
+      messageType: messageType,
+    );
+    if (identical(rooms, state.rooms)) return;
+    state = state.copyWith(rooms: rooms);
+  }
+
   void retry() {
     if (state.rooms.isEmpty) {
       loadInitial();
@@ -404,7 +430,38 @@ class ChatRoomsNotifier extends StateNotifier<ChatRoomsState>
   /// Never returns empty-handed while the server still has rooms: an empty
   /// result with `hasMore` set is a dead end for the caller, since nothing on
   /// screen would ever ask for the next page.
+  ///
+  /// Rooms marked read while the walk was out come back read.
   Future<_RoomsWalk> _walk({required int skip}) async {
+    final reads = <_LocalRead>[];
+    _readsDuringWalk.add(reads);
+    try {
+      final walk = await _walkPages(skip: skip);
+      var rooms = walk.rooms;
+      for (final read in reads) {
+        rooms = roomsWithRoomRead(
+          rooms,
+          read.roomId,
+          messageType: read.messageType,
+        );
+      }
+      if (identical(rooms, walk.rooms)) return walk;
+      return _RoomsWalk(
+        rooms: rooms,
+        skip: walk.skip,
+        total: walk.total,
+        hasMore: walk.hasMore,
+        failure: walk.failure,
+      );
+    } finally {
+      _readsDuringWalk.remove(reads);
+    }
+  }
+
+  /// One list per walk still out, each holding the reads made since it left.
+  final List<List<_LocalRead>> _readsDuringWalk = [];
+
+  Future<_RoomsWalk> _walkPages({required int skip}) async {
     final repository = ref.read(groupChatRepositoryProvider);
     final rooms = <ChatRoomDTO>[];
     final seen = <String>{};
@@ -631,9 +688,11 @@ final chatRoomsPushRefreshProvider = Provider.autoDispose<void>((ref) {
   ref.onDispose(subscription.cancel);
 });
 
-/// Refreshes the rooms list when any listed room's messages move. One
-/// listener per listed room, following the list as it changes; a burst
-/// across rooms costs one refetch. Watch it next to [chatRoomsPushRefreshProvider].
+/// Refreshes the rooms list when any listed room's messages or prayer
+/// requests move — a prayer request moves only `prayers_changed_at`, and the
+/// 🙏 dot reads it from this list. One listener per listed room, following
+/// the list as it changes; a burst across rooms costs one refetch. Watch it
+/// next to [chatRoomsPushRefreshProvider].
 final chatRoomsSignalsProvider = Provider.autoDispose<void>((ref) {
   final signals = ref.watch(liveSignalsProvider);
   if (signals == null) return;
@@ -641,7 +700,10 @@ final chatRoomsSignalsProvider = Provider.autoDispose<void>((ref) {
   Timer? coalesce;
   final rooms = SignalSet(
     signals: signals,
-    fields: const {SignalFields.messagesChangedAt},
+    fields: const {
+      SignalFields.messagesChangedAt,
+      SignalFields.prayersChangedAt,
+    },
     onChange: (_) {
       coalesce ??= Timer(const Duration(milliseconds: 500), () {
         coalesce = null;

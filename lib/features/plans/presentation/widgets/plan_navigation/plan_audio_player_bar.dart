@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_pecha/core/analytics/media_analytics.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/utils/tibetan_numerals.dart';
@@ -23,6 +24,7 @@ class PlanAudioPlayerBar extends StatefulWidget {
     required this.controller,
     this.versionTitle,
     this.onVersionTap,
+    this.onSettingChanged,
   });
 
   /// Null until a group recitation has started a recording. The bar still
@@ -33,6 +35,9 @@ class PlanAudioPlayerBar extends StatefulWidget {
 
   /// Opens the recording list. Null leaves the pill as a label.
   final VoidCallback? onVersionTap;
+
+  /// Told when the listener picks a speed or toggles repeat, for analytics.
+  final void Function(AudioSetting setting, Object value)? onSettingChanged;
 
   @override
   State<PlanAudioPlayerBar> createState() => _PlanAudioPlayerBarState();
@@ -84,8 +89,12 @@ class _PlanAudioPlayerBarState extends State<PlanAudioPlayerBar> {
   bool get _repeat =>
       widget.controller?.repeat ?? PlanSegmentAudioController.preferredRepeat;
 
+  void _trackSetting(AudioSetting setting, Object value) =>
+      widget.onSettingChanged?.call(setting, value);
+
   void _toggleRepeat() {
     final next = !_repeat;
+    _trackSetting(AudioSetting.repeat, next);
     final controller = widget.controller;
     if (controller == null) {
       PlanSegmentAudioController.preferredRepeat = next;
@@ -101,6 +110,7 @@ class _PlanAudioPlayerBarState extends State<PlanAudioPlayerBar> {
       selected: _speed,
       onChanged: (speed) {
         if (!mounted) return;
+        if (speed != _speed) _trackSetting(AudioSetting.speed, speed);
         final controller = widget.controller;
         if (controller == null) {
           PlanSegmentAudioController.preferredSpeed = speed;

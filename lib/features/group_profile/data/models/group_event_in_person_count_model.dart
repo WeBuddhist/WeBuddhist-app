@@ -68,11 +68,10 @@ class GroupEventInPersonCountListModel {
 
   factory GroupEventInPersonCountListModel.fromJson(Map<String, dynamic> json) {
     return GroupEventInPersonCountListModel(
-      items:
-          (json['items'] as List<dynamic>? ?? const [])
-              .whereType<Map<String, dynamic>>()
-              .map(GroupEventInPersonCountModel.fromJson)
-              .toList(),
+      items: (json['items'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(GroupEventInPersonCountModel.fromJson)
+          .toList(),
       total: (json['total'] as num?)?.toInt() ?? 0,
       skip: (json['skip'] as num?)?.toInt() ?? 0,
       limit: (json['limit'] as num?)?.toInt() ?? 0,
@@ -103,8 +102,9 @@ class GroupEventInPersonCountListModel {
       groupAccumulatorTitle: groupAccumulatorTitle,
       groupAccumulatorTotalCount: groupAccumulatorTotalCount,
       groupAccumulatorTargetCount: groupAccumulatorTargetCount,
-      groupAccumulatorImage:
-          imageJson == null ? null : ResponsiveImage.fromJson(imageJson),
+      groupAccumulatorImage: imageJson == null
+          ? null
+          : ResponsiveImage.fromJson(imageJson),
       timezone: timezone,
     );
   }

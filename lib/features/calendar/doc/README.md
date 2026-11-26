@@ -15,6 +15,7 @@ Tibetan lunar calendar: Gregorian grid with lunar day info and moon phases (scre
 - Tapping a day replaces that list with the day's events; Today goes back
 - **+** adds a personal event on the selected day. Tapping a personal card edits it; tapping a space card opens its event page; lunar cards don't open
 - "Today" sync on open and when the app resumes on a new calendar day
+- **Multiple calendars:** Settings → Calendar opens "Choose calendar" (`ChooseCalendarSheet`), calendars grouped by tradition with the current one checked; the calendar screen shows the chosen calendar under its title. Signed-in viewers see only their own traditions (plus the one holding the current pick); guests see all
 
 ## Architecture
 
@@ -38,10 +39,12 @@ calendar/
 | Remote API | `data/datasource/calendar_remote_datasource.dart` |
 | Events list | `presentation/widgets/upcoming_events_list.dart` |
 | `GET /calendar/today` | `todayCalendarDayProvider` — defined but **not consumed anywhere** today |
+| Calendar types | `domain/models/calendar_type.dart`, `presentation/providers/calendar_type_providers.dart`, `presentation/calendar_type_l10n.dart`, `widgets/choose_calendar_sheet.dart`, `widgets/calendar_type_settings_row.dart` |
 
 ## State management
 
 - `StateProvider`: `selectedCalendarDayProvider`, `focusedCalendarMonthProvider`
+- `selectedCalendarTypeProvider` (`StateNotifier<String>`, default `phugpa`, kept on device under `StorageKeys.calendarType`). `calendarRepositoryProvider` and `personalCalendarRepositoryProvider` watch it, so a pick refetches months, today and the feed in that calendar. `calendarTraditionsProvider` reads `GET /calendar/types` (falls back to the Tibetan calendars); `calendarTypeChoicesProvider` (autoDispose) is what the sheet lists
 - `Provider`: `tibetanCalendarServiceProvider` (engine), `engineMonthDaysProvider` (family), `resolvedMonthDaysProvider` (family — merges engine + backend overlay), `resolvedDayProvider` (family), `monthEventsProvider` (family)
 - `FutureProvider.family`: `calendarMonthProvider` (keyed by Gregorian `(year, month)`; returns `[]` on failure), `backendMonthOverlayProvider`
 - `FutureProvider`: `todayCalendarDayProvider` (unused)
@@ -49,8 +52,9 @@ calendar/
 
 ## Data sources
 
-- **Remote:** `GET /calendar/{year}/{month}`, `GET /calendar/today`
-- **Offline engine:** `KharagTibetanCalendarService` — always available fallback
+- **Remote:** `GET /calendar/{year}/{month}`, `GET /calendar/today`, `GET /calendar/types`. Month, today, `/users/me/calendar` and `/repeat-options` all send `calendar_type`, and the month/today cache keys include it
+- **Supported calendars:** only `supportedCalendarTypes` (`phugpa`, `tsurphu`, `nyingmapa`, the backend `CalendarType` enum) are offered. `/calendar/types` also lists Theravada and Mahayana calendars, but the month API rejects them; add their codes (and l10n labels in `calendar_type_l10n.dart`) when the backend serves them
+- **Offline engine:** `KharagTibetanCalendarService` — always available fallback. It computes Phugpa only, so for another calendar the grid shows Phugpa values until (or, offline, unless) that calendar's month arrives
 - No persistent cache; engine computes synchronously
 
 ## Cross-feature dependencies

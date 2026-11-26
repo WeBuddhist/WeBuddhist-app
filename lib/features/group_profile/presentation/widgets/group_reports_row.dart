@@ -41,6 +41,7 @@ class GroupReportsRow extends ConsumerWidget {
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute<void>(
+              settings: const RouteSettings(name: 'group-reports'),
               builder: (_) => GroupReportsScreen(groupId: groupId),
             ),
           );

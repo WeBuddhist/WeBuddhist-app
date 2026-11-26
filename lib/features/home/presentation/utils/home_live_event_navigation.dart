@@ -57,7 +57,7 @@ HomeLiveEventKind resolveHomeLiveEventKind({
 /// The page then resolves the live destination with [resolveHomeLiveEntry].
 void openHomeLiveEvent(BuildContext context, String eventId) {
   context.push(
-    AppRoutes.groupEventPath(eventId),
+    AppRoutes.groupEventPath(eventId, source: 'home_banner'),
     extra: const HomeLiveEventResolveEntry(),
   );
 }

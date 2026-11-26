@@ -24,6 +24,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_cha
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_thread.dart';
 import 'package:flutter_pecha/features/push_notifications/domain/entities/push_message.dart';
 import 'package:flutter_pecha/features/push_notifications/presentation/providers/push_notification_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// A direct chat between the viewer and one other person — in practice the
@@ -81,6 +82,9 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
     // The banner for a message this screen already shows would only lead
     // back here.
     _providers.read(foregroundPushFilterProvider).claim(this, _showsPush);
+    _providers
+        .read(groupChatAnalyticsProvider)
+        .directChatOpened(roomId: widget.roomId);
 
     final room = widget.initialRoom;
     if (room != null) {
@@ -159,6 +163,16 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
     setState(() => _sending = true);
     try {
       final result = await _notifier.send(body, parentMessageId: parent?.id);
+      result.fold(
+        (_) {},
+        (message) => _providers
+            .read(groupChatAnalyticsProvider)
+            .directMessageSent(
+              roomId: widget.roomId,
+              messageId: message.id,
+              isReply: parent != null,
+            ),
+      );
       if (!mounted) return;
       result.fold(
         (failure) {

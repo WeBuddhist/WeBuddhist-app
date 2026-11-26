@@ -40,6 +40,7 @@ app.*.symbols
 app.*.map.json
 
 # Android Studio will place build artifacts here
+/android/build/
 /android/app/debug
 /android/app/profile
 /android/app/release
@@ -75,3 +76,6 @@ CLAUDE.md
 
 # Test coverage output (flutter test --coverage)
 coverage/
+
+# FVM (the Flutter version is pinned in .fvmrc)
+.fvm/

@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/analytics/media_analytics.dart';
 import 'package:flutter_pecha/core/config/router/app_router.dart';
 import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/error/load_error_kind.dart';
-import 'package:flutter_pecha/core/utils/audio_url.dart';
+import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/core/widgets/slide_away_header.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_button.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_accumulator_providers.dart';
@@ -12,6 +13,9 @@ import 'package:flutter_pecha/features/group_profile/presentation/widgets/add_of
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_accumulator_chant_bar.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_accumulator_chant_footer.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_recitation_audio_sheet.dart';
+import 'package:flutter_pecha/features/library/data/repositories/library_repository.dart';
+import 'package:flutter_pecha/features/library/presentation/providers/library_providers.dart';
+import 'package:flutter_pecha/features/mala/domain/entities/mala_accumulation_selection.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/accumulation_chant_counter.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/accumulator_groups_provider.dart';
@@ -40,6 +44,8 @@ import 'package:flutter_pecha/features/reader/domain/services/live_position_reso
 import 'package:flutter_pecha/features/reader/domain/services/navigation_service.dart';
 import 'package:flutter_pecha/features/reader/presentation/providers/reader_dual_settings_provider.dart';
 import 'package:flutter_pecha/features/reader/presentation/providers/reader_notifier.dart';
+import 'package:flutter_pecha/features/reader/presentation/utils/chant_recordings_loader.dart';
+import 'package:flutter_pecha/features/reader/presentation/utils/deferred_recitation.dart';
 import 'package:flutter_pecha/features/reader/presentation/utils/reader_transliteration.dart';
 import 'package:flutter_pecha/features/reader/presentation/widgets/reader_actions/reader_verse_sheet.dart';
 import 'package:flutter_pecha/features/reader/presentation/widgets/reader_app_bar/reader_app_bar.dart';
@@ -61,6 +67,27 @@ import 'package:flutter_pecha/features/recitation/presentation/widgets/recitatio
 import 'package:flutter_pecha/features/texts/data/models/text_detail.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:just_audio/just_audio.dart';
+
+/// Player for a library chant recording. It has no fixed URL: the
+/// presigned link is fetched on play and again after a player error.
+@visibleForTesting
+PlanSegmentAudioController chantRecordingAudioController(
+  LibraryRepository repository,
+  ChantAudioTrack track, {
+  AudioPlayer Function()? createPlayer,
+  void Function(PlanAudioListen listen)? onListened,
+}) {
+  return PlanSegmentAudioController(
+    url: null,
+    startMs: 0,
+    endMs: null,
+    onSegmentComplete: () {},
+    onListened: onListened,
+    resolveUrl: () => repository.getRecordingAudioUrl(track.id),
+    createPlayer: createPlayer,
+  );
+}
 
 /// Main reader screen - thin orchestrator that composes child widgets
 class ReaderScreen extends ConsumerStatefulWidget {
@@ -117,11 +144,48 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   VoidCallback? _scrollToTop;
 
   // Group accumulation chant session
-  bool _hasSeededInitialChantCount = false;
   bool _chantSessionFinished = false;
 
   /// Chants made in this visit, whichever target each one was counted into.
   int _chantSessionCount = 0;
+
+  /// A recitation from Recite again, shown as counted but held back while
+  /// its toast offers Undo. Counted when the window closes, or sooner when
+  /// the visit moves on (another count, finishing, leaving).
+  late final _pendingRecitation = DeferredRecitation(
+    window: _undoWindow,
+    onCommit: _onPendingRecitationCommitted,
+  );
+
+  /// Where the pending recitation goes: the target selected when Recite
+  /// again was tapped (a joined accumulation's id, or null for personal
+  /// practice), not whatever is selected once the Undo window closes.
+  String? _pendingTarget;
+
+  /// True from [dispose] on, where a pending recitation is counted through
+  /// [_container] since `ref` can no longer be used.
+  bool _disposing = false;
+
+  /// Set once Finish and count has counted the recitation on screen. It is
+  /// then in [_recitationsCounted] already, so the footer stops adding it,
+  /// and a retry after finishing threw does not count it twice.
+  bool _finishedRecitationCounted = false;
+
+  /// True from a finish action until the session is finished, or finishing
+  /// threw. Every chant action is off meanwhile, so a slow sync cannot let
+  /// Recite again hold the recitation Finish and count already counted.
+  bool _isFinishing = false;
+
+  /// How long Recite again's toast offers Undo.
+  static const _undoWindow = Duration(seconds: 5);
+
+  /// Held for counting a pending recitation from [dispose], where `ref` and
+  /// context lookups are no longer allowed.
+  ProviderContainer? _container;
+
+  /// Recitations counted in this visit, the one waiting on Undo included.
+  int get _recitationsCounted =>
+      _chantSessionCount + (_pendingRecitation.isPending ? 1 : 0);
 
   /// Those counted into the accumulation this reader was opened from, which
   /// is what its completion sheet reports.
@@ -165,19 +229,49 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
 
   // ─── Audio ─────────────────────────────────────────────────────────────
   // Plays the current SOURCE_REFERENCE subtask's audio when the reader is
-  // opened from a plan. Shares the engine with PlanTextScreen.
+  // opened from a plan, and the library's recordings of a chant. Shares the
+  // engine with PlanTextScreen.
   PlanSegmentAudioController? _audioController;
   bool _isAdvancing = false;
+  static final _logger = AppLogger('ReaderScreen');
+
+  /// Loads the library recordings of the chant on screen. Null for plans
+  /// and the library reader, which never play them.
+  ChantRecordingsLoader? _chantRecordings;
+
+  /// The last load failed and nothing has loaded since: the play spot offers
+  /// a retry instead of hiding, so a passing error is not read as no audio.
+  bool _chantRecordingsFailed = false;
+
+  /// Recordings of the chant on screen, titled in the UI language; empty
+  /// until they load.
+  List<ChantAudioTrack> get _chantTracks {
+    final recordings = _chantRecordings?.recordings ?? const [];
+    if (recordings.isEmpty) return const [];
+    return ChantAudioTrack.fromRecordings(
+      recordings,
+      Localizations.localeOf(context).languageCode,
+    );
+  }
+
+  bool get _showsChantRetry => _chantRecordingsFailed && _chantTracks.isEmpty;
 
   /// Recording chosen from Audio versions on this screen. Null means the
   /// first recording of the chant on screen.
-  CollectionAudioTrack? _selectedCollectionTrack;
+  ChantAudioTrack? _selectedCollectionTrack;
 
-  bool get _hasCollectionAudioChoices =>
-      widget.navigationContext?.hasCollectionAudioChoices ?? false;
+  bool get _hasCollectionAudioChoices => _chantTracks.isNotEmpty;
 
   bool get _hasAudio =>
-      (_audioController?.hasAudio ?? false) || _hasCollectionAudioChoices;
+      (_audioController?.hasAudio ?? false) ||
+      _hasCollectionAudioChoices ||
+      _showsChantRetry;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _container = ProviderScope.containerOf(context, listen: false);
+  }
 
   @override
   void initState() {
@@ -209,10 +303,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       for (final (index, source) in item.sources.indexed)
         ReaderParams(
           textId: source.textId,
-          segmentId:
-              index == 0
-                  ? widget.segmentId ?? source.firstSegmentId
-                  : source.firstSegmentId,
+          segmentId: index == 0
+              ? widget.segmentId ?? source.firstSegmentId
+              : source.firstSegmentId,
           segmentIds: source.segmentIds,
           navigationContext: ctx,
           sourceLanguage: source.language,
@@ -259,32 +352,48 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       });
       if (!mounted) return;
       setState(() => _chantSelectionReady = true);
-      _seedInitialChantCountIfNeeded();
     });
-  }
-
-  void _seedInitialChantCountIfNeeded() {
-    if (_hasSeededInitialChantCount) return;
-    _hasSeededInitialChantCount = true;
-    if (_openedEndedAccumulator) return;
-    _countChant();
   }
 
   /// Counts one chant into the target selected in the accumulation sheet.
   void _countChant() {
+    final mantra = _chantMantra;
+    if (mantra == null) return;
+    _countChantInto(chantTargetOf(ref.read, mantra));
+  }
+
+  /// Counts one chant into [groupAccumulatorId], or personal practice when
+  /// null, whatever is selected now.
+  void _countChantInto(String? groupAccumulatorId) {
     if (_openedEndedAccumulator) return;
     final mantra = _chantMantra;
     if (mantra == null) return;
 
-    if (!countChantIntoSelection(ref.read, mantra)) return;
-    _tallyChants(mantra, 1);
+    final counted = countChantInto(
+      ref.read,
+      mantra,
+      groupAccumulatorId: groupAccumulatorId,
+    );
+    if (!counted) return;
+    final opened = _chantContext?.groupAccumulatorId;
+    _tallyChantsInto(
+      1,
+      intoOpened: opened != null && opened == groupAccumulatorId,
+    );
   }
 
   /// Adds chants just counted into the selected target to this visit's tallies.
   void _tallyChants(Mantra mantra, int count) {
     final opened = _chantContext?.groupAccumulatorId;
-    final intoOpened =
-        opened != null && isChantTarget(ref.read, mantra, opened);
+    _tallyChantsInto(
+      count,
+      intoOpened: opened != null && isChantTarget(ref.read, mantra, opened),
+    );
+  }
+
+  /// Adds chants just counted to this visit's tallies; [intoOpened] when they
+  /// went to the accumulation this reader was opened from.
+  void _tallyChantsInto(int count, {required bool intoOpened}) {
     setState(() {
       _chantSessionCount += count;
       if (intoOpened) _chantOpenedCount += count;
@@ -309,9 +418,129 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     return !ref.watch(malaCounterProvider(mantra)).isSeeding;
   }
 
-  void _onChantAgain() {
+  /// Counts the recitation just finished, after an Undo window, and goes
+  /// back to the opening verse for the next one.
+  void _onReciteAgain() {
+    if (_isFinishing) return;
+    final mantra = _chantMantra;
+    if (mantra == null) return;
     _scrollToTop?.call();
-    _countChant();
+    if (_finishedRecitationCounted) {
+      // Finishing threw after counting this recitation: start the next pass
+      // without counting it again.
+      setState(() => _finishedRecitationCounted = false);
+      return;
+    }
+    // Counts the one already held, into its own target, before taking this.
+    _pendingRecitation.hold();
+    _pendingTarget = chantTargetOf(ref.read, mantra);
+    setState(() {});
+    _showRecitationCountedToast();
+  }
+
+  void _showRecitationCountedToast() {
+    final l10n = context.l10n;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          // A SnackBar with an action stays up past its duration unless told
+          // not to; this one has to go when the Undo window closes.
+          persist: false,
+          behavior: SnackBarBehavior.floating,
+          // Figma: floats just above the chant bar.
+          margin: const EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            GroupAccumulatorChantBar.barHeight + 8,
+          ),
+          duration: _undoWindow,
+          content: Text(
+            l10n.group_accumulator_recitations_counted(_recitationsCounted),
+          ),
+          action: SnackBarAction(
+            label: l10n.undo,
+            onPressed: _undoPendingRecitation,
+          ),
+        ),
+      );
+  }
+
+  /// Drops the recitation waiting on Undo; nothing reached the counters.
+  void _undoPendingRecitation() {
+    if (!mounted) return;
+    if (_pendingRecitation.undo()) setState(() {});
+  }
+
+  /// Counts the recitation waiting on Undo, if there is one; committing takes
+  /// its toast away so no Undo is left offered for it.
+  void _settlePendingRecitation() {
+    if (!_pendingRecitation.isPending) return;
+    _pendingRecitation.commit();
+  }
+
+  void _onPendingRecitationCommitted() {
+    final mantra = _chantMantra;
+    if (mantra == null) return;
+    final target = _pendingTarget;
+    if (_disposing) {
+      // The counters are held open by this widget until after dispose, so
+      // the container can still reach them.
+      final container = _container;
+      if (container != null) {
+        countChantInto(container.read, mantra, groupAccumulatorId: target);
+      }
+      return;
+    }
+    if (!mounted) return;
+    // The toast's own timer starts after its entrance animation, so it can
+    // outlast the Undo window briefly; take it down with the count.
+    ScaffoldMessenger.maybeOf(context)?.hideCurrentSnackBar();
+    // Redraws even when the target turns the count away.
+    setState(() {});
+    _countChantInto(target);
+  }
+
+  /// A different target was picked while a recitation waits on Undo: count
+  /// it now, into the target it was made for. Waiting would let the old
+  /// target's counter go (personal practice is only held while selected).
+  void _onChantSelectionChanged(
+    MalaAccumulationSelection? previous,
+    MalaAccumulationSelection next,
+  ) {
+    if (!_pendingRecitation.isPending) return;
+    if (next.groupAccumulatorId == _pendingTarget) return;
+    _settlePendingRecitation();
+  }
+
+  /// Counts the recitation just finished and ends the session.
+  Future<void> _finishAndCount() => _finishing(() {
+    if (!_finishedRecitationCounted) {
+      _finishedRecitationCounted = true;
+      _countChant();
+    }
+  });
+
+  /// Ends the session without counting the recitation just finished. One
+  /// already shown as counted by Recite again still counts.
+  Future<void> _finishWithoutCounting() => _finishing(() {});
+
+  /// Locks the chant actions, settles any recitation waiting on Undo, runs
+  /// [countFinished], then finishes the session. Unlocks only when the
+  /// finish failed and the reader is still open.
+  Future<void> _finishing(VoidCallback countFinished) async {
+    if (_isFinishing) return;
+    setState(() => _isFinishing = true);
+    try {
+      _settlePendingRecitation();
+      countFinished();
+      await _finishChantSession();
+    } finally {
+      if (mounted && !_chantSessionFinished) {
+        setState(() => _isFinishing = false);
+      }
+    }
   }
 
   Future<void> _addOfflineChantCount() async {
@@ -326,15 +555,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     // drop the widget's listener, dispose the counter and lose the count
     // the user just confirmed.
     final container = ProviderScope.containerOf(context, listen: false);
-    final added =
-        _openedEndedAccumulator
-            ? await addOfflineChantsToPersonal(
-              container.read,
-              container.listen,
-              mantra,
-              count,
-            )
-            : addOfflineChantsToSelection(ref.read, mantra, count);
+    final added = _openedEndedAccumulator
+        ? await addOfflineChantsToPersonal(
+            container.read,
+            container.listen,
+            mantra,
+            count,
+          )
+        : addOfflineChantsToSelection(ref.read, mantra, count);
     if (!mounted) return;
     if (!added) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -350,19 +578,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     int? finishedSessionCount;
     if (ctx != null) {
       final sessionCount = _chantOpenedCount;
-      final success = await finishGroupAccumulatorSession(
+      await finishGroupAccumulatorSession(
         container: ProviderScope.containerOf(context, listen: false),
         groupAccumulatorId: ctx.groupAccumulatorId!,
         presetId: ctx.presetAccumulatorId!,
         groupId: ctx.groupId,
       );
       if (!mounted) return;
-      if (!success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.something_went_wrong)),
-        );
-        return;
-      }
       _chantSessionFinished = true;
       finishedSessionCount = sessionCount;
     }
@@ -375,9 +597,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   /// current item has resolvable audio (its own `audioUrl` wins over the
   /// day-level track). Auto-plays when the navigation requested it.
   ///
-  /// A group recitation collection plays the recording passed in with the
-  /// route (the chant's first one, from the list play circle). The reader's
-  /// own play button starts that same first recording when nothing was passed.
+  /// A chant (chant list, routine, recitation collection) loads the
+  /// library's recordings of the text; the play button starts the first, and
+  /// the list play circle (`autoPlay`) starts it once they have loaded.
   void _initAudio() {
     final ctx = widget.navigationContext;
     if (ctx == null) return;
@@ -387,11 +609,25 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       final url = ctx.effectiveAudioUrlFor(item);
       if (url == null) return;
 
+      // Read now: the summary arrives from dispose, where `ref` is gone.
+      final media = ref.read(mediaAnalyticsProvider);
       _audioController = PlanSegmentAudioController(
         url: url,
         startMs: item.startMs,
         endMs: item.endMs,
         onSegmentComplete: _onAudioSegmentComplete,
+        onListened:
+            (listen) => media.audioPlayed(
+              surface: AudioSurface.plan,
+              listened: listen.listened,
+              speed: listen.speed,
+              repeat: listen.repeat,
+              completed: listen.completed,
+              planId: ctx.planId,
+              dayNumber: ctx.dayNumber,
+              textId: widget.textId,
+              eventId: ctx.isFromEvent ? ctx.eventId : null,
+            ),
       );
 
       if (ctx.autoPlay) {
@@ -402,52 +638,105 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       return;
     }
 
-    if (ctx.source != NavigationSource.groupRecitationCollection) return;
-    final track = ctx.initialCollectionAudio;
-    if (!ctx.autoPlay || track == null) return;
-    if (!ctx.currentCollectionAudioTracks.any(
-      (option) => option.id == track.id,
-    )) {
+    if (!ctx.playsChantRecordings) return;
+    final editionId = widget.textId.trim();
+    if (editionId.isEmpty) return;
+    final repository = ref.read(libraryRepositoryProvider);
+    _chantRecordings = ChantRecordingsLoader(
+      () => repository.getChantRecordings(editionId),
+    )..addListener(_onChantRecordingsChanged);
+    unawaited(_fetchChantRecordings(play: ctx.autoPlay));
+  }
+
+  /// Stops audio when the reader leaves or moves on to another text. The
+  /// player stops at once, and a recordings lookup still in flight lands
+  /// without starting a new one, which it otherwise could during the exit
+  /// animation while this state is still mounted.
+  void _stopAudio() {
+    _chantRecordings?.cancelPending();
+    _audioController?.cancel();
+  }
+
+  void _onChantRecordingsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Loads the chant's recordings, then plays the first with [play]. A
+  /// failure keeps a retry button where play would be; when the retry was
+  /// the user's tap ([reportFailure]) a failure also says so.
+  Future<void> _fetchChantRecordings({
+    required bool play,
+    bool reportFailure = false,
+  }) async {
+    final loader = _chantRecordings;
+    if (loader == null) return;
+    try {
+      if (!await loader.fetch()) return;
+    } catch (e) {
+      _logger.warning('Chant recordings for ${widget.textId} failed', e);
+      if (!mounted) return;
+      setState(() => _chantRecordingsFailed = true);
+      if (reportFailure) {
+        ScaffoldMessenger.maybeOf(context)
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(content: Text(context.l10n.something_went_wrong)),
+          );
+      }
       return;
     }
-    _selectedCollectionTrack = track;
-    _replaceCollectionAudio(track);
+    if (!mounted) return;
+    setState(() => _chantRecordingsFailed = false);
+    if (play) _playCurrentCollectionAudio();
   }
 
   /// The recording play will start: the menu choice, or the first one.
-  CollectionAudioTrack? get _currentCollectionTrack {
-    final tracks =
-        widget.navigationContext?.currentCollectionAudioTracks ?? const [];
-    if (tracks.isEmpty) return null;
-    final selected = _selectedCollectionTrack;
-    if (selected != null && tracks.any((track) => track.id == selected.id)) {
-      return selected;
-    }
-    return tracks.first;
-  }
+  ChantAudioTrack? get _currentCollectionTrack =>
+      ChantAudioTrack.toPlay(_chantTracks, _selectedCollectionTrack);
 
   @override
   void dispose() {
+    // Left before the Undo window closed: the recitation still counts.
+    _disposing = true;
+    _pendingRecitation.commit();
     _audioController?.dispose();
+    _chantRecordings
+      ?..removeListener(_onChantRecordingsChanged)
+      ..dispose();
     _progress.dispose();
     super.dispose();
   }
 
   /// Swaps in [track] and starts it. When the file ends, playback stops
-  /// and the play button can start the same recording again.
-  void _replaceCollectionAudio(CollectionAudioTrack track) {
-    final url = normalizeAudioUrl(track.url);
-    if (url == null) return;
-
+  /// and the play button can start the same recording again. The file's
+  /// presigned link is fetched on play and again whenever it expires.
+  void _replaceCollectionAudio(ChantAudioTrack track) {
+    final repository = ref.read(libraryRepositoryProvider);
     final previous = _audioController;
     // Stop the old file now, but dispose it after this frame. The play
     // button and progress bar drop their listeners during the rebuild.
     previous?.cancel();
-    _audioController = PlanSegmentAudioController(
-      url: url,
-      startMs: 0,
-      endMs: null,
-      onSegmentComplete: () {},
+    final media = ref.read(mediaAnalyticsProvider);
+    final ctx = widget.navigationContext;
+    final surface = switch (ctx?.source) {
+      NavigationSource.groupRecitationCollection ||
+      NavigationSource.myRecitationCollection =>
+        AudioSurface.recitationCollection,
+      _ => AudioSurface.reader,
+    };
+    _audioController = chantRecordingAudioController(
+      repository,
+      track,
+      onListened: (listen) => media.audioPlayed(
+        surface: surface,
+        listened: listen.listened,
+        speed: listen.speed,
+        repeat: listen.repeat,
+        completed: listen.completed,
+        textId: widget.textId,
+        collectionId: ctx?.collectionId,
+        eventId: (ctx?.isFromEvent ?? false) ? ctx?.eventId : null,
+      ),
     );
     if (previous != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => previous.dispose());
@@ -466,8 +755,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   }
 
   Future<void> _openCollectionAudioSheet() async {
-    final tracks =
-        widget.navigationContext?.currentCollectionAudioTracks ?? const [];
+    final tracks = _chantTracks;
     if (tracks.isEmpty || !mounted) return;
     // The ⋮ sheet has just closed. Let that route finish before opening this one.
     await Future<void>.delayed(Duration.zero);
@@ -495,7 +783,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     final navContext = widget.navigationContext;
     if (navContext == null) return;
 
-    _audioController?.cancel();
+    _stopAudio();
     ref.read(planSubtaskCompletionProvider).completeCurrent(navContext);
     _clearTransientState();
 
@@ -546,11 +834,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     final navContext = widget.navigationContext;
     if (navContext == null || _isAdvancing) return;
     final state = ref.read(readerNotifierProvider(_params));
-    final primaryVersionId =
-        ref
-            .read(readerDualSettingsProvider(_params.settingsScope))
-            .primary
-            .versionId;
+    final primaryVersionId = ref
+        .read(readerDualSettingsProvider(_params.settingsScope))
+        .primary
+        .versionId;
     final onThisText =
         (navContext.currentItem?.hasSourceText(position.textId) ?? false) ||
         LivePositionResolver.textMatches(
@@ -575,7 +862,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     if (newContext == null) return;
 
     _isAdvancing = true;
-    _audioController?.cancel();
+    _stopAudio();
     if (navContext.source == NavigationSource.plan &&
         index > (navContext.currentTextIndex ?? -1)) {
       // Moving on with the group finishes this text, as a swipe would.
@@ -657,6 +944,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       ref.watch(joinedAccumulatorGroupsProvider(presetId));
       ref.watch(groupAccumulationCountsProvider(presetId));
       ref.watch(malaAccumulationSelectionProvider(presetId));
+      ref.listen(
+        malaAccumulationSelectionProvider(presetId),
+        _onChantSelectionChanged,
+      );
       ref.listen(joinedGroupUserCountsProvider(presetId), (_, next) {
         next.whenData((counts) {
           ref
@@ -680,13 +971,14 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
         onPopInvokedWithResult: (didPop, _) {
           if (!didPop) return;
           // Stop audio immediately so nothing plays during the exit animation.
-          _audioController?.cancel();
+          _stopAudio();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (!mounted) return;
             // Clear transient reader state after navigation finishes so this
             // cannot mutate Riverpod state while GoRouter rebuilds the tree.
             _clearTransientState();
             _invalidatePlanProviders();
+            _settlePendingRecitation();
             if (_isGroupAccumulatorChant && !_chantSessionFinished) {
               unawaited(
                 ref.read(malaSyncManagerProvider).flush(SyncReason.screenLeave),
@@ -742,10 +1034,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
           localizations.error_server_title,
           localizations.reader_error_server_message,
         ),
-        LoadErrorKind.missing || null => (
-          localizations.no_content,
-          localizations.noContentAvailable,
-        ),
+        LoadErrorKind.missing ||
+        null => (localizations.no_content, localizations.noContentAvailable),
       };
       return _buildStatusView(
         context,
@@ -754,8 +1044,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
           message: message,
           retryLabel: localizations.retry,
           backLabel: localizations.back,
-          onRetry:
-              () => ref.read(readerNotifierProvider(_params).notifier).reload(),
+          onRetry: () =>
+              ref.read(readerNotifierProvider(_params).notifier).reload(),
           onBack: () => _navigateBack(context),
         ),
       );
@@ -769,8 +1059,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     final showAudioOnNav =
         _hasAudio && SwipeNavigationWrapper.showsBottomBar(active);
     final isBottomOverlayVisible = !isPanelOpen && _hasAudio && !showAudioOnNav;
-    final chantBarHeight =
-        _isGroupAccumulatorChant ? GroupAccumulatorChantBar.barHeight : 0.0;
+    final chantBarHeight = _isGroupAccumulatorChant
+        ? GroupAccumulatorChantBar.barHeight
+        : 0.0;
     final chantMantra = _chantMantra;
     // Watched here rather than where the footer is built, so an open panel
     // hiding the footer does not let go of the selected target's counter.
@@ -779,23 +1070,29 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     final contentBottomPadding =
         (showAudioOnNav
             ? (_bottomBarHeight > 0
-                ? _bottomBarHeight + 16
-                : _selectedSegmentOverlayFallbackHeight)
+                  ? _bottomBarHeight + 16
+                  : _selectedSegmentOverlayFallbackHeight)
             : isBottomOverlayVisible
             ? (_bottomOverlayHeight > 0
-                ? _bottomOverlayHeight + 16
-                : _selectedSegmentOverlayFallbackHeight)
+                  ? _bottomOverlayHeight + 16
+                  : _selectedSegmentOverlayFallbackHeight)
             : _defaultContentBottomPadding) +
         chantBarHeight;
     final bottomInset = MediaQuery.of(context).padding.bottom;
     final chantFooter =
         chantMantra != null && !isPanelOpen && !_openedEndedAccumulator
-            ? GroupAccumulatorChantFooter(
-              onChantAgain: _onChantAgain,
-              onFinishSession: _finishChantSession,
-              isChantAgainEnabled: isChantTargetReady,
-            )
-            : null;
+        ? GroupAccumulatorChantFooter(
+            // The recitation just finished counts as one completed, unless
+            // Finish and count has already counted it.
+            completedCount:
+                _recitationsCounted + (_finishedRecitationCounted ? 0 : 1),
+            onReciteAgain: _onReciteAgain,
+            onFinishAndCount: _finishAndCount,
+            onFinishWithoutCounting: _finishWithoutCounting,
+            canCount: isChantTargetReady,
+            isFinishing: _isFinishing,
+          )
+        : null;
 
     return Stack(
       children: [
@@ -840,10 +1137,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
                   params: _activeParams,
                   textDetail: state.textDetail!,
                   isAppBarVisible: _isAppBarVisible,
-                  aboveBottomBar:
-                      showAudioOnNav
-                          ? _buildAudioCluster(gap: _playBarGap)
-                          : null,
+                  aboveBottomBar: showAudioOnNav
+                      ? _buildAudioCluster(gap: _playBarGap)
+                      : null,
                   onBottomBarHeight: (height) {
                     if ((_bottomBarHeight - height).abs() < 1) return;
                     setState(() => _bottomBarHeight = height);
@@ -855,6 +1151,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
                       initialSegmentId: widget.segmentId,
                       bottomPadding: contentBottomPadding,
                       chantSessionFooter: chantFooter,
+                      chantRecitationCount: _recitationsCounted,
                       onSourceSelected: _onSourceSelected,
                       onScrollDirectionChanged: _onScrollDirectionChanged,
                       progress: _progress,
@@ -868,7 +1165,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
               if (chantMantra != null)
                 GroupAccumulatorChantBar(
                   mantra: chantMantra,
-                  sessionCount: _chantSessionCount,
+                  sessionCount: _recitationsCounted,
                   chantTitle: state.openedText!.title,
                   chantTitleFontFamily: getFontFamily(
                     state.openedText!.language,
@@ -888,14 +1185,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
             height: bottomInset,
             child: Builder(
               // Read under the reader's Theme, not this State's context.
-              builder:
-                  (context) => ColoredBox(
-                    color:
-                        ReaderPalette.resolve(
-                          Theme.of(context),
-                          ref,
-                        ).drawerBackground,
-                  ),
+              builder: (context) => ColoredBox(
+                color: ReaderPalette.resolve(
+                  Theme.of(context),
+                  ref,
+                ).drawerBackground,
+              ),
             ),
           ),
         // The floating audio button, while the navigation strip is away for
@@ -954,8 +1249,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     final eventId = _eventId;
     final liveEventId = _liveEventId;
     final liveSyncToggle = _livePill(liveEventId);
-    final prayerRequestsButton =
-        eventId == null ? null : PrayerRequestsIconButton(eventId: eventId);
+    final prayerRequestsButton = eventId == null
+        ? null
+        : PrayerRequestsIconButton(eventId: eventId);
     if (_isEmbedded) {
       return PlanEmbeddedHeader(
         onClose: _closeEmbedded,
@@ -974,13 +1270,15 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       prayerRequestsButton: prayerRequestsButton,
       // Picking a result replaces the route without the event, which drops
       // the live sync, so the reader that follows a recitation has no search.
-      onSearchPressed:
-          liveEventId == null ? () => _handleSearch(context) : null,
+      onSearchPressed: liveEventId == null
+          ? () => _handleSearch(context)
+          : null,
       onLanguagesPressed: () => _openLanguagesSheet(context),
       // The event page already offers share and offline recitations, so the
       // menu goes there.
-      onMorePressed:
-          eventId == null ? () => _openMoreBottomSheet(context) : null,
+      onMorePressed: eventId == null
+          ? () => _openMoreBottomSheet(context)
+          : null,
       onFontSizePressed: () => _openDisplaySheet(context),
     );
   }
@@ -988,8 +1286,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   /// The embedded host has no route of its own, so the leave work that the
   /// route's PopScope would do (see [build]) runs here instead.
   void _closeEmbedded() {
-    _audioController?.cancel();
+    _stopAudio();
     _invalidatePlanProviders();
+    _settlePendingRecitation();
     if (_isGroupAccumulatorChant && !_chantSessionFinished) {
       unawaited(
         ref.read(malaSyncManagerProvider).flush(SyncReason.screenLeave),
@@ -1010,10 +1309,12 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
         PlanAudioPlayerBar(
           controller: _audioController,
           versionTitle: title,
-          onVersionTap:
-              title == null
-                  ? null
-                  : () => unawaited(_openCollectionAudioSheet()),
+          onVersionTap: title == null
+              ? null
+              : () => unawaited(_openCollectionAudioSheet()),
+          onSettingChanged: (setting, value) => ref
+              .read(mediaAnalyticsProvider)
+              .audioSettingChanged(setting: setting, value: value),
         ),
       ],
     );
@@ -1031,6 +1332,15 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   /// A group collection plays its current recording: the first one, or the
   /// one picked from Audio versions. Pause and a later play stay on that file.
   Widget _buildAudioButton() {
+    if (_showsChantRetry) {
+      return ChantAudioRetryButton(
+        isLoading: _chantRecordings?.isLoading ?? false,
+        onPressed:
+            () => unawaited(
+              _fetchChantRecordings(play: true, reportFailure: true),
+            ),
+      );
+    }
     if (_hasCollectionAudioChoices) {
       final controller = _audioController;
       if (controller != null) {
@@ -1087,8 +1397,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
   Future<void> _handleSearch(BuildContext context) async {
     final router = ref.read(appRouterProvider);
     final textId = _activeParams.textId;
-    final language =
-        ref.read(readerNotifierProvider(_activeParams)).textDetail?.language;
+    final language = ref
+        .read(readerNotifierProvider(_activeParams))
+        .textDetail
+        ?.language;
 
     // Close selection before search
     _clearTransientState();
@@ -1174,8 +1486,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
     _clearTransientState();
 
     // Adds the edition the user opened, not the original it is shown under.
-    final openedText =
-        ref.read(readerNotifierProvider(_activeParams)).openedText;
+    final openedText = ref
+        .read(readerNotifierProvider(_activeParams))
+        .openedText;
     final showAddToPractices =
         (widget.navigationContext?.source == NavigationSource.recitationList ||
             widget.navigationContext?.source == NavigationSource.routine) &&
@@ -1186,14 +1499,15 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen>
       textId: _activeParams.textId,
       showAddToPractices: showAddToPractices,
       showOfflineRecitation: _isGroupAccumulatorChant,
-      onAddToPractices:
-          showAddToPractices
-              ? () => _openRoutineWithRecitation(context, openedText)
-              : null,
-      onAddOfflineRecitation:
-          _isGroupAccumulatorChant ? _addOfflineChantCount : null,
-      onAudioVersions:
-          _hasCollectionAudioChoices ? () => _openCollectionAudioSheet() : null,
+      onAddToPractices: showAddToPractices
+          ? () => _openRoutineWithRecitation(context, openedText)
+          : null,
+      onAddOfflineRecitation: _isGroupAccumulatorChant
+          ? _addOfflineChantCount
+          : null,
+      onAudioVersions: _hasCollectionAudioChoices
+          ? () => _openCollectionAudioSheet()
+          : null,
     );
   }
 

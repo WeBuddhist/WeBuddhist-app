@@ -33,6 +33,14 @@
       }
     }
   },
+  "home_practices_sessions": "{count, plural,\n=1 {1 session}\nother {{count} sessions}\n}",
+  "@home_practices_sessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "home_shortcut_plans": "Plans",
   "home_chants": "Chants",
   "home_mala": "Mala",
@@ -72,8 +80,6 @@
   },
   "mala_hand_layout_tooltip": "Switch hand layout",
   "mala_settings_section": "Mala settings",
-  "mala_others_section": "Others",
-  "mala_mantra_speed": "Mantra speed",
   "mala_speed_normal": "Normal",
   "mala_show_full_mantra": "Show full mantra",
   "mala_counter_semantics": "Count {bead} of {total}, {rounds}",
@@ -91,7 +97,7 @@
     }
   },
   "mala_group_accumulations": "Add recitation to",
-  "mala_groups_section": "Events",
+  "mala_groups_section": "Groups",
   "mala_group_untitled": "Untitled space",
   "mala_all_time_accumulation": "My all-time accumulation",
   "mala_personal_practice": "Personal practice",
@@ -180,20 +186,19 @@
   "recitations_search_for": "Search for recitations",
   "recitations_no_found": "No recitations founds",
   "recitations_no_content": "No recitations available",
-  "my_recitation_collection_new_title": "New Collection",
+  "chant_book_new_title": "New chant book",
   "my_recitation_collection_next": "Next",
   "my_recitation_collection_create": "Create",
-  "my_recitation_collection_create_button": "Create collection",
   "my_recitation_collection_change_title": "Change title",
   "my_recitation_collection_change": "Change",
   "my_recitation_collection_add_chants": "Add chants",
   "my_recitation_collection_search_chants": "Search chants",
-  "my_recitation_collection_add_to_collection": "Add to collection",
-  "my_recitation_collection_edit": "Edit collection",
-  "my_recitation_collection_delete": "Delete collection",
-  "my_recitation_collection_delete_title": "Delete collection?",
-  "my_recitation_collection_delete_message": "This collection will be permanently removed",
-  "my_recitation_collection_fallback_title": "Chant collection",
+  "chant_book_add_to": "Add to chant book",
+  "chant_book_edit": "Edit chant book",
+  "chant_book_delete": "Delete chant book",
+  "chant_book_delete_title": "Delete chant book?",
+  "chant_book_delete_message": "This chant book will be permanently removed",
+  "chant_book_fallback_title": "Chant book",
   "my_recitation_collection_unavailable": "No longer available",
   "my_recitation_collection_chant_count": "{count, plural,\n=0 {0 chants}\n=1 {1 chant}\nother {{count} chants}\n}",
   "@my_recitation_collection_chant_count": {
@@ -211,8 +216,8 @@
       }
     }
   },
-  "bookmarks_empty_chant_collections_title": "No chant collections bookmarked yet",
-  "bookmarks_empty_chant_collections_subtitle": "Bookmark one to save it here",
+  "chant_book_bookmarks_empty_title": "No chant books bookmarked yet",
+  "chant_book_bookmarks_empty_subtitle": "Bookmark one to save it here",
   "notification_allow_title": "Allow notifications",
   "notification_allow_subtitle_disabled": "Permission needed. Tap to grant in Settings",
   "notification_snack_permission_denied": "Notifications are blocked. Turn them on in Settings",
@@ -539,6 +544,43 @@
   "continueWithGoogle": "Continue with Google",
   "continueWithApple": "Continue with Apple",
   "continueWithPhone": "Continue with phone",
+  "login_last_used": "Last used",
+  "@login_last_used": {
+    "description": "Small tag on the sign-in button for the method this phone last signed in with"
+  },
+  "phone_login_title": "Enter your phone number",
+  "phone_login_subtitle": "We'll text you a code to confirm it's you.",
+  "phone_login_number_hint": "Phone number",
+  "phone_login_country_search": "Search country",
+  "phone_login_send_code": "Send code",
+  "phone_login_code_title": "Enter the code",
+  "phone_login_code_subtitle": "We sent a 6-digit code to {phoneNumber}.",
+  "@phone_login_code_subtitle": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "phone_login_code_hint": "6-digit code",
+  "phone_login_verify": "Verify",
+  "phone_login_resend": "Resend code",
+  "phone_login_resend_in": "Resend code in {seconds}s",
+  "@phone_login_resend_in": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "phone_login_change_number": "Change number",
+  "login_error_invalid_phone": "Enter a valid phone number.",
+  "login_error_invalid_code": "That code isn't right. Check it and try again.",
+  "login_error_code_expired": "That code has expired. Request a new one.",
+  "login_error_too_many_requests": "Too many attempts. Please try again later.",
+  "login_error_network": "Check your internet connection and try again.",
+  "login_error_email_not_verified": "This account's email address isn't verified yet. Verify it with your provider and try again.",
+  "login_error_generic": "We couldn't sign you in. Please try again.",
   "exploreAsGuest": "Explore as a guest",
   "signIn": "Sign In",
   "profileError": "Error loading profile",
@@ -743,6 +785,22 @@
   "legal_privacy_policy": "Privacy policy",
   "follow": "Follow",
   "calendar_title": "Calendar",
+  "calendar_choose_calendar": "Choose calendar",
+  "settings_calendar_row": "Calendar",
+  "calendar_tradition_vajrayana": "Vajrayana",
+  "calendar_tradition_theravada": "Theravada",
+  "calendar_tradition_mahayana": "Mahayana",
+  "calendar_type_phugpa": "Tibetan (Phugpa)",
+  "calendar_type_tsurphu": "Tibetan (Tsurphu)",
+  "calendar_type_nyingmapa": "Nyingma",
+  "calendar_type_sinhalese": "Sinhalese",
+  "calendar_type_thai": "Thai",
+  "calendar_type_burmese": "Burmese",
+  "calendar_type_lao": "Lao",
+  "calendar_type_chinese": "Chinese",
+  "calendar_type_vietnamese": "Vietnamese",
+  "calendar_type_korean": "Korean",
+  "calendar_type_japanese": "Japanese",
   "calendar_today": "Today",
   "calendar_no_events": "No events",
   "calendar_source_lunar": "Lunar calendar",
@@ -893,16 +951,23 @@
       }
     }
   },
-  "group_remove_member_title": "Remove from space?",
-  "group_remove_member_message": "{name} will be removed from this space and unable to rejoin it until the ban is lifted",
-  "@group_remove_member_message": {
+  "group_remove_member_title": "Remove {name}",
+  "@group_remove_member_title": {
     "placeholders": {
       "name": {
         "type": "String"
       }
     }
   },
-  "group_remove_member_blocked_for": "Blocked for:",
+  "group_remove_member_message": "They'll be removed from this space and can't rejoin for {duration}.",
+  "@group_remove_member_message": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "group_remove_member_blocked_for": "Can't rejoin for",
   "group_remove_member_duration_day": "1 day",
   "group_remove_member_duration_days": "{count} days",
   "@group_remove_member_duration_days": {
@@ -914,8 +979,8 @@
   },
   "group_remove_member_duration_year": "1 year",
   "group_remove_member_reason_label": "Reason (optional)",
-  "group_remove_member_reason_hint": "Something else...",
-  "group_remove_member_action": "Remove",
+  "group_remove_member_reason_hint": "Why are you removing this member?",
+  "group_remove_member_action": "Remove member",
   "group_remove_member_success": "{name} was removed from the space",
   "@group_remove_member_success": {
     "placeholders": {
@@ -933,7 +998,7 @@
       }
     }
   },
-  "group_join_banned": "You were removed from this space and can't rejoin until the ban is lifted",
+  "group_join_banned": "You were removed from this space and can’t rejoin yet",
   "group_removed_title": "You've been removed from this space",
   "group_removed_message": "An admin from {group} removed you from this space. You won't be able to view its posts, events and practices, or ask to rejoin for {duration}.",
   "@group_removed_message": {
@@ -946,7 +1011,7 @@
       }
     }
   },
-  "group_removed_message_no_date": "An admin from {group} removed you from this space. You won't be able to view its posts, events and practices, or ask to rejoin",
+  "group_removed_message_no_date": "An admin from {group} removed you from this space. You won't be able to rejoin until an admin allows it",
   "@group_removed_message_no_date": {
     "placeholders": {
       "group": {
@@ -954,7 +1019,7 @@
       }
     }
   },
-  "group_removed_rejoin_label": "You can ask to join to this space on",
+  "group_removed_rejoin_label": "You can ask to join this space on",
   "group_removed_rejoin_value": "{date} · {remaining}",
   "@group_removed_rejoin_value": {
     "placeholders": {
@@ -1018,6 +1083,41 @@
   "group_accumulator_view_practice": "View practice",
   "group_accumulator_chant_again": "Chant again",
   "group_accumulator_finish_session": "Finish session",
+  "group_accumulator_completed_recitations": "You completed recitations",
+  "@group_accumulator_completed_recitations": {
+    "description": "Label above the big number of recitations at the end of a group chant"
+  },
+  "group_accumulator_recite_again": "Recite again",
+  "@group_accumulator_recite_again": {
+    "description": "Counts the recitation just finished and jumps back to the start of the chant"
+  },
+  "group_accumulator_finish_and_count": "Finish and count",
+  "@group_accumulator_finish_and_count": {
+    "description": "Counts the recitation just finished and ends the chant session"
+  },
+  "group_accumulator_finish_without_counting": "Finish without counting",
+  "@group_accumulator_finish_without_counting": {
+    "description": "Ends the chant session without counting the recitation just finished"
+  },
+  "group_accumulator_recitations_counted": "{count, plural,\n=1 {1 recitation counted}\nother {{count} recitations counted}\n}",
+  "@group_accumulator_recitations_counted": {
+    "description": "Toast after Recite again; count is the recitations counted so far in this visit",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "group_accumulator_recitation_count_badge": "×{count}",
+  "@group_accumulator_recitation_count_badge": {
+    "description": "Running recitation count on the reader's section chip",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undo": "Undo",
   "group_accumulator_offline_recitation": "Offline recitation",
   "group_accumulator_add_offline_chants_title": "Add offline chants:",
   "group_accumulator_add_offline_chants_message": "Add the number of chants you did outside the app",
@@ -1056,7 +1156,7 @@
     }
   },
   "group_accumulator_session_share_error": "Unable to share session. Please try again",
-  "group_recitation_collection_share_message": "Check out \"{collection}\", a recitation collection by {group} on WeBuddhist. Join us in practice!",
+  "group_recitation_collection_share_message": "Check out \"{collection}\", a chant book from {group} on WeBuddhist. Join us in practice!",
   "@group_recitation_collection_share_message": {
     "placeholders": {
       "collection": {
@@ -1067,7 +1167,7 @@
       }
     }
   },
-  "group_recitation_collection_share_message_no_group": "Check out the recitation collection \"{collection}\" on WeBuddhist. Join us in practice!",
+  "group_recitation_collection_share_message_no_group": "Check out the chant book \"{collection}\" on WeBuddhist. Join us in practice!",
   "@group_recitation_collection_share_message_no_group": {
     "placeholders": {
       "collection": {
@@ -1091,7 +1191,7 @@
       }
     }
   },
-  "share_this_quote": "Share this quote",
+  "share_this_verse": "Share this verse",
   "shared_from": "Shared from",
   "verse_share_error": "Unable to share quote. Please try again",
   "verse_comments_title": "Comments · {count}",
@@ -1402,7 +1502,7 @@
   "group_post_edit_title": "Edit post",
   "group_post_update_error": "Unable to save your changes. Please try again",
   "group_post_updated": "Your changes are saved",
-  "practice_collection_already_added": "This collection is already in your practices",
+  "chant_book_already_in_practices": "This chant book is already in your practices",
   "practice_group_accumulator_already_added": "This accumulation is already in your practices",
   "event_live_badge": "LIVE",
   "event_live_video_mode": "Video",
@@ -1776,7 +1876,7 @@
   "group_event_practice_search_hint": "Search your space's practices",
   "group_event_practice_filter_all": "All",
   "group_event_practice_filter_content": "Plans & series",
-  "group_event_practice_filter_collections": "Chant collections",
+  "group_event_practice_filter_collections": "Chant books",
   "group_event_practice_filter_accumulators": "Accumulations",
   "group_event_practice_rule": "One plan or series and one chant collection per event. Add as many accumulations as you need.",
   "group_event_practice_replaced": "Choosing {chosen} replaced {previous}.",
@@ -2002,7 +2102,7 @@
   "group_event_in_person_save_error": "Could not save the count.",
   "group_event_in_person_load_more": "Load more",
   "mala_failed_load_catalogue_error": "Unable to load catalogue",
-  "chant_collection_reload_error": "Unable to reload collection to reorder",
+  "chant_collection_reload_error": "Unable to reload chant book to reorder",
   "chant_collection_reorder_error": "Unable to reorder chants",
   "timer_duration_label": "DURATION",
   "timer_ambient_sound_label": "AMBIENT SOUND",
@@ -2030,6 +2130,28 @@
   "timer_duration_hours": "hours",
   "timer_duration_hr": "hr",
   "timer_duration_sec": "sec",
+  "timer_resume": "Resume",
+  "timer_paused_caption": "Paused · tap to resume",
+  "timer_discard_title": "Discard this session?",
+  "timer_discard_message": "Your {elapsed} of practice won’t be saved",
+  "@timer_discard_message": {
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      }
+    }
+  },
+  "timer_save_session": "Save session",
+  "timer_session_saved": "Session saved",
+  "timer_session_complete": "Session complete",
+  "timer_saved_to_practice": "{elapsed} · saved to your practice",
+  "@timer_saved_to_practice": {
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      }
+    }
+  },
   "reader_display_title": "Display",
   "text_size": "Text size",
   "reader_more_settings": "More settings",
@@ -2114,7 +2236,7 @@
   "chants_filter_all": "All",
   "chants_chant_books": "Chant books",
   "chants_filter_single_chants": "Single chants",
-  "chants_my_chant_books": "My chantbooks",
+  "chants_my_chant_books_title": "My chant books",
   "chants_text_only": "Text-only chants",
   "chants_from_your_spaces": "From your spaces",
   "chants_explore_more": "Explore more",
@@ -2122,7 +2244,7 @@
   "chants_open_chant": "Open chant",
   "chants_your_spaces": "Your spaces",
   "chants_other_spaces": "Other spaces",
-  "chants_search_hint": "Search chants and chantbooks",
+  "chants_search_hint_chant_books": "Search chants and chant books",
   "chants_cant_find": "Can't find the text you're looking for?",
   "chants_request_text": "Request text",
   "chants_request_done": "Requested",
@@ -2131,5 +2253,82 @@
   "chants_with_audio": "Chants with audio",
   "chants_audio_chants": "Audio chants",
   "reader_no_resources_title": "No commentaries or versions available for this segment",
-  "reader_no_resources_subtitle": "We add new texts regularly; check back soon"
+  "reader_no_resources_subtitle": "We add new texts regularly; check back soon",
+  "mala_section_practice": "Practice",
+  "mala_section_appearance": "Appearance",
+  "mala_section_save_share": "Save & share",
+  "mala_mantra_animation": "Mantra animation",
+  "mala_play_animation": "Play animation",
+  "mala_speed": "Speed",
+  "mala_animation_off": "Off",
+  "mala_bead_style": "Bead style",
+  "mala_bead_default": "Default",
+  "mala_use_this_style": "Use this style",
+  "mala_bead_style_updated": "Bead style updated",
+  "mala_change_image": "Change image",
+  "mala_use_image": "Use",
+  "mala_restore_default_image": "Restore default",
+  "mala_image_updated": "Image updated",
+  "mala_images_empty": "No images available",
+  "mala_images_load_error": "Could not load images",
+  "mala_bookmarked": "Bookmarked",
+  "mala_beads_load_error": "Could not load bead styles",
+  "mala_appearance_save_failed": "Couldn't save. Please try again",
+  "session_search_plans_hint": "Search plans",
+  "@session_search_plans_hint": {
+    "description": "Search field hint on the Plans tab of Add to session."
+  },
+  "session_search_chants_hint": "Search chants",
+  "@session_search_chants_hint": {
+    "description": "Search field hint on the Chants tab of Add to session."
+  },
+  "session_search_malas_hint": "Search malas",
+  "@session_search_malas_hint": {
+    "description": "Search field hint on the Malas tab of Add to session."
+  },
+  "session_search_timers_hint": "Search timers by name or length",
+  "@session_search_timers_hint": {
+    "description": "Search field hint on the Timers tab of Add to session; timers match by name or by duration such as '10 min'."
+  },
+  "search_min_query_length": "{count, plural, =1{Type at least 1 character to search} other{Type at least {count} characters to search}}",
+  "@search_min_query_length": {
+    "description": "Shown instead of results while a search query is shorter than the minimum the server accepts.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_next_session": "Next session",
+  "practice_more_in_session": "+{count} more in this session",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "From your spaces",
+  "practice_discover_more": "Discover more",
+  "practice_space_accumulations": "Space accumulations",
+  "practice_no_space_accumulations": "No accumulations from other spaces right now",
+  "practice_search_hint": "Search practices",
+  "practice_search_recent": "Recent",
+  "practice_search_no_results": "No results for \"{query}\"",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "Popular practices",
+  "practice_start_routine": "Start a routine",
+  "@practice_start_routine": {
+    "description": "Label on the My practices pill when the routine is empty; tap opens Edit routine."
+  },
+  "practice_start_routine_hint": "Or tap a practice and choose Add to my practices.",
+  "@practice_start_routine_hint": {
+    "description": "Helper line under the Start a routine pill on the Practice tab."
+  }
 }

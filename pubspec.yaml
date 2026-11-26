@@ -18,6 +18,9 @@ version: 2.47.0+105
 
 environment:
   sdk: ^3.7.2
+  # The Flutter CI builds with; see README "Requirements". Pub reads only the
+  # lower bound, so older Flutter fails here and newer is caught by CI.
+  flutter: 3.41.9
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -59,7 +62,14 @@ dependencies:
   # State management
   flutter_riverpod: ^2.6.1
 
-  # Authentication
+  # Authentication: Firebase sign-in (firebase_auth, below) exchanged for the
+  # backend's own tokens. See docs/architecture/AUTH_IMPLEMENTATION.md.
+  # Google's account chooser; its ID token is handed to firebase_auth.
+  google_sign_in: ^7.2.0
+  # Country and dial code for the phone sign-in screen.
+  country_picker: ^2.0.28
+  # Only used to remove the Auth0 session left by builds before the move to
+  # Firebase (legacy_auth0_cleanup.dart). Remove with that class.
   # 2.5+ supports Swift Package Manager; stay on 2.x (3.x has breaking changes).
   auth0_flutter: ^2.7.0
 
@@ -122,6 +132,9 @@ dependencies:
 
   # Shared preferences
   shared_preferences: ^2.5.3
+  # Reads the PostHog Android SDK's own preferences file (by name) once, to
+  # tell existing installs from new ones; see app_open_analytics.dart.
+  shared_preferences_android: ^2.4.23
   share_plus: ^12.0.2
   app_links: ^6.4.0
   screenshot: ^3.0.0

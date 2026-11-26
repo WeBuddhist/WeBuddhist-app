@@ -32,29 +32,45 @@ class EntryAnalytics {
 
   /// A deep link was routed to a screen. [source] is the handler that got it
   /// (`app_links` or `airbridge`).
+  /// [utmSource], [utmMedium] and [utmCampaign] are the link's own `utm_*`
+  /// query values, sent only when the link had them.
   void deepLinkOpened({
     required String source,
     required String routeKind,
     String? targetId,
+    String? utmSource,
+    String? utmMedium,
+    String? utmCampaign,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.deepLinkOpened, {
       AnalyticsProperties.source: source,
       AnalyticsProperties.routeKind: routeKind,
       AnalyticsProperties.targetId: targetId,
+      if (utmSource != null) AnalyticsProperties.utmSource: utmSource,
+      if (utmMedium != null) AnalyticsProperties.utmMedium: utmMedium,
+      if (utmCampaign != null) AnalyticsProperties.utmCampaign: utmCampaign,
     });
   }
 
   /// A push tap was routed. [sessionType] and [sourceId] are the payload's
   /// own values, null when it carried none.
+  ///
+  /// [notificationId] and [campaign] come from the push data once the backend
+  /// sends them; they are left out until then.
   void pushNotificationOpened({
     required PushAppState appState,
     String? sessionType,
     String? sourceId,
+    String? notificationId,
+    String? campaign,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.pushNotificationOpened, {
       AnalyticsProperties.sessionType: sessionType,
       AnalyticsProperties.sourceId: sourceId,
       AnalyticsProperties.appState: appState.name,
+      if (notificationId != null)
+        AnalyticsProperties.notificationId: notificationId,
+      if (campaign != null) AnalyticsProperties.campaign: campaign,
     });
   }
 

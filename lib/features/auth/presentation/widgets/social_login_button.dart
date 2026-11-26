@@ -1,8 +1,10 @@
 // Widget for social login buttons
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
+import 'package:flutter_pecha/features/auth/presentation/providers/last_sign_in_method_provider.dart';
 import 'package:flutter_pecha/features/auth/presentation/utils/auth_analytics.dart';
+import 'package:flutter_pecha/features/auth/presentation/utils/start_sign_in.dart';
+import 'package:flutter_pecha/features/auth/presentation/widgets/login_form_widgets.dart';
 
 class SocialLoginButton extends ConsumerWidget {
   const SocialLoginButton({
@@ -29,8 +31,7 @@ class SocialLoginButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authNotifier = ref.read(authProvider.notifier);
-    return SizedBox(
+    final button = SizedBox(
       width: double.infinity,
       height: 56,
       child: OutlinedButton(
@@ -47,12 +48,13 @@ class SocialLoginButton extends ConsumerWidget {
           ),
           elevation: 0,
         ),
-        onPressed: () async {
-          ref
-              .read(authAnalyticsProvider)
-              .loginStarted(method: connection, source: source);
-          await authNotifier.login(connection: connection, source: source);
-        },
+        onPressed:
+            () => startSignIn(
+              context,
+              ref,
+              connection: connection,
+              source: source,
+            ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -65,6 +67,11 @@ class SocialLoginButton extends ConsumerWidget {
           ],
         ),
       ),
+    );
+    final lastUsed = ref.watch(lastSignInMethodProvider);
+    return LastUsedTag(
+      show: isLastUsedConnection(lastUsed, connection),
+      child: button,
     );
   }
 }

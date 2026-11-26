@@ -14,7 +14,13 @@ String? chatSendErrorCode(Object error) {
   };
 }
 
-enum ChatSendErrorKind { inappropriate, notAMember, invalidParent, generic }
+enum ChatSendErrorKind {
+  inappropriate,
+  notAMember,
+  invalidParent,
+  eventEnded,
+  generic,
+}
 
 /// Classifies send failures so every path shares the same copy.
 ChatSendErrorKind chatSendErrorKind(Object error) {
@@ -24,6 +30,9 @@ ChatSendErrorKind chatSendErrorKind(Object error) {
   }
   if (ChatModeration.isInvalidParentMessage(code)) {
     return ChatSendErrorKind.invalidParent;
+  }
+  if (ChatModeration.isEventEnded(code)) {
+    return ChatSendErrorKind.eventEnded;
   }
   if (error is AuthorizationFailure || error is AuthorizationException) {
     return ChatSendErrorKind.notAMember;
@@ -36,6 +45,7 @@ String chatSendErrorMessage(AppLocalizations l10n, Object error) {
     ChatSendErrorKind.inappropriate => l10n.group_chat_inappropriate,
     ChatSendErrorKind.notAMember => l10n.group_chat_not_a_member,
     ChatSendErrorKind.invalidParent => l10n.group_chat_reply_parent_gone,
+    ChatSendErrorKind.eventEnded => l10n.event_prayer_closed,
     ChatSendErrorKind.generic => switch (error) {
       Failure(:final message) => message,
       Exception() => error.toString(),

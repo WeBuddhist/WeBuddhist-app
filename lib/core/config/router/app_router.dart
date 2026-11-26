@@ -62,6 +62,7 @@ import 'package:flutter_pecha/features/practice/presentation/screens/select_plan
 import 'package:flutter_pecha/features/practice/presentation/screens/select_recitation_screen.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/screens/mala_screen.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/notifications/presentation/notification_settings_screen.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_pecha/features/reader/presentation/screens/reader_screen.dart';
@@ -468,6 +469,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     eventId: eventId,
                     openPrayerRequests: openPrayerRequests,
                     initialEntry: entry,
+                    source:
+                        state.uri.queryParameters[AppRoutes.eventSourceQuery],
                   );
                 },
               ),
@@ -613,18 +616,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: "mala",
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
+          final source = extra?['source'];
+          final openSource = source is MalaOpenSource ? source : null;
           // A group accumulation with its own mantra (e.g. a space mantra)
           // opens in single-accumulation mode.
           final groupAccumulator = extra?['groupAccumulator'];
           if (groupAccumulator is GroupAccumulator &&
               groupAccumulator.mantra != null) {
-            return MalaScreen(singleAccumulation: groupAccumulator);
+            return MalaScreen(
+              singleAccumulation: groupAccumulator,
+              source: openSource,
+            );
           }
           return MalaScreen(
             initialPresetId: extra?['presetId'] as String?,
             initialGroupAccumulatorId: extra?['groupAccumulatorId'] as String?,
             openedFromEndedAccumulator:
                 extra?['groupAccumulatorEnded'] as bool? ?? false,
+            source: openSource,
           );
         },
       ),

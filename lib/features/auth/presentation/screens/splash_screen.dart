@@ -5,8 +5,10 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/config/router/splash_exit_transition.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
+import 'package:flutter_pecha/core/constants/app_config.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/features/auth/presentation/screens/splash_taglines.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -26,11 +28,15 @@ import 'package:google_fonts/google_fonts.dart';
 ///
 /// The last step is the router's: see [SplashExitTransition].
 ///
-/// Both taglines ("We Buddhists practice together" / "… practice daily") grow
-/// out of the same "WeBuddhist" wordmark. The words are measured at runtime,
-/// so each tagline settles into its own centred spacing. A tagline that does
-/// not start with "We Buddhists", or does not fit on one line, cross-fades
-/// from the wordmark instead.
+/// Both English taglines ("We Buddhists practice together" / "… practice
+/// daily") grow out of the same "WeBuddhist" wordmark. The words are measured
+/// at runtime, so each tagline settles into its own centred spacing. A
+/// tagline that does not start with "We Buddhists" (every translation), or
+/// does not fit on one line, cross-fades from the wordmark instead, in the
+/// app language's font with a line height that fits its script, wrapping as
+/// needed.
+///
+/// Colours follow the app's theme setting, not the phone's.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({
     super.key,
@@ -80,6 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
   static const double _launchLogoTurn = math.pi / 2;
   static const double _logoSize = 144;
   static const double _taglineGap = 24;
+  static const double _taglineFontSize = 20;
 
   /// How far the rest of the tagline slides in from.
   static const double _restSlide = 40;
@@ -192,19 +199,61 @@ class _SplashScreenState extends State<SplashScreen>
     scheduleMicrotask(onIntroComplete);
   }
 
+  /// The app language's UI font in bold. Google Fonts load one file per
+  /// weight, so bold has to be asked for here: making the theme's regular
+  /// style bold afterwards would draw Latin scripts (e.g. Vietnamese) in the
+  /// regular file.
+  static TextStyle _boldSystemFont(String languageCode) {
+    final config = AppFontConfig.getConfig(languageCode);
+    if (!config.systemFontIsGoogle) {
+      return TextStyle(
+        fontFamily: config.systemFont,
+        fontWeight: FontWeight.w700,
+      );
+    }
+    return switch (config.systemFont) {
+      AppConfig.chineseSystemFont => GoogleFonts.notoSansTc(
+        fontWeight: FontWeight.w700,
+      ),
+      _ => GoogleFonts.inter(fontWeight: FontWeight.w700),
+    };
+  }
+
   TextStyle _mergedStyle(BuildContext context, TextStyle style) =>
       DefaultTextStyle.of(context).style.merge(style);
 
-  TextPainter _painter(BuildContext context, String text, TextStyle style) =>
-      TextPainter(
-        text: TextSpan(text: text, style: _mergedStyle(context, style)),
-        textDirection: Directionality.of(context),
-        textScaler: MediaQuery.textScalerOf(context),
-      )..layout();
+  TextPainter _painter(
+    BuildContext context,
+    String text,
+    TextStyle style, {
+    StrutStyle? strutStyle,
+    TextAlign textAlign = TextAlign.start,
+    double maxWidth = double.infinity,
+  }) => TextPainter(
+    text: TextSpan(text: text, style: _mergedStyle(context, style)),
+    textAlign: textAlign,
+    strutStyle: strutStyle,
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+  )..layout(maxWidth: maxWidth);
 
-  double _taglineLineHeight(BuildContext context, TextStyle style) {
-    final painter = _painter(context, 'A', style);
-    final height = painter.preferredLineHeight;
+  /// Height of [tagline] as laid out in [maxWidth], wrapped lines included.
+  double _taglineHeight(
+    BuildContext context,
+    String tagline,
+    TextStyle style,
+    StrutStyle? strutStyle,
+    double maxWidth,
+  ) {
+    final painter = _painter(
+      context,
+      tagline,
+      style,
+      strutStyle: strutStyle,
+      textAlign: TextAlign.center,
+      maxWidth: maxWidth,
+    );
+    final height = painter.height;
     painter.dispose();
     return height;
   }
@@ -301,7 +350,12 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _crossfadeTagline(String tagline, TextStyle style) {
+  Widget _crossfadeTagline(
+    String tagline,
+    TextStyle wordmarkStyle,
+    TextStyle taglineStyle,
+    StrutStyle? taglineStrut,
+  ) {
     return AnimatedBuilder(
       animation: _intro,
       builder: (context, _) {
@@ -315,13 +369,21 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Text(
                   _wordmark,
                   textAlign: TextAlign.center,
-                  style: style,
+                  style: wordmarkStyle,
                 ),
               ),
             ),
             Opacity(
               opacity: settle,
-              child: Text(tagline, textAlign: TextAlign.center, style: style),
+              child: SizedBox(
+                width: double.infinity,
+                child: Text(
+                  tagline,
+                  textAlign: TextAlign.center,
+                  style: taglineStyle,
+                  strutStyle: taglineStrut,
+                ),
+              ),
             ),
           ],
         );
@@ -331,19 +393,32 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Follows the phone, not the saved theme, so the native launch screen
-    // hands off without a background change; the saved theme applies on the
-    // screen that replaces the splash.
-    final isDark = MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    // Follows the app's theme setting (light / dark / system, already
+    // resolved by MaterialApp), not the phone. The native launch screen can
+    // only follow the phone, so the two differ for a frame when they disagree.
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    // Figma "Tittle/Large": Inter Bold 20/24. The tagline is English in every
-    // locale, so it does not follow the locale's UI font.
-    final taglineStyle = GoogleFonts.inter(
-      fontSize: 20,
+    final textColor = isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    // Figma "Tittle/Large": Inter Bold 20/24, for the English wordmark and
+    // the English taglines that grow out of it.
+    final wordmarkStyle = GoogleFonts.inter(
+      fontSize: _taglineFontSize,
       fontWeight: FontWeight.w700,
       height: 24 / 20,
-      color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+      color: textColor,
     );
+    // Translated taglines use the app language's UI font and a line height
+    // that fits its script once the tagline wraps.
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final scriptStyle = _boldSystemFont(languageCode).copyWith(
+          fontSize: _taglineFontSize,
+          fontWeight: FontWeight.w700,
+          height: splashTaglineLineHeight(languageCode),
+          leadingDistribution: TextLeadingDistribution.even,
+          color: textColor,
+        );
+    final scriptStrut = context.tibetanStrutStyle(_taglineFontSize);
     final tagline =
         widget.tagline ?? splashTaglines[_taglineIndex](context.l10n);
 
@@ -373,16 +448,34 @@ class _SplashScreenState extends State<SplashScreen>
           isDark ? AppColors.backgroundDark : AppColors.surfaceLight,
       body: LayoutBuilder(
         builder: (context, constraints) {
+          final taglineMaxWidth = math.max(
+            0.0,
+            constraints.maxWidth - 2 * _horizontalPadding,
+          );
           final words = _measureWords(
             context,
             tagline,
-            taglineStyle,
-            constraints.maxWidth - 2 * _horizontalPadding,
+            wordmarkStyle,
+            taglineMaxWidth,
           );
           final taglineWidget =
               words == null
-                  ? _crossfadeTagline(tagline, taglineStyle)
-                  : _wordsTagline(words, tagline, taglineStyle);
+                  ? _crossfadeTagline(
+                    tagline,
+                    wordmarkStyle,
+                    scriptStyle,
+                    scriptStrut,
+                  )
+                  : _wordsTagline(words, tagline, wordmarkStyle);
+          final taglineHeight =
+              words?.height ??
+              _taglineHeight(
+                context,
+                tagline,
+                scriptStyle,
+                scriptStrut,
+                taglineMaxWidth,
+              );
 
           // Logo stays at the window centre where the native launch screen
           // drew it, so only the tagline animates in below.
@@ -393,8 +486,9 @@ class _SplashScreenState extends State<SplashScreen>
               taglineTop -
               bottomInset -
               _verticalPadding;
-          if (taglineRoom < _taglineLineHeight(context, taglineStyle)) {
-            // Too short for a full line under the centred logo; scroll it all.
+          if (taglineRoom < taglineHeight) {
+            // Too short for the whole tagline under the centred logo; scroll
+            // it all.
             return Center(
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(

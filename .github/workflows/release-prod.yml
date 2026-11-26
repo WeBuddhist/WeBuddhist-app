@@ -1,100 +1,267 @@
-name: 🚀 Release • Prod
+name: 🚀 Release
 
-# main branch -> prod flavor -> TestFlight + Play internal track, then a
-# GitHub Release tagged v<version>-build-<n> with the AAB + IPA attached.
+# One app (org.pecha.app, flavor prod), two ways out:
+#
+#   push to main      -> TESTING server -> TestFlight + Play internal track
+#   push tag vX.Y.Z   -> PROD server    -> App Store review (released
+#                                          automatically once approved)
+#                                          + Play production (100%)
+#                                          + GitHub Release on that tag
+#
+# The tag is pushed by hand once the testing build passes. It must be an
+# annotated tag on the commit CI built for testing; its message becomes the
+# "What's New" text in both stores. See CONTRIBUTING.md.
+#
+# Keep this file name: build numbers are this workflow's run counter plus an
+# offset, shared by the testing and prod paths. Both upload to the same store
+# listing, which rejects a build number that is not higher than the last one,
+# and a renamed file starts its counter again at 1.
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
+  workflow_dispatch:   # run on main: rebuild the testing build
 
 concurrency:
-  group: release-prod-${{ github.ref }}
-  cancel-in-progress: false   # never cancel a production release mid-flight
+  group: release-${{ github.ref }}
+  cancel-in-progress: false   # never cancel a release mid-flight
 
 permissions:
-  contents: write             # needed to create the GitHub Release + tag
+  contents: write             # bump commit on main + GitHub Release
 
 jobs:
-  # Decide the next semantic version from the commits / branch names landed
-  # since the last release tag (Conventional Commits, PATCH fallback), write it
-  # to pubspec.yaml and commit it back. Both store builds and the in-app
-  # settings page read the version from pubspec via --build-name, so this single
-  # bump keeps all three in sync. See CONTRIBUTING.md for the conventions.
-  version:
-    name: 🔖 Bump version
+  prepare:
+    name: 🔖 Prepare
+    if: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
-      version_name: ${{ steps.bump.outputs.version_name }}
+      mode:          ${{ steps.mode.outputs.mode }}
+      server:        ${{ steps.mode.outputs.server }}
+      play_track:    ${{ steps.mode.outputs.play_track }}
+      environment:   ${{ steps.mode.outputs.environment }}
+      ref:           ${{ steps.testing.outputs.ref || steps.release.outputs.ref }}
+      version_name:  ${{ steps.testing.outputs.version_name || steps.release.outputs.version_name }}
+      release_notes: ${{ steps.release.outputs.release_notes }}
+      build_number:  ${{ steps.build_number.outputs.build_number }}
     steps:
       - name: 📂 Checkout (full history + tags)
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🔢 Compute & apply version bump
-        id: bump
-        run: bash ci/scripts/bump_version.sh
-
-      - name: ⬆️ Commit bumped pubspec.yaml
+      - name: 🧭 Testing build or release?
+        id: mode
         run: |
-          if git diff --quiet -- pubspec.yaml; then
-            echo "pubspec.yaml unchanged — nothing to commit."; exit 0
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            {
+              echo "mode=release"
+              echo "server=prod"
+              echo "play_track=production"
+              echo "environment=production"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "mode=testing"
+              echo "server=staging"
+              echo "play_track=internal"
+              echo "environment="
+            } >> "$GITHUB_OUTPUT"
           fi
+
+      # Testing build: bump the version from the commits since the last release
+      # tag and commit it to main. The build jobs build exactly that commit, so
+      # it is the one to tag for the release.
+      #
+      # A push made with GITHUB_TOKEN does not start another workflow run, so
+      # the bump commit does not trigger this workflow again.
+      - name: 🔢 Bump version and commit (testing build)
+        id: testing
+        if: ${{ steps.mode.outputs.mode == 'testing' }}
+        run: |
+          set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pubspec.yaml
-          # [skip ci] so this bump commit does not re-trigger the release.
-          git commit -m "chore(release): bump version to ${{ steps.bump.outputs.version_name }} [skip ci]"
-          git push origin HEAD:${{ github.ref_name }}
+
+          # Retry when someone merges to main while this runs.
+          for attempt in 1 2 3; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+            GITHUB_OUTPUT=/dev/null bash ci/scripts/bump_version.sh
+            version_name="$(grep -E '^version:' pubspec.yaml | head -n1 | sed -E 's/^version:[[:space:]]*//; s/\+.*$//')"
+
+            if git diff --quiet -- pubspec.yaml; then
+              echo "pubspec.yaml already at $version_name — nothing to commit."
+              break
+            fi
+            git commit --quiet -m "chore(release): bump version to ${version_name}" -- pubspec.yaml
+            if git push --quiet origin HEAD:main; then
+              break
+            fi
+            if [ "$attempt" = 3 ]; then
+              echo "::error::Could not push the version bump to main after 3 tries."
+              exit 1
+            fi
+            echo "main moved while bumping; trying again."
+          done
+
+          echo "version_name=$version_name"           >> "$GITHUB_OUTPUT"
+          echo "ref=$(git rev-parse HEAD)"             >> "$GITHUB_OUTPUT"
+
+      # Release: check the tag before spending any build time.
+      - name: ✅ Check the release tag
+        id: release
+        if: ${{ steps.mode.outputs.mode == 'release' }}
+        env:
+          TAG: ${{ github.ref_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$*"; exit 1; }
+
+          [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]] || fail "Tag '$TAG' is not vX.Y.Z."
+          version="${BASH_REMATCH[1]}"
+
+          # actions/checkout stores a pushed tag without its message; fetch the
+          # real tag object.
+          git fetch --quiet --force origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          [ "$(git cat-file -t "refs/tags/${TAG}")" = "tag" ] ||
+            fail "'$TAG' has no message. Use an annotated tag: git tag -a $TAG <commit> -m \"What's new\""
+
+          sha="$(git rev-list -n1 "$TAG")"
+          git fetch --quiet origin main
+          git merge-base --is-ancestor "$sha" origin/main ||
+            fail "$TAG points at ${sha:0:7}, which is not on main."
+
+          pubspec_version="$(git show "${sha}:pubspec.yaml" | grep -E '^version:' | head -n1 | sed -E 's/^version:[[:space:]]*//; s/\+.*$//')"
+          [ "$pubspec_version" = "$version" ] ||
+            fail "$TAG does not match the version at ${sha:0:7} ($pubspec_version). Tag the commit CI built for testing; its run summary shows the exact command."
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            fail "$TAG has already been released."
+          fi
+
+          subject="$(git tag -l --format='%(contents:subject)' "$TAG")"
+          body="$(git tag -l --format='%(contents:body)' "$TAG")"
+          notes="$subject"
+          [ -n "$body" ] && notes="$(printf '%s\n\n%s' "$subject" "$body")"
+          # Google Play allows at most 500 characters of release notes.
+          chars="$(printf '%s' "$notes" | python3 -c 'import sys; print(len(sys.stdin.read()))')"
+          [ "$chars" -le 500 ] || fail "The tag message is $chars characters; Google Play allows 500."
+          [ -n "$subject" ] || fail "The tag message is empty."
+
+          # A random end marker, so no tag message can close the notes early
+          # and add outputs of its own (e.g. a different ref to build).
+          delimiter="RELEASE_NOTES_$(openssl rand -hex 16)"
+          {
+            echo "release_notes<<${delimiter}"
+            printf '%s\n' "$notes"
+            echo "${delimiter}"
+          } >> "$GITHUB_OUTPUT"
+          echo "version_name=$version" >> "$GITHUB_OUTPUT"
+          echo "ref=$sha"              >> "$GITHUB_OUTPUT"
+
+      - name: 🔢 Build number
+        id: build_number
+        run: |
+          OFFSET="${{ vars.BUILD_NUMBER_OFFSET || '100' }}"
+          echo "build_number=$(( ${{ github.run_number }} + OFFSET ))" >> "$GITHUB_OUTPUT"
+
+      - name: 🧾 Summary
+        env:
+          MODE:          ${{ steps.mode.outputs.mode }}
+          REF:           ${{ steps.testing.outputs.ref || steps.release.outputs.ref }}
+          VERSION_NAME:  ${{ steps.testing.outputs.version_name || steps.release.outputs.version_name }}
+          BUILD_NUMBER:  ${{ steps.build_number.outputs.build_number }}
+        run: |
+          {
+            if [ "$MODE" = "testing" ]; then
+              echo "### Testing build $VERSION_NAME ($BUILD_NUMBER) — testing server"
+              echo
+              echo "Goes to TestFlight and the Play internal track. When testing passes, release it with:"
+              echo
+              echo '```'
+              echo "git fetch origin"
+              echo "git tag -a v$VERSION_NAME $REF -m \"What's new in this version\""
+              echo "git push origin v$VERSION_NAME"
+              echo '```'
+            else
+              echo "### Release $VERSION_NAME ($BUILD_NUMBER) — prod server"
+              echo
+              echo "Commit \`${REF:0:7}\` goes to App Store review (released automatically once approved) and to Play production at 100%."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
   android:
-    needs: version
+    needs: prepare
     uses: ./.github/workflows/build-android.yml
     with:
-      flavor:             prod
-      entrypoint:         lib/main_prod.dart
-      airbridge_app_name: webuddhist
-      play_package_name:  org.pecha.app
-      play_track:         internal        # bump to "production" when ready to ship live
-      environment:        production
-      upload_to_store:    true
-      version_name:       ${{ needs.version.outputs.version_name }}
+      server:          ${{ needs.prepare.outputs.server }}
+      ref:             ${{ needs.prepare.outputs.ref }}
+      version_name:    ${{ needs.prepare.outputs.version_name }}
+      build_number:    ${{ needs.prepare.outputs.build_number }}
+      play_track:      ${{ needs.prepare.outputs.play_track }}
+      release_notes:   ${{ needs.prepare.outputs.release_notes }}
+      environment:     ${{ needs.prepare.outputs.environment }}
+      upload_to_store: true
     secrets: inherit
 
   ios:
-    needs: version
+    needs: prepare
     uses: ./.github/workflows/build-ios.yml
     with:
-      flavor:             prod
-      entrypoint:         lib/main_prod.dart
-      airbridge_app_name: webuddhist
-      auth0_domain:       we-buddhist-prod.us.auth0.com
-      ios_bundle_id:      org.pecha.app
-      environment:        production
-      upload_to_store:    true
-      version_name:       ${{ needs.version.outputs.version_name }}
+      server:          ${{ needs.prepare.outputs.server }}
+      ref:             ${{ needs.prepare.outputs.ref }}
+      version_name:    ${{ needs.prepare.outputs.version_name }}
+      build_number:    ${{ needs.prepare.outputs.build_number }}
+      environment:     ${{ needs.prepare.outputs.environment }}
+      upload_to_store: true
     secrets: inherit
+
+  # The iOS job only uploads the build. This waits for Apple to finish
+  # processing it and sends it for review, on a cheaper Linux runner.
+  app_store_review:
+    name: 🍏 Submit for App Store review
+    needs: [ prepare, ios ]
+    if: ${{ needs.prepare.outputs.mode == 'release' }}
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 90
+    steps:
+      - name: 📂 Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+
+      - name: 💎 Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      # Pinned, so a re-run of the same tag submits with the same fastlane.
+      # Bump on purpose, after a testing release has gone through.
+      - name: 📦 Install fastlane
+        run: gem install fastlane --version 2.241.2 --no-document
+
+      - name: 📨 Submit for review (automatic release)
+        working-directory: ci
+        env:
+          ASC_KEY_ID:    ${{ secrets.APP_STORE_CONNECT_KEY_IDENTIFIER }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_KEY:       ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          VERSION_NAME:  ${{ needs.prepare.outputs.version_name }}
+          BUILD_NUMBER:  ${{ needs.prepare.outputs.build_number }}
+          RELEASE_NOTES: ${{ needs.prepare.outputs.release_notes }}
+          FASTLANE_SKIP_UPDATE_CHECK: '1'
+          FASTLANE_HIDE_CHANGELOG: '1'
+        run: fastlane ios submit_for_review
 
   github_release:
     name: 📦 GitHub Release
-    needs: [ version, android, ios ]
+    needs: [ prepare, android, ios ]
+    if: ${{ needs.prepare.outputs.mode == 'release' }}
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: 📂 Checkout (post-bump main)
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}   # tag the commit that carries the bumped version
-
-      - name: 🏷️ Compute tag
-        id: ver
-        run: echo "tag=v${{ needs.version.outputs.version_name }}-build-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
-
       - name: ⬇️ Download build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -104,8 +271,9 @@ jobs:
       - name: 📝 Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.ver.outputs.tag }}
-          name: WeBuddhist ${{ steps.ver.outputs.tag }}
+          tag_name: ${{ github.ref_name }}
+          name: WeBuddhist ${{ github.ref_name }}
+          body: ${{ needs.prepare.outputs.release_notes }}
           generate_release_notes: true
           files: |
             artifacts/**/*.aab

@@ -14,7 +14,9 @@ class _FakeRemote implements CalendarRemoteDatasource {
   int lunarDay = 2;
 
   @override
-  Future<Map<String, dynamic>> fetchTodayJson() async => _day(lunarDay);
+  Future<Map<String, dynamic>> fetchTodayJson({
+    String calendarType = 'phugpa',
+  }) async => _day(lunarDay);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -32,7 +34,7 @@ void main() {
     final key = ScreenCacheKey.public(
       'calendar_today',
       language: 'all',
-      params: ['${now.year}-${now.month}-${now.day}'],
+      params: ['${now.year}-${now.month}-${now.day}', 'phugpa'],
     );
     store.entries[key] = jsonEncode(_day(1));
     final remote = _FakeRemote();

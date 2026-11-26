@@ -147,7 +147,12 @@ class ClarityAnalyticsService implements AnalyticsService {
     final List<MapEntry<String, String>> entries = [];
     for (final MapEntry<String, Object?> entry in properties.entries) {
       final Object? value = entry.value;
-      if (value == null || _redactedKeys.contains(entry.key)) continue;
+      // `$set` / `$set_once` are PostHog person properties, not tags.
+      if (value == null ||
+          _redactedKeys.contains(entry.key) ||
+          entry.key.startsWith(r'$')) {
+        continue;
+      }
       final String text =
           value.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
       if (text.isEmpty) continue;

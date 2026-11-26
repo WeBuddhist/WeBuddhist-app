@@ -163,7 +163,8 @@ class _GroupEventsTabContent extends ConsumerWidget {
                 ? _GroupEventsEmptyState()
                 : null,
         itemBuilder:
-            (context, index) => ConnectEventCard(event: state.events[index]),
+            (context, index) =>
+                ConnectEventCard(event: state.events[index], source: 'home'),
       ),
     );
   }

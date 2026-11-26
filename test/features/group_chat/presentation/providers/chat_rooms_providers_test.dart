@@ -31,7 +31,7 @@ ChatRoomDTO _group(int i, {int unreadCount = 0}) {
     name: 'Group $i',
     memberCount: 3,
     updatedAt: '2026-09-01T10:00:00Z',
-    unreadCount: unreadCount,
+    unreadChat: unreadCount,
   );
 }
 
@@ -180,7 +180,10 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   );
 
   @override
-  Future<Either<Failure, Unit>> markRoomRead(String roomId) async =>
+  Future<Either<Failure, Unit>> markRoomRead(
+    String roomId, {
+    String? messageType,
+  }) async =>
       const Right(unit);
 
   @override
@@ -958,6 +961,83 @@ void main() {
     expect(notifier.state.hasUnread, isFalse);
   });
 
+  group('markReadLocally', () {
+    test('clears the room at once, without a refetch', () async {
+      repository = _FakeGroupChatRepository(
+        rooms: [_group(1, unreadCount: 2), _group(2, unreadCount: 3)],
+      );
+      container = buildContainer();
+
+      final notifier = _keepAlive(container);
+      await _settle();
+      final calls = repository.listCallCount;
+
+      notifier.markReadLocally('group-room-2');
+
+      final counts = {
+        for (final room in notifier.state.rooms) room.id: room.unreadCount,
+      };
+      expect(counts, {'group-room-1': 2, 'group-room-2': 0});
+      expect(notifier.state.hasUnread, isTrue);
+      expect(repository.listCallCount, calls);
+    });
+
+    test('leaves the state alone for a room it does not hold', () async {
+      repository = _FakeGroupChatRepository(
+        rooms: [_group(1, unreadCount: 2)],
+      );
+      container = buildContainer();
+
+      final notifier = _keepAlive(container);
+      await _settle();
+      final before = notifier.state;
+
+      notifier.markReadLocally('somewhere-else');
+
+      expect(notifier.state, same(before));
+    });
+
+    test('a refresh that was out before the read does not bring the dot '
+        'back', () async {
+      const prayerRoom = ChatRoomDTO(
+        id: 'group-room-1',
+        createdBy: 'u9',
+        groupId: 'group-1',
+        kind: 'group',
+        name: 'Group 1',
+        memberCount: 3,
+        updatedAt: '2026-09-01T10:00:00Z',
+        unreadChat: 2,
+        unreadPrayer: 1,
+      );
+      repository = _FakeGroupChatRepository(rooms: [prayerRoom]);
+      container = buildContainer();
+
+      final notifier = _keepAlive(container);
+      await _settle();
+
+      // The refresh reads the counts from before the read, and lands after.
+      final hold = repository.holdNextList = Completer<void>();
+      final refresh = notifier.refresh();
+      await _settle();
+      notifier.markReadLocally(
+        'group-room-1',
+        messageType: ChatMessageDTO.typePrayer,
+      );
+      hold.complete();
+      await refresh;
+
+      final room = notifier.state.rooms.single;
+      expect(room.unreadPrayer, 0);
+      // Only the type that was read.
+      expect(room.unreadChat, 2);
+
+      // A refresh sent after the read takes the server's word again.
+      await notifier.refresh();
+      expect(notifier.state.rooms.single.unreadPrayer, 1);
+    });
+  });
+
   group('room cache seed', () {
     test(
       'keys the cache by the stored account id, as the chat screen reads it',
@@ -1044,6 +1124,24 @@ void main() {
 
       signals.emit(path1, {'messages_changed_at': DateTime.utc(2026, 1, 2)});
       signals.emit(path2, {'messages_changed_at': DateTime.utc(2026, 1, 2)});
+      await settleTimers();
+      await _settle();
+
+      expect(repository.listCallCount, calls + 1);
+    });
+
+    test('a moved prayers signal refetches the list too', () async {
+      repository = _FakeGroupChatRepository(rooms: [_group(1)]);
+      container = buildLiveContainer();
+      container.listen(chatRoomsSignalsProvider, (_, _) {});
+      _keepAlive(container);
+      await _settle();
+      final path = SignalPaths.chatRoom('group-room-1');
+      signals.emit(path, {'prayers_changed_at': DateTime.utc(2026, 1, 1)});
+      await settleTimers();
+      final calls = repository.listCallCount;
+
+      signals.emit(path, {'prayers_changed_at': DateTime.utc(2026, 1, 2)});
       await settleTimers();
       await _settle();
 

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('a phone account sets its name after the welcome page', () {
-    expect(onboardingStepsFor('sms|65f0c1d2e3'), [
+    expect(onboardingStepsFor('phone'), [
       OnboardingStep.welcome,
       OnboardingStep.profile,
       OnboardingStep.language,
@@ -14,11 +14,11 @@ void main() {
   });
 
   test('other accounts skip the profile page', () {
-    for (final userId in ['google-oauth2|1', 'apple|1', 'auth0|1', null]) {
+    for (final signInMethod in ['google', 'apple', 'sms', null]) {
       expect(
-        onboardingStepsFor(userId),
+        onboardingStepsFor(signInMethod),
         isNot(contains(OnboardingStep.profile)),
-        reason: '$userId',
+        reason: '$signInMethod',
       );
     }
   });

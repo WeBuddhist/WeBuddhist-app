@@ -7,7 +7,7 @@ import 'package:flutter_pecha/features/practice/presentation/widgets/collection_
 Future<void> showNewCollectionDialog(BuildContext context) async {
   final name = await showCollectionNameDialog(
     context,
-    title: context.l10n.my_recitation_collection_new_title,
+    title: context.l10n.chant_book_new_title,
     actionLabel: context.l10n.my_recitation_collection_next,
   );
   if (name == null || !context.mounted) return;

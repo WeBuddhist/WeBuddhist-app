@@ -250,9 +250,12 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> markRoomRead(String roomId) async {
+  Future<Either<Failure, Unit>> markRoomRead(
+    String roomId, {
+    String? messageType,
+  }) async {
     try {
-      await _remote.markRoomRead(roomId);
+      await _remote.markRoomRead(roomId, messageType: messageType);
       return const Right(unit);
     } catch (e) {
       return Left(ExceptionMapper.map(e, context: 'markRoomRead'));

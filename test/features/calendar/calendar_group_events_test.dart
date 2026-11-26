@@ -108,12 +108,14 @@ void main() {
       language: 'bo',
       skip: 100,
       limit: 100,
+      calendarType: 'tsurphu',
     );
     final request = recorder.requests.single;
     expect(request.path, '/users/me/calendar');
     expect(request.queryParameters, {
       'from_date': '2026-02-01',
       'to_date': '2026-02-28',
+      'calendar_type': 'tsurphu',
       'language': 'bo',
       'skip': 100,
       'limit': 100,
@@ -151,7 +153,7 @@ void main() {
         GoRoute(
           path: '/home/events/:id',
           builder: (context, state) {
-            onPush(state.uri.path);
+            onPush(state.uri.toString());
             return const Scaffold(body: Text('event page'));
           },
         ),
@@ -188,7 +190,7 @@ void main() {
     expect(find.text('20 February 2026 · 7:00 am'), findsOneWidget);
     await tester.tap(find.text('Morning puja'));
     await tester.pumpAndSettle();
-    expect(pushed, '/home/events/evt-1');
+    expect(pushed, '/home/events/evt-1?from=calendar');
   });
 
   testWidgets('a lunar card does not open anything', (tester) async {

@@ -1,6 +1,7 @@
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/home/domain/entities/verse_of_day_engagement.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/use_case_providers.dart';
+import 'package:flutter_pecha/features/home/presentation/utils/home_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class VerseOfDayLikesState {
@@ -96,10 +97,15 @@ class VerseOfDayLikesNotifier extends StateNotifier<VerseOfDayLikesState> {
     );
 
     final repository = ref.read(verseOfDayDomainRepositoryProvider);
+    // Read now: an autoDispose provider's ref can't be used once it is gone.
+    final analytics = ref.read(homeAnalyticsProvider);
     final result =
         wasLiked
             ? await repository.unlikeVerse(verseId)
             : await repository.likeVerse(verseId);
+    if (result.isRight()) {
+      analytics.verseLikeChanged(verseId: verseId, liked: !wasLiked);
+    }
     if (!mounted) return null;
 
     return result.fold(
@@ -450,6 +456,7 @@ class VerseOfDayCommentsNotifier
 
     state = state.copyWith(isSubmitting: true, clearError: true);
 
+    final analytics = ref.read(homeAnalyticsProvider);
     final result = await ref
         .read(verseOfDayDomainRepositoryProvider)
         .createComment(
@@ -457,6 +464,12 @@ class VerseOfDayCommentsNotifier
           text: trimmed,
           parentCommentId: parentCommentId,
         );
+    if (result.isRight()) {
+      analytics.verseCommentPosted(
+        verseId: verseId,
+        isReply: parentCommentId != null,
+      );
+    }
     if (!mounted) return null;
 
     return result.fold(

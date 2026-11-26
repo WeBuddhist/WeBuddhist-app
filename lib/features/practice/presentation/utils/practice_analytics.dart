@@ -86,6 +86,68 @@ class PracticeAnalytics {
     });
   }
 
+  /// A bookmark was saved or removed on the server. [itemType] is the
+  /// bookmark type's key, e.g. `text`, `verse`, `group_accumulator`.
+  void bookmarkChanged({
+    required bool added,
+    required String itemType,
+    required String itemId,
+  }) {
+    _analytics.trackInBackground(
+      added ? AnalyticsEvents.bookmarkAdded : AnalyticsEvents.bookmarkRemoved,
+      {
+        AnalyticsProperties.itemType: itemType,
+        AnalyticsProperties.itemId: itemId,
+      },
+    );
+  }
+
+  /// The Bookmarks screen opened.
+  void bookmarksOpened() {
+    _analytics.trackInBackground(AnalyticsEvents.bookmarksOpened, {});
+  }
+
+  /// A personal recitation collection was created on the server.
+  void collectionCreated({
+    required String collectionId,
+    required int itemCount,
+    required bool hasImage,
+  }) {
+    _analytics.trackInBackground(AnalyticsEvents.collectionCreated, {
+      AnalyticsProperties.collectionId: collectionId,
+      AnalyticsProperties.itemCount: itemCount,
+      AnalyticsProperties.hasImage: hasImage,
+    });
+  }
+
+  /// Every change of an edit was saved. Counts only, no names.
+  void collectionUpdated({
+    required String collectionId,
+    required int itemCount,
+    required int itemsAdded,
+    required int itemsRemoved,
+    required bool reordered,
+    required bool renamed,
+    required bool imageChanged,
+  }) {
+    _analytics.trackInBackground(AnalyticsEvents.collectionUpdated, {
+      AnalyticsProperties.collectionId: collectionId,
+      AnalyticsProperties.itemCount: itemCount,
+      AnalyticsProperties.itemsAdded: itemsAdded,
+      AnalyticsProperties.itemsRemoved: itemsRemoved,
+      AnalyticsProperties.reordered: reordered,
+      AnalyticsProperties.renamed: renamed,
+      AnalyticsProperties.imageChanged: imageChanged,
+    });
+  }
+
+  /// A personal recitation collection was deleted on the server.
+  void collectionDeleted({required String collectionId}) {
+    _analytics.trackInBackground(AnalyticsEvents.collectionDeleted, {
+      AnalyticsProperties.collectionId: collectionId,
+    });
+  }
+
   /// Saving a routine with a series the user did not have enrolled them.
   void seriesEnrolledFromRoutine({required String seriesId}) {
     _analytics.trackInBackground(AnalyticsEvents.seriesEnrolled, {

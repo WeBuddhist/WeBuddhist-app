@@ -5,14 +5,16 @@ import 'package:fpdart/fpdart.dart';
 
 /// Initialize auth use case.
 ///
-/// Initializes the auth system (loads config, setup provider).
-class InitializeAuthUseCase extends UseCase<void, NoParams> {
+/// Prepares the auth system. Returns true when that signed out a session left
+/// by an earlier Auth0 build, so the caller can drop that account's identity.
+class InitializeAuthUseCase extends UseCase<bool, NoParams> {
   final AuthRepository _repository;
 
   InitializeAuthUseCase(this._repository);
 
   @override
-  Future<Either<Failure, void>> call(NoParams params) async {
-    return await _repository.initialize();
+  Future<Either<Failure, bool>> call(NoParams params) async {
+    final result = await _repository.initialize();
+    return result.map((_) => _repository.takeLegacySessionRemoved());
   }
 }

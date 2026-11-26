@@ -751,11 +751,15 @@ class _PlanDetailsState extends ConsumerState<PlanDetails> {
   void _openPrayerRequests(String eventId) {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'prayer_requests');
       return;
     }
     unawaited(
-      PrayerRequestsSheet.show(context, scope: PrayerRoomScope.event(eventId)),
+      PrayerRequestsSheet.show(
+        context,
+        scope: PrayerRoomScope.event(eventId),
+        source: 'plan',
+      ),
     );
   }
 

@@ -15,8 +15,7 @@ class _FakeAdapter implements HttpClientAdapter {
     RequestOptions options,
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
-  ) =>
-      _onFetch(options);
+  ) => _onFetch(options);
 
   @override
   void close({bool force = false}) {}
@@ -96,5 +95,26 @@ void main() {
       );
       expect(partial.hasMore, isFalse);
     });
+  });
+
+  group('PoemsRemoteDatasource.fetchPoemsJson', () {
+    test(
+      'skips the shared HTTP cache and lets the backend pick traditions',
+      () async {
+        RequestOptions? sent;
+        final ds = _datasource((options) async {
+          sent = options;
+          return _jsonBody({'poems': [], 'total': 0});
+        });
+
+        await ds.fetchPoemsJson(language: 'EN', limit: 3);
+
+        expect(sent!.path, '/poems');
+        // Per-user feed: the HTTP cache keys aren't scoped by user.
+        expect(sent!.extra['no_cache'], isTrue);
+        // No `tradition`: the token tells the backend the saved traditions.
+        expect(sent!.queryParameters.containsKey('tradition'), isFalse);
+      },
+    );
   });
 }

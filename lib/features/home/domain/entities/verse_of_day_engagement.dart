@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/shared/domain/visible_name.dart';
 
 class VerseOfDayLikes extends Equatable {
   final String verseId;
@@ -18,24 +19,28 @@ class VerseOfDayLikes extends Equatable {
 class VerseOfDayCommentUser extends Equatable {
   final String firstName;
   final String? lastName;
+
+  /// The name the user picked in Edit profile (`display_name`); null when
+  /// they have not picked one.
+  final String? userDisplayName;
   final String? avatarUrl;
 
   const VerseOfDayCommentUser({
     required this.firstName,
     this.lastName,
+    this.userDisplayName,
     this.avatarUrl,
   });
 
-  String get displayName {
-    final parts = [firstName, lastName]
-        .where((part) => part != null && part.trim().isNotEmpty)
-        .map((part) => part!.trim());
-    final name = parts.join(' ');
-    return name.isEmpty ? 'User' : name;
-  }
+  /// The name to show: the display name, then first and last name.
+  String get displayName => visibleUserName(
+    displayName: userDisplayName,
+    fullname: '${firstName.trim()} ${lastName?.trim() ?? ''}',
+    fallback: 'User',
+  );
 
   @override
-  List<Object?> get props => [firstName, lastName, avatarUrl];
+  List<Object?> get props => [firstName, lastName, userDisplayName, avatarUrl];
 }
 
 class VerseOfDayComment extends Equatable {

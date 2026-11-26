@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_pecha/core/analytics/search_analytics.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/domain/repositories/mala_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,9 +42,12 @@ class AccumulationSearchNotifier
   Timer? _debounceTimer;
   static const Duration _debounceDuration = Duration(milliseconds: 500);
 
+  final SearchAnalytics? analytics;
+
   AccumulationSearchNotifier({
     required this.repository,
     required this.languageCode,
+    this.analytics,
   }) : super(const AccumulationSearchState());
 
   /// Search with debounce.
@@ -88,6 +92,11 @@ class AccumulationSearchNotifier
             results: results,
             isLoading: false,
             error: null,
+          );
+          analytics?.searched(
+            surface: SearchSurface.accumulations,
+            query: query,
+            resultCount: results.length,
           );
         }
       },

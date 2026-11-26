@@ -4,10 +4,43 @@ import 'package:flutter_pecha/core/analytics/analytics_service.dart';
 import 'package:flutter_pecha/core/analytics/analytics_tracking.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_event.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_link_utils.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_live_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What "enter the live event" opened, carried on `group_event_live_entered`.
 enum GroupEventLiveTarget { series, plan, collection }
+
+/// Whether an event has started, is on or is over, carried as `status`.
+/// Decided the same way as the live player ([GroupEventLiveUtils]), so
+/// analytics agrees with what the screen shows.
+enum GroupEventStatus {
+  upcoming,
+  live,
+  ended;
+
+  /// Null when it can't be told: no start date, or a recurring event whose
+  /// current occurrence is unknown or already over (the series goes on).
+  static GroupEventStatus? of(GroupEvent event, {DateTime? now}) {
+    final current = now ?? DateTime.now();
+    if (event.isRecurring) {
+      final occurrence = event.occurrenceDate;
+      if (occurrence == null) return null;
+      if (current.isBefore(occurrence)) return GroupEventStatus.upcoming;
+      return current.isBefore(occurrence.add(GroupEventLiveUtils.liveGrace))
+          ? GroupEventStatus.live
+          : null;
+    }
+    final start = event.startDate;
+    if (start == null) return null;
+    if (current.isBefore(start)) return GroupEventStatus.upcoming;
+    // No usable end date means live for [GroupEventLiveUtils.liveGrace].
+    return GroupEventLiveUtils.hasEnded(event, current)
+        ? GroupEventStatus.ended
+        : GroupEventStatus.live;
+  }
+
+  String get key => name;
+}
 
 /// Product analytics for group events: one method per tracked action, so the
 /// event names and their property keys live in one place. Every call fires
@@ -18,12 +51,17 @@ class GroupEventAnalytics {
   final AnalyticsService _analytics;
 
   /// The event detail screen showed an event; fired once per visit.
+  /// [source] is where it was opened from when the opener said so: `home`,
+  /// `connect`, `group_page`, `home_banner`, `calendar`, `push`, `deep_link`
+  /// or `created`.
   void eventViewed({
     required String eventId,
     required String groupId,
     required String eventTitle,
     required String? eventFormat,
     required bool isRecurring,
+    String? source,
+    GroupEventStatus? status,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.groupEventViewed, {
       AnalyticsProperties.eventId: eventId,
@@ -31,6 +69,8 @@ class GroupEventAnalytics {
       AnalyticsProperties.eventTitle: eventTitle,
       AnalyticsProperties.eventFormat: eventFormat,
       AnalyticsProperties.isRecurring: isRecurring,
+      if (source != null) AnalyticsProperties.source: source,
+      if (status != null) AnalyticsProperties.status: status.key,
     });
   }
 
@@ -144,7 +184,6 @@ class GroupEventAnalytics {
     });
   }
 
-
   /// A meeting, video or web link on the event was opened.
   void eventLinkOpened({
     required String eventId,
@@ -155,6 +194,43 @@ class GroupEventAnalytics {
       AnalyticsProperties.eventId: eventId,
       AnalyticsProperties.groupId: groupId,
       AnalyticsProperties.linkType: kind.name,
+    });
+  }
+
+  /// An admin saved an event from the composer, as a draft or published.
+  /// [isEdit] is true when an existing event was changed.
+  void eventSaved({
+    required GroupEvent event,
+    required bool isDraft,
+    required bool isEdit,
+  }) {
+    _analytics.trackInBackground(
+      isDraft
+          ? AnalyticsEvents.groupEventDraftSaved
+          : AnalyticsEvents.groupEventPublished,
+      {
+        AnalyticsProperties.eventId: event.id,
+        AnalyticsProperties.groupId: event.groupId,
+        AnalyticsProperties.eventFormat: event.eventFormat,
+        AnalyticsProperties.isRecurring: event.isRecurring,
+        AnalyticsProperties.isEdit: isEdit,
+        AnalyticsProperties.hasPlan: event.planId != null,
+        AnalyticsProperties.hasSeries: event.seriesId != null,
+        AnalyticsProperties.hasCollection:
+            event.groupRecitationCollectionId != null,
+        AnalyticsProperties.hasAccumulation:
+            event.accumulatorId != null ||
+            event.groupAccumulatorId != null ||
+            event.accumulations.isNotEmpty,
+      },
+    );
+  }
+
+  /// An admin deleted a draft event.
+  void eventDeleted({required String eventId, required String groupId}) {
+    _analytics.trackInBackground(AnalyticsEvents.groupEventDeleted, {
+      AnalyticsProperties.eventId: eventId,
+      AnalyticsProperties.groupId: groupId,
     });
   }
 }

@@ -1,8 +1,10 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_visible_name.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_parent_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_reaction_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_translation_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_intention_dto.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_request_source_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_user_dto.dart';
 
 class ChatMessageDTO extends Equatable {
@@ -59,6 +61,12 @@ class ChatMessageDTO extends Equatable {
   final bool isCompleted;
   final String? completedAt;
 
+  /// Where one of the viewer's own requests was posted. Only
+  /// `GET /chat/prayer-requests/me` carries these; [group] is null once the
+  /// space is deleted, and [event] is set only for requests made in an event.
+  final PrayerRequestGroupDTO? group;
+  final PrayerRequestEventDTO? event;
+
   const ChatMessageDTO({
     required this.id,
     required this.roomId,
@@ -83,6 +91,8 @@ class ChatMessageDTO extends Equatable {
     this.canTranslate = false,
     this.isCompleted = false,
     this.completedAt,
+    this.group,
+    this.event,
   });
 
   bool get isPrayerRequest => messageType == typePrayer;
@@ -103,12 +113,14 @@ class ChatMessageDTO extends Equatable {
     final prayerCount = json['prayer_count'];
     final totalPrayerCount = json['total_prayer_count'];
     final myPrayerCount = json['my_prayer_count'];
+    final groupJson = json['group'];
+    final eventJson = json['event'];
     return ChatMessageDTO(
       id: json['id'] as String? ?? '',
       roomId: json['room_id'] as String? ?? '',
       senderId: json['sender_id'] as String? ?? '',
       senderEmail: json['sender_email'] as String? ?? '',
-      senderName: json['sender_name'] as String?,
+      senderName: _senderNameFromJson(json),
       senderAvatarUrl: json['sender_avatar_url'] as String?,
       body: json['body'] as String? ?? '',
       createdAt: json['created_at'] as String? ?? '',
@@ -146,6 +158,14 @@ class ChatMessageDTO extends Equatable {
       canTranslate: json['can_translate'] as bool? ?? false,
       isCompleted: json['is_completed'] as bool? ?? false,
       completedAt: json['completed_at'] as String?,
+      group:
+          groupJson is Map<String, dynamic>
+              ? PrayerRequestGroupDTO.fromJson(groupJson)
+              : null,
+      event:
+          eventJson is Map<String, dynamic>
+              ? PrayerRequestEventDTO.fromJson(eventJson)
+              : null,
     );
   }
 
@@ -204,11 +224,12 @@ class ChatMessageDTO extends Equatable {
       recentPrayers: recentPrayers ?? this.recentPrayers,
       sourceLanguage:
           sourceLanguage ?? (clearTranslation ? null : this.sourceLanguage),
-      translation:
-          translation ?? (clearTranslation ? null : this.translation),
+      translation: translation ?? (clearTranslation ? null : this.translation),
       canTranslate: canTranslate ?? this.canTranslate,
       isCompleted: isCompleted ?? this.isCompleted,
       completedAt: completedAt ?? (clearCompletedAt ? null : this.completedAt),
+      group: group,
+      event: event,
     );
   }
 
@@ -239,6 +260,8 @@ class ChatMessageDTO extends Equatable {
       if (sourceLanguage != null) 'source_language': sourceLanguage,
       if (translation != null) 'translation': translation!.toJson(),
       'can_translate': canTranslate,
+      if (group != null) 'group': group!.toJson(),
+      if (event != null) 'event': event!.toJson(),
     };
   }
 
@@ -267,5 +290,12 @@ class ChatMessageDTO extends Equatable {
     canTranslate,
     isCompleted,
     completedAt,
+    group,
+    event,
   ];
 }
+
+/// The sender's display name from Edit profile, then `sender_name` for
+/// messages without one.
+String? _senderNameFromJson(Map<String, dynamic> json) =>
+    chatVisibleName(json['sender_display_name'], json['sender_name']);

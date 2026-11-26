@@ -1,4 +1,5 @@
 import 'package:flutter_pecha/features/group_profile/data/models/group_accumulator_model.dart';
+import 'package:flutter_pecha/features/group_profile/domain/entities/group_accumulator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> _json({Object? mantra, Object? malaImage}) => {
@@ -79,6 +80,100 @@ void main() {
           ).toDetailEntity();
 
       expect(detail.malaImageUrl, isNull);
+    });
+  });
+
+  group('GroupAccumulatorMember.displayName', () {
+    test('prefers the display name over the full name', () {
+      const member = GroupAccumulatorMember(
+        userId: 'u1',
+        username: 'tenzin',
+        fullname: 'Tenzin Dorje',
+        userDisplayName: '  tenz  ',
+      );
+
+      expect(member.displayName, 'tenz');
+    });
+
+    test('falls back to the full name, then the username', () {
+      const withFullname = GroupAccumulatorMember(
+        userId: 'u1',
+        username: 'tenzin',
+        fullname: 'Tenzin Dorje',
+        userDisplayName: '  ',
+      );
+      const withUsername = GroupAccumulatorMember(
+        userId: 'u2',
+        username: 'tenzin',
+        fullname: '',
+      );
+
+      expect(withFullname.displayName, 'Tenzin Dorje');
+      expect(withUsername.displayName, 'tenzin');
+    });
+  });
+
+  group('GroupAccumulatorUserContribution.displayName', () {
+    test('prefers the display name over the full name', () {
+      const contribution = GroupAccumulatorUserContribution(
+        username: 'tenzin',
+        fullname: 'Tenzin Dorje',
+        userDisplayName: 'tenz',
+      );
+
+      expect(contribution.displayName, 'tenz');
+    });
+
+    test('falls back to the full name, then the username', () {
+      const withFullname = GroupAccumulatorUserContribution(
+        username: 'tenzin',
+        fullname: 'Tenzin Dorje',
+      );
+      const withUsername = GroupAccumulatorUserContribution(
+        username: 'tenzin',
+      );
+
+      expect(withFullname.displayName, 'Tenzin Dorje');
+      expect(withUsername.displayName, 'tenzin');
+    });
+  });
+
+  group('display_name from the API', () {
+    test('member fromJson forwards display_name', () {
+      final member =
+          GroupAccumulatorMemberModel.fromJson({
+            'user_id': 'u1',
+            'username': 'tenzin',
+            'fullname': 'Tenzin Dorje',
+            'display_name': 'Tenz',
+          }).toEntity();
+
+      expect(member.userDisplayName, 'Tenz');
+      expect(member.displayName, 'Tenz');
+    });
+
+    test('member without display_name falls back to fullname', () {
+      final member =
+          GroupAccumulatorMemberModel.fromJson({
+            'user_id': 'u1',
+            'username': 'tenzin',
+            'fullname': 'Tenzin Dorje',
+          }).toEntity();
+
+      expect(member.userDisplayName, isNull);
+      expect(member.displayName, 'Tenzin Dorje');
+    });
+
+    test('contribution fromJson forwards display_name', () {
+      final contribution =
+          GroupAccumulatorUserContributionModel.fromJson({
+            'username': 'tenzin',
+            'fullname': 'Tenzin Dorje',
+            'display_name': 'Tenz',
+          }).toEntity();
+
+      expect(contribution.userDisplayName, 'Tenz');
+      expect(contribution.displayName, 'Tenz');
     });
   });
 }

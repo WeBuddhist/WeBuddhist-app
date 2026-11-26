@@ -52,21 +52,20 @@ class GroupAccumulatorModel {
   factory GroupAccumulatorModel.fromJson(Map<String, dynamic> json) {
     final mantraJson = json['mantra'];
     final malaImageJson = json['mala_image'];
-    final malaImageUrl =
-        malaImageJson is Map<String, dynamic>
-            ? malaImageJson['url'] as String?
-            : null;
+    final malaImageUrl = malaImageJson is Map<String, dynamic>
+        ? malaImageJson['url'] as String?
+        : null;
     return GroupAccumulatorModel(
       id: json['id'] as String? ?? '',
       presetAccumulatorId: json['preset_accumulator_id'] as String? ?? '',
       textId: json['text_id'] as String?,
       mantraId: json['mantra_id'] as String?,
-      mantra:
-          mantraJson is Map<String, dynamic>
-              ? PresetMantraModel.fromJson(mantraJson)
-              : null,
-      malaImageUrl:
-          (malaImageUrl == null || malaImageUrl.isEmpty) ? null : malaImageUrl,
+      mantra: mantraJson is Map<String, dynamic>
+          ? PresetMantraModel.fromJson(mantraJson)
+          : null,
+      malaImageUrl: (malaImageUrl == null || malaImageUrl.isEmpty)
+          ? null
+          : malaImageUrl,
       groupId: json['group_id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       imageJson: json['image'] as Map<String, dynamic>?,
@@ -126,12 +125,9 @@ class GroupAccumulatorModel {
       memberCount: memberCount,
       totalCount: totalCount,
       totalTodayCount: totalTodayCount,
-      user:
-          userJson != null
-              ? GroupAccumulatorUserContributionModel.fromJson(
-                userJson!,
-              ).toEntity()
-              : null,
+      user: userJson != null
+          ? GroupAccumulatorUserContributionModel.fromJson(userJson!).toEntity()
+          : null,
       description: description,
       links: links.map((link) => link.toEntity()).toList(),
     );
@@ -189,6 +185,7 @@ class GroupAccumulatorUserContributionModel {
   final String username;
   final String? imageUrl;
   final String fullname;
+  final String? displayName;
 
   GroupAccumulatorUserContributionModel({
     this.totalCount = 0,
@@ -196,6 +193,7 @@ class GroupAccumulatorUserContributionModel {
     this.username = '',
     this.imageUrl,
     this.fullname = '',
+    this.displayName,
   });
 
   factory GroupAccumulatorUserContributionModel.fromJson(
@@ -207,6 +205,7 @@ class GroupAccumulatorUserContributionModel {
       username: json['username'] as String? ?? '',
       imageUrl: json['image'] as String?,
       fullname: json['fullname'] as String? ?? '',
+      displayName: json['display_name'] as String?,
     );
   }
 
@@ -217,6 +216,7 @@ class GroupAccumulatorUserContributionModel {
       username: username,
       imageUrl: imageUrl,
       fullname: fullname,
+      userDisplayName: displayName,
     );
   }
 }
@@ -262,6 +262,7 @@ class GroupAccumulatorMemberModel {
   final String userId;
   final String username;
   final String fullname;
+  final String? displayName;
   final String? avatarUrl;
   final DateTime? joinedAt;
   final int totalCount;
@@ -271,6 +272,7 @@ class GroupAccumulatorMemberModel {
     required this.userId,
     required this.username,
     required this.fullname,
+    this.displayName,
     this.avatarUrl,
     this.joinedAt,
     this.totalCount = 0,
@@ -282,6 +284,7 @@ class GroupAccumulatorMemberModel {
       userId: json['user_id'] as String? ?? '',
       username: json['username'] as String? ?? '',
       fullname: json['fullname'] as String? ?? '',
+      displayName: json['display_name'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       joinedAt: GroupAccumulatorModel._parseDate(json['joined_at']),
       totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
@@ -294,6 +297,7 @@ class GroupAccumulatorMemberModel {
       userId: userId,
       username: username,
       fullname: fullname,
+      userDisplayName: displayName,
       avatarUrl: avatarUrl,
       joinedAt: joinedAt,
       totalCount: totalCount,

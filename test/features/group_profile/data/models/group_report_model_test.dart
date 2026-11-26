@@ -79,4 +79,47 @@ void main() {
     expect(items.first.reports.map((report) => report.id), ['r1', 'r3']);
     expect(items.first.latest.id, 'r1');
   });
+
+  group('GroupReportUser.displayName', () {
+    test('prefers the display name over first and last name', () {
+      const user = GroupReportUser(
+        id: 'u1',
+        username: 'tenzin',
+        firstname: 'Tenzin',
+        lastname: 'Dorje',
+        userDisplayName: '  tenz  ',
+      );
+
+      expect(user.displayName, 'tenz');
+    });
+
+    test('falls back to first and last name when it is blank', () {
+      const user = GroupReportUser(
+        id: 'u1',
+        username: 'tenzin',
+        firstname: 'Tenzin',
+        lastname: 'Dorje',
+        userDisplayName: '  ',
+      );
+
+      expect(user.displayName, 'Tenzin Dorje');
+    });
+
+    test('falls back to the username when no name is set', () {
+      const user = GroupReportUser(id: 'u1', username: 'tenzin');
+
+      expect(user.displayName, 'tenzin');
+    });
+  });
+
+  test('reporter fromJson forwards display_name', () {
+    final json = _reportJson(id: 'r1', kind: 'POST', postId: 'p1');
+    (json['reporter'] as Map<String, dynamic>)['display_name'] = 'Tenz';
+
+    final report = GroupReportModel.fromJson(json)!.toEntity();
+
+    expect(report.reporter?.userDisplayName, 'Tenz');
+    expect(report.reporter?.displayName, 'Tenz');
+    expect(report.reportedUser?.userDisplayName, isNull);
+  });
 }

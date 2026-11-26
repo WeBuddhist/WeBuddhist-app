@@ -26,8 +26,9 @@ class GroupEventDraftMenuSheet extends StatelessWidget {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return GroupEventSheet(
       title: title,
@@ -35,10 +36,9 @@ class GroupEventDraftMenuSheet extends StatelessWidget {
         shrinkWrap: true,
         children: [
           InkWell(
-            onTap:
-                () => Navigator.of(
-                  context,
-                ).pop(GroupEventDraftAction.continueEditing),
+            onTap: () => Navigator.of(
+              context,
+            ).pop(GroupEventDraftAction.continueEditing),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
               child: Text(
@@ -49,8 +49,8 @@ class GroupEventDraftMenuSheet extends StatelessWidget {
           ),
           Divider(height: 1, thickness: 1, color: dividerColor),
           InkWell(
-            onTap:
-                () => Navigator.of(context).pop(GroupEventDraftAction.delete),
+            onTap: () =>
+                Navigator.of(context).pop(GroupEventDraftAction.delete),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 14, 24, 14),
               child: Column(

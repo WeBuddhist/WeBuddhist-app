@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/analytics/search_analytics.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/home/domain/entities/series.dart';
@@ -205,7 +206,18 @@ class _PlansSearchScreenState extends ConsumerState<PlansSearchScreen> {
           padding: const EdgeInsets.only(bottom: 12),
           child: PracticePlanListTile(
             series: series,
-            onTap: () => widget.onTap(series),
+            onTap: () {
+              // The search itself is `series_searched`, sent by its provider.
+              ref
+                  .read(searchAnalyticsProvider)
+                  .resultOpened(
+                    surface: SearchSurface.plans,
+                    position: index,
+                    itemType: 'series',
+                    itemId: series.id,
+                  );
+              widget.onTap(series);
+            },
           ),
         );
       },

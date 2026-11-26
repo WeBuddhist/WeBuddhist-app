@@ -74,6 +74,8 @@ class ChatReportRequest {
         // cost the member the one action that gets the report through.
         messenger.showSnackBar(
           SnackBar(
+            // An action would otherwise keep it up indefinitely.
+            persist: false,
             content: Text(
               feedback == ChatReportFeedback.offline
                   ? l10n.group_chat_report_offline

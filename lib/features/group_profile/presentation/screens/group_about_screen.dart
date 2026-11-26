@@ -29,12 +29,14 @@ class GroupAboutScreen extends StatelessWidget {
     final hasDescription =
         trimmedDescription != null && trimmedDescription.isNotEmpty;
     final orderedLinks = GroupProfileLinkUtils.orderedLinks(links);
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.scaffoldBackgroundDark : AppColors.surfaceLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldBackgroundDark
+          : AppColors.surfaceLight,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -111,26 +113,27 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Text(
       title,
-      style:
-          large
-              ? TextStyle(
-                fontSize: 17,
-                fontWeight: FontWeight.w700,
-                color: titleColor,
-              )
-              : TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.4,
-                color: secondaryColor,
-              ),
+      style: large
+          ? TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: titleColor,
+            )
+          : TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+              color: secondaryColor,
+            ),
     );
   }
 }
@@ -178,10 +181,12 @@ class _AboutLinkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return InkWell(
       onTap: () => _launchUrl(context),

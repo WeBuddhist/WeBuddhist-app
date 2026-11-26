@@ -15,12 +15,15 @@
 # number at build time (github.run_number + offset), so pubspec's build value
 # is only a placeholder.
 #
-# The script only computes + writes pubspec.yaml; the CALLER decides whether to
-# persist it:
-#   * release-prod (main)   commits the bump back  -> the version advances.
-#   * release-dev  (develop) does NOT commit       -> a throwaway preview build,
-#                                                     so promoting dev->prod does
-#                                                     not double-bump.
+# The script only computes + writes pubspec.yaml; release-prod.yml commits it
+# back on every push to main, where the testing build is made.
+#
+# The next version is counted from the last RELEASE tag (vX.Y.Z, pushed by hand
+# to ship to the stores), not from pubspec. Several merges to main before a
+# release therefore keep the same pending version (e.g. 2.48.0) instead of
+# bumping again each time; it only moves up when a bigger change lands (a feat
+# after only fixes, or a breaking change). pubspec still wins if someone set it
+# higher by hand.
 #
 # Outputs (when $GITHUB_OUTPUT is set, i.e. on CI):
 #   version_name=<new X.Y.Z>   level=<major|minor|patch>   version=<X.Y.Z+build>
@@ -37,16 +40,17 @@ name="${current%%+*}"                           # "X.Y.Z"
 build=""
 [ "$current" != "$name" ] && build="${current#*+}"   # "build" (empty if no +)
 
+# Prints the higher of two X.Y.Z versions.
+max_version() {
+  printf '%s\n%s\n' "$1" "$2" | sort -t. -k1,1n -k2,2n -k3,3n | tail -n1
+}
+
 # --- version to bump FROM --------------------------------------------------
-# The higher of pubspec's version and the highest released "v*" tag. On main
-# they are equal. For DEV builds the bump is NOT committed back, so develop's
-# pubspec can lag the last prod release — using the tag keeps dev one step ahead
-# of what already shipped instead of re-previewing an already-released version.
+# The highest "v*" tag: the last version released (older tags carry a
+# "-build-N" suffix, which is dropped). pubspec is only the base before any tag.
 tag_ver="$(git tag -l 'v*' 2>/dev/null | sed -E 's/^v//; s/-.*$//' \
   | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -t. -k1,1n -k2,2n -k3,3n | tail -n1 || true)"
-base="$name"
-[ -n "$tag_ver" ] && base="$(printf '%s\n%s\n' "$name" "$tag_ver" \
-  | sort -t. -k1,1n -k2,2n -k3,3n | tail -n1)"
+base="${tag_ver:-$name}"
 
 IFS='.' read -r major minor patch <<<"$base"
 : "${major:=0}" "${minor:=0}" "${patch:=0}"
@@ -84,7 +88,9 @@ case "$level" in
   patch) patch=$((patch + 1)) ;;
 esac
 
-new_name="${major}.${minor}.${patch}"
+# Never go below pubspec: it already holds the pending version after an
+# earlier merge, or a version someone set by hand.
+new_name="$(max_version "${major}.${minor}.${patch}" "$name")"
 new_version="$new_name"
 [ -n "$build" ] && new_version="${new_name}+${build}"
 

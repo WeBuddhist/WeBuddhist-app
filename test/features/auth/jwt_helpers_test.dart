@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:flutter_pecha/features/auth/auth_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 String _jwtWithExp(int? exp) {
   String seg(Map<String, dynamic> m) =>
       base64Url.encode(utf8.encode(jsonEncode(m))).replaceAll('=', '');
-  final header = seg({'alg': 'RS256', 'typ': 'JWT'});
+  final header = seg({'alg': 'HS256', 'typ': 'JWT'});
   final payload = seg({if (exp != null) 'exp': exp, 'sub': 'user-123'});
   return '$header.$payload.signature';
 }
@@ -66,58 +65,73 @@ void main() {
     });
   });
 
-  group('isUsableApiAccessToken', () {
-    test('accepts a JWT (three dot-separated segments)', () {
+  group('isSessionPermanentlyLost', () {
+    test('no stored session is permanent', () {
       expect(
-        AuthService.isUsableApiAccessToken(_jwtWithExp(_nowSecs() + 3600)),
+        AuthService.isSessionPermanentlyLost(
+          AuthException('No session', code: AuthService.noSessionCode),
+        ),
         isTrue,
       );
     });
 
-    test('rejects an opaque token (no JWT structure)', () {
-      // Opaque /userinfo access tokens from pre-audience sessions.
-      expect(AuthService.isUsableApiAccessToken('v1.MnHB3a...opaque'), isFalse);
-      expect(AuthService.isUsableApiAccessToken('opaquetoken'), isFalse);
-    });
-  });
-
-  group('isSessionPermanentlyLost', () {
-    test('treats an opaque-access-token AuthException as permanent', () {
-      final error = AuthException(
-        'Opaque access token; re-authentication required',
-        code: AuthService.opaqueAccessTokenCode,
+    test('a refresh token the backend rejected (401) is permanent', () {
+      expect(
+        AuthService.isSessionPermanentlyLost(
+          AuthException('rejected', code: AuthService.refreshRejectedCode),
+        ),
+        isTrue,
       );
-      expect(AuthService.isSessionPermanentlyLost(error), isTrue);
     });
 
-    test('treats an unrelated AuthException as transient', () {
+    test('a refresh refused with another 4xx is NOT permanent at launch', () {
+      // Could be a wrong base URL or a backend fault: not grounds to wipe a
+      // session unless a request just proved we are online (see below).
+      expect(
+        AuthService.isSessionPermanentlyLost(
+          AuthException('refused', code: AuthService.refreshRefusedCode),
+        ),
+        isFalse,
+      );
+    });
+
+    test('unrelated and untyped errors are transient', () {
       expect(
         AuthService.isSessionPermanentlyLost(AuthException('network blip')),
         isFalse,
       );
-    });
-
-    test('a RENEW_FAILED is NOT permanent on its own (restore path tolerates it)',
-        () {
-      final error = CredentialsManagerException('RENEW_FAILED', 'msg', const {});
-      expect(AuthService.isSessionPermanentlyLost(error), isFalse);
+      expect(
+        AuthService.isSessionPermanentlyLost(Exception('keystore')),
+        isFalse,
+      );
     });
   });
 
   group('isTokenRenewalFailed', () {
-    test('detects a RENEW_FAILED credentials-manager error', () {
-      final error = CredentialsManagerException('RENEW_FAILED', 'msg', const {});
-      expect(AuthService.isTokenRenewalFailed(error), isTrue);
+    test('true for a rejected and for a refused refresh', () {
+      expect(
+        AuthService.isTokenRenewalFailed(
+          AuthException('rejected', code: AuthService.refreshRejectedCode),
+        ),
+        isTrue,
+      );
+      expect(
+        AuthService.isTokenRenewalFailed(
+          AuthException('refused', code: AuthService.refreshRefusedCode),
+        ),
+        isTrue,
+      );
     });
 
-    test('is false for unrelated errors', () {
+    test('false for unrelated errors', () {
       expect(AuthService.isTokenRenewalFailed(AuthException('x')), isFalse);
       expect(
         AuthService.isTokenRenewalFailed(
-          CredentialsManagerException('NO_REFRESH_TOKEN', 'm', const {}),
+          AuthException('No session', code: AuthService.noSessionCode),
         ),
         isFalse,
       );
+      expect(AuthService.isTokenRenewalFailed(Exception('offline')), isFalse);
     });
   });
 }

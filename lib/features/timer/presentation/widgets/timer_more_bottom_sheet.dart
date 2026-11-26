@@ -16,6 +16,7 @@ import 'package:flutter_pecha/features/practice/presentation/providers/routine_r
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_pecha/features/timer/domain/usecases/delete_user_timer_usecase.dart';
 import 'package:flutter_pecha/features/timer/presentation/providers/timers_providers.dart';
+import 'package:flutter_pecha/features/timer/presentation/utils/timer_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
@@ -117,10 +118,15 @@ class _TimerMoreBottomSheetState extends ConsumerState<TimerMoreBottomSheet> {
       onConfirmed: () async {
         HapticFeedback.mediumImpact();
         if (mounted) setState(() => _isDeleting = true);
+        final analytics = ref.read(timerAnalyticsProvider);
+        final timerId = widget.timer.id;
         try {
           final deleteResult = await ref.read(deleteUserTimerUseCaseProvider)(
-            DeleteUserTimerParams(timerId: widget.timer.id),
+            DeleteUserTimerParams(timerId: timerId),
           );
+          if (deleteResult.isRight()) {
+            analytics.timerDeleted(presetId: timerId);
+          }
 
           return deleteResult.fold(
             (failure) {

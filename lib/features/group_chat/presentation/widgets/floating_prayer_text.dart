@@ -6,15 +6,17 @@ import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/prayer_intention_tint.dart';
 
 /// Fallback mantra shown when the viewer prays, by app language, for a room
-/// that carries none of its own.
+/// that carries none of its own: Avalokiteshvara's six syllables, the
+/// default for Vajrayana and Mahayana events (#1098). The room's own mantra,
+/// set in Studio, always wins.
 String prayerMantraForLocale(Locale locale) {
   return switch (locale.languageCode) {
-    'hi' => 'ॐ तारे तुत्तारे तुरे स्वाहा',
-    'ne' => 'ॐ तारे तुत्तारे तुरे स्वाहा',
-    'mn' => 'Ом тарэ туттарэ турэ сууха',
-    'bo' => 'ཨོཾ་ཏཱ་རེ་ཏུཏྟཱ་རེ་ཏུ་རེ་སྭཱ་ཧཱ།',
-    'zh' => '嗡 達咧 都達咧 都咧 梭哈',
-    _ => 'Om Tare Tuttare Ture Soha',
+    'hi' => 'ॐ मणि पद्मे हूँ',
+    'ne' => 'ॐ मणि पद्मे हूँ',
+    'mn' => 'Ум мани бадмэ хум',
+    'bo' => 'ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ།',
+    'zh' => '嗡 嘛呢 叭咪 吽',
+    _ => 'Om Mani Padme Hum',
   };
 }
 

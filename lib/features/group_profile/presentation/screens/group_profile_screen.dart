@@ -16,6 +16,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/utils/group_me
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_notification_settings_drawer.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_body.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_skeleton.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_space_room_buttons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_pecha/core/widgets/screen_cache_builder.dart';
@@ -33,12 +34,16 @@ class GroupProfileScreen extends ConsumerStatefulWidget {
   /// Carried as `source` on `group_viewed`; see [GroupViewSource].
   final String? analyticsSource;
 
+  /// Opens scrolled past the header; see [GroupProfileBody.startCollapsed].
+  final bool startCollapsed;
+
   const GroupProfileScreen({
     super.key,
     required this.groupId,
     this.openPrayerRequests = false,
     this.leading,
     this.analyticsSource,
+    this.startCollapsed = false,
   });
 
   @override
@@ -58,13 +63,14 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
       // `/home` is guest-accessible, so the query alone is no proof of login.
       final authState = ref.read(authProvider);
       if (authState.isGuest || !authState.isLoggedIn) {
-        LoginDrawer.show(context, ref);
+        LoginDrawer.show(context, ref, feature: 'group_open');
         return;
       }
       unawaited(
         PrayerRequestsSheet.show(
           context,
           scope: PrayerRoomScope.group(widget.groupId),
+          source: 'link',
         ),
       );
     });
@@ -91,21 +97,17 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
         bottom: false,
         child: Column(
           children: [
-            _buildAppBar(
-              context,
-              groupId,
-              profileTitle,
-              loadedProfile,
-              isDark,
-            ),
+            _buildAppBar(context, groupId, profileTitle, loadedProfile, isDark),
             Expanded(
               child: ScreenCacheBuilder<GroupProfile>(
                 value: profileAsync,
                 skeleton: const GroupProfileSkeleton(),
                 onRetry: () => ref.invalidate(groupProfileProvider(groupId)),
-                data:
-                    (profile) =>
-                        GroupProfileBody(profile: profile, isDark: isDark),
+                data: (profile) => GroupProfileBody(
+                  profile: profile,
+                  isDark: isDark,
+                  startCollapsed: widget.startCollapsed,
+                ),
               ),
             ),
           ],
@@ -115,14 +117,13 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
 
     return TrackFirstValue<GroupProfile>(
       value: loadedProfile,
-      onFirstValue:
-          (profile) => ref
-              .read(groupAnalyticsProvider)
-              .groupViewed(
-                groupId: groupId,
-                groupType: profile.groupType,
-                source: widget.analyticsSource,
-              ),
+      onFirstValue: (profile) => ref
+          .read(groupAnalyticsProvider)
+          .groupViewed(
+            groupId: groupId,
+            groupType: profile.groupType,
+            source: widget.analyticsSource,
+          ),
       child: scaffold,
     );
   }
@@ -134,17 +135,24 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
     GroupProfile? profile,
     bool isDark,
   ) {
-    final showTitle = ref.watch(groupProfileAppBarTitleVisibleProvider(groupId));
+    final showTitle = ref.watch(
+      groupProfileAppBarTitleVisibleProvider(groupId),
+    );
     final resolvedTitle = title?.trim() ?? '';
     final hasTitle = resolvedTitle.isNotEmpty;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: Row(
-        children: [
-          widget.leading ??
+      child: SizedBox(
+        height: 48,
+        // Keeps the fading title centred however wide the trailing actions
+        // are.
+        child: NavigationToolbar(
+          leading:
+              widget.leading ??
               IconButton(
                 icon: const Icon(AppAssets.arrowLeft),
                 onPressed: () {
@@ -155,27 +163,29 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
                   }
                 },
               ),
-          Expanded(
-            child: AnimatedOpacity(
-              opacity: showTitle && hasTitle ? 1 : 0,
-              duration: const Duration(milliseconds: 150),
-              child: Text(
-                resolvedTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: titleColor,
-                ),
+          middle: AnimatedOpacity(
+            opacity: showTitle && hasTitle ? 1 : 0,
+            duration: const Duration(milliseconds: 150),
+            child: Text(
+              resolvedTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w600,
+                color: titleColor,
               ),
             ),
           ),
-          if (profile != null)
-            _MemberMenuButton(profile: profile)
-          else
-            const SizedBox(width: 48, height: 48),
-        ],
+          trailing: profile == null
+              ? const SizedBox(width: 48, height: 48)
+              // A Page has no Invite row, so its ⋮ stays up here.
+              : profile.groupType.isPage
+              ? _MemberMenuButton(profile: profile)
+              : GroupSpaceRoomButtons(profile: profile),
+          middleSpacing: 8,
+        ),
       ),
     );
   }
@@ -207,14 +217,9 @@ class _MemberMenuButton extends ConsumerWidget {
       icon: const Icon(AppAssets.dotsThreeVertical),
       tooltip: MaterialLocalizations.of(context).showMenuTooltip,
       // Not while a join or leave is still in flight.
-      onPressed:
-          followState is GroupFollowLoading
-              ? null
-              : () => openGroupMemberMenu(
-                context,
-                profile,
-                followKey: followKey,
-              ),
+      onPressed: followState is GroupFollowLoading
+          ? null
+          : () => openGroupMemberMenu(context, profile, followKey: followKey),
     );
   }
 }

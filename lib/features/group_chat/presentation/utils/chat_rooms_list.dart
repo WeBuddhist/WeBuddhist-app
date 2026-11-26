@@ -1,4 +1,6 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_pecha/features/feedback/domain/help_context_line.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_time.dart';
 
@@ -73,12 +75,74 @@ DateTime chatRoomSortKey(ChatRoomDTO room) {
   return sent.isAfter(updated) ? sent : updated;
 }
 
-/// Whether the room has anything unread.
-bool chatRoomIsUnread(ChatRoomDTO room) => room.unreadCount > 0;
+/// Whether the room has unread chat — the Chats list's badge and dot.
+/// Prayer requests are left out: that list opens the chat, which marks only
+/// the chat read, so a prayer count there would never clear.
+bool chatRoomIsUnread(ChatRoomDTO room) => room.unreadChat > 0;
 
-/// Whether any listed room has something unread — the Connect dot.
+/// Whether any listed room has unread chat.
 bool hasUnreadChatRooms(List<ChatRoomDTO> rooms) {
   return chatListRooms(rooms).any(chatRoomIsUnread);
+}
+
+/// What is unread in a space's room, which holds both its chat and its
+/// prayer requests. Each shows as a dot on its own button, never a count.
+class SpaceUnread extends Equatable {
+  const SpaceUnread({this.chat = false, this.prayer = false});
+
+  /// Whether any chat message is unread.
+  final bool chat;
+
+  /// Whether any prayer request is unread.
+  final bool prayer;
+
+  bool get any => chat || prayer;
+
+  @override
+  List<Object?> get props => [chat, prayer];
+}
+
+SpaceUnread spaceUnreadOf(ChatRoomDTO room) {
+  return SpaceUnread(chat: room.unreadChat > 0, prayer: room.unreadPrayer > 0);
+}
+
+/// Unread spaces among [rooms], by group id. Only rooms the chats list has
+/// loaded count, so a space past that page shows no dot.
+Map<String, SpaceUnread> unreadSpaces(List<ChatRoomDTO> rooms) {
+  final spaces = <String, SpaceUnread>{};
+  for (final room in chatListRooms(rooms)) {
+    final groupId = room.groupId ?? '';
+    final unread = spaceUnreadOf(room);
+    if (groupId.isNotEmpty && unread.any) spaces[groupId] = unread;
+  }
+  return spaces;
+}
+
+/// [rooms] with [roomId]'s [messageType] read (`TEXT` or `PRAYER`), or every
+/// type when null, for when the server has just been told so. Returns
+/// [rooms] itself when nothing changes.
+List<ChatRoomDTO> roomsWithRoomRead(
+  List<ChatRoomDTO> rooms,
+  String roomId, {
+  String? messageType,
+}) {
+  final chat = messageType == null || messageType == ChatMessageDTO.typeText;
+  final prayer =
+      messageType == null || messageType == ChatMessageDTO.typePrayer;
+  bool clears(ChatRoomDTO room) =>
+      room.id == roomId &&
+      ((chat && room.unreadChat > 0) || (prayer && room.unreadPrayer > 0));
+
+  if (!rooms.any(clears)) return rooms;
+  return [
+    for (final room in rooms)
+      clears(room)
+          ? room.copyWithUnread(
+            chat: chat ? 0 : null,
+            prayer: prayer ? 0 : null,
+          )
+          : room,
+  ];
 }
 
 /// Whether an FCM payload is a chat message.

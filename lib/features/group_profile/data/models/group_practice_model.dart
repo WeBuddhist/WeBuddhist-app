@@ -1,57 +1,8 @@
-import 'package:flutter_pecha/core/utils/audio_url.dart';
 import 'package:flutter_pecha/features/group_profile/data/models/group_accumulator_model.dart';
 import 'package:flutter_pecha/features/group_profile/data/models/group_profile_model.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
-
-class GroupRecitationAudioModel {
-  final String id;
-  final String title;
-  final String assetUrl;
-
-  /// Not sent yet; requested from the backend (Q3).
-  final String? reciterName;
-
-  /// Not sent yet; requested from the backend (Q3).
-  final String? imageUrl;
-
-  GroupRecitationAudioModel({
-    required this.id,
-    required this.title,
-    required this.assetUrl,
-    this.reciterName,
-    this.imageUrl,
-  });
-
-  factory GroupRecitationAudioModel.fromJson(Map<String, dynamic> json) {
-    final title = (json['title'] as String?)?.trim() ?? '';
-    final fileName = (json['file_name'] as String?)?.trim() ?? '';
-    return GroupRecitationAudioModel(
-      id: json['id'] as String? ?? '',
-      title: title.isNotEmpty ? title : fileName,
-      assetUrl: json['asset_url'] as String? ?? '',
-      reciterName: _blankToNull(json['reciter_name']),
-      imageUrl: _blankToNull(json['image_url']),
-    );
-  }
-
-  static String? _blankToNull(Object? value) {
-    if (value is! String) return null;
-    final trimmed = value.trim();
-    return trimmed.isEmpty ? null : trimmed;
-  }
-
-  GroupRecitationAudio toEntity() {
-    return GroupRecitationAudio(
-      id: id,
-      title: title,
-      assetUrl: assetUrl,
-      reciterName: reciterName,
-      imageUrl: imageUrl,
-    );
-  }
-}
 
 class GroupRecitationCollectionItemModel {
   final String id;
@@ -60,7 +11,6 @@ class GroupRecitationCollectionItemModel {
   final String language;
   final String type;
   final int displayOrder;
-  final List<GroupRecitationAudioModel> audio;
 
   GroupRecitationCollectionItemModel({
     required this.id,
@@ -69,7 +19,6 @@ class GroupRecitationCollectionItemModel {
     required this.language,
     required this.type,
     required this.displayOrder,
-    this.audio = const [],
   });
 
   factory GroupRecitationCollectionItemModel.fromJson(
@@ -82,19 +31,7 @@ class GroupRecitationCollectionItemModel {
       language: json['language'] as String? ?? 'en',
       type: json['type'] as String? ?? '',
       displayOrder: (json['display_order'] as num?)?.toInt() ?? 0,
-      audio: _parseAudio(json['audio']),
     );
-  }
-
-  /// Keeps recordings that have a playable URL. The title is kept as sent,
-  /// including a trailing `.mp3`.
-  static List<GroupRecitationAudioModel> _parseAudio(Object? raw) {
-    if (raw is! List) return const [];
-    return raw
-        .whereType<Map<String, dynamic>>()
-        .map(GroupRecitationAudioModel.fromJson)
-        .where((audio) => hasPlayableAudio(audio.assetUrl))
-        .toList();
   }
 
   GroupRecitationCollectionItem toEntity() {
@@ -105,7 +42,6 @@ class GroupRecitationCollectionItemModel {
       language: language,
       type: type,
       displayOrder: displayOrder,
-      audio: audio.map((track) => track.toEntity()).toList(),
     );
   }
 }
@@ -118,8 +54,9 @@ class GroupRecitationCollectionModel {
   final DateTime? createdAt;
   final int itemCount;
 
-  /// Chants that have at least one recording. Lists don't send it yet
-  /// (requested from the backend, Q2); a detail response counts its items.
+  /// Chants that have at least one recording, as the main API counts them
+  /// (`audio_item_count`); 0 when not sent. Chant audio itself now comes
+  /// from the library, so this only feeds the chant book card's badge.
   final int audioItemCount;
   final List<GroupRecitationCollectionItemModel> items;
 
@@ -149,9 +86,7 @@ class GroupRecitationCollectionModel {
       imageUrl: json['img_url'] as String?,
       createdAt: GroupProfileModel.parseDate(json['created_at']),
       itemCount: (json['item_count'] as num?)?.toInt() ?? items.length,
-      audioItemCount:
-          (json['audio_item_count'] as num?)?.toInt() ??
-          items.where((item) => item.audio.isNotEmpty).length,
+      audioItemCount: (json['audio_item_count'] as num?)?.toInt() ?? 0,
       items: items,
     );
   }
@@ -303,20 +238,15 @@ class GroupPracticeModel {
       groupSlug: groupSlug,
       groupAvatarUrl: groupAvatarUrl,
       series: seriesJson != null ? _parseSeries(seriesJson!) : null,
-      accumulator:
-          accumulatorJson != null
-              ? GroupAccumulatorModel.fromJson(accumulatorJson!).toEntity()
-              : null,
-      collection:
-          collectionJson != null
-              ? GroupRecitationCollectionModel.fromJson(
-                collectionJson!,
-              ).toEntity()
-              : null,
-      plan:
-          planJson != null
-              ? GroupPracticePlanModel.fromJson(planJson!).toEntity()
-              : null,
+      accumulator: accumulatorJson != null
+          ? GroupAccumulatorModel.fromJson(accumulatorJson!).toEntity()
+          : null,
+      collection: collectionJson != null
+          ? GroupRecitationCollectionModel.fromJson(collectionJson!).toEntity()
+          : null,
+      plan: planJson != null
+          ? GroupPracticePlanModel.fromJson(planJson!).toEntity()
+          : null,
     );
   }
 

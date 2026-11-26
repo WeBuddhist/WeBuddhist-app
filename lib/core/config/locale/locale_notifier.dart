@@ -11,6 +11,8 @@
 /// which provider to watch.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/config/locale/content_language_analytics.dart';
 import 'package:flutter_pecha/core/di/core_providers.dart';
@@ -245,9 +247,44 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
   );
   // Ensure locale is initialized when provider is first created
   // This happens asynchronously but starts immediately
-  notifier.ensureInitialized();
+  final loaded = notifier.ensureInitialized();
+  final analytics = ref.read(contentLanguageAnalyticsProvider);
+  String? previous;
+  _onceLoaded(ref, loaded, () {
+    return notifier.addListener((locale) {
+      // Full tag, so Simplified Chinese ('zh-Hans') stays apart from 'zh'.
+      final code = locale.toLanguageTag();
+      analytics.languagesInUse(uiLanguage: code);
+      // The first call is the saved language; later ones are real changes.
+      if (previous != null && previous != code) {
+        analytics.uiLanguageChanged(from: previous!, to: code);
+      }
+      previous = code;
+    });
+  });
   return notifier;
 });
+
+/// Starts [listen] once [loaded] completes, so events are tagged with the
+/// saved language rather than the default the notifier starts with. The
+/// returned listener is removed when the provider is disposed.
+void _onceLoaded(
+  Ref ref,
+  Future<void> loaded,
+  void Function() Function() listen,
+) {
+  var disposed = false;
+  void Function()? removeListener;
+  ref.onDispose(() {
+    disposed = true;
+    removeListener?.call();
+  });
+  unawaited(
+    loaded.then((_) {
+      if (!disposed) removeListener = listen();
+    }, onError: (Object _) {}),
+  );
+}
 
 /// Language code sent to backend APIs for translatable content.
 ///
@@ -256,11 +293,19 @@ final localeProvider = StateNotifierProvider<LocaleNotifier, Locale>((ref) {
 /// when nothing has been selected/persisted.
 final contentLanguageProvider =
     StateNotifierProvider<ContentLanguageNotifier, String>((ref) {
+      final analytics = ref.read(contentLanguageAnalyticsProvider);
       final notifier = ContentLanguageNotifier(
         localStorageService: ref.read(localStorageServiceProvider),
-        analytics: ref.read(contentLanguageAnalyticsProvider),
+        analytics: analytics,
       );
-      notifier.ensureInitialized();
+      final loaded = notifier.ensureInitialized();
+      _onceLoaded(
+        ref,
+        loaded,
+        () => notifier.addListener(
+          (code) => analytics.languagesInUse(contentLanguage: code),
+        ),
+      );
       return notifier;
     });
 

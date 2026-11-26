@@ -68,35 +68,31 @@ class LibraryTextRemoteDatasource implements TextRemoteDatasource {
       reference: s.reference,
       type: SegmentType.fromApi(s.type),
       content: isSecondary ? null : s.html,
-      translation:
-          isSecondary
-              ? Translation(
-                textId: loadId,
-                language: text.language,
-                content: s.html,
-              )
-              : null,
+      translation: isSecondary
+          ? Translation(
+              textId: loadId,
+              language: text.language,
+              content: s.html,
+            )
+          : null,
     );
 
-    final sections =
-        toc.isEmpty
-            ? [
-              Section(
-                id: edition.id,
-                sectionNumber: 1,
-                segments: window.segments
-                    .map(toSegment)
-                    .toList(growable: false),
-                sections: const [],
-              ),
-            ]
-            : buildTocSections(
-              toc: toc,
-              segments: window.segments,
-              toSegment: toSegment,
-              language: text.language,
-              rootId: edition.id,
-            );
+    final sections = toc.isEmpty
+        ? [
+            Section(
+              id: edition.id,
+              sectionNumber: 1,
+              segments: window.segments.map(toSegment).toList(growable: false),
+              sections: const [],
+            ),
+          ]
+        : buildTocSections(
+            toc: toc,
+            segments: window.segments,
+            toSegment: toSegment,
+            language: text.language,
+            rootId: edition.id,
+          );
 
     return ReaderResponse(
       textDetail: _textDetail(text, id: loadId, sourceLink: edition.source),

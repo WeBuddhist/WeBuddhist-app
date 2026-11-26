@@ -56,14 +56,13 @@ class GroupEventWhenWhereStep extends StatelessWidget {
   Future<void> _pickDate(BuildContext context, {required bool isEnd}) async {
     final l10n = context.l10n;
     final schedule = _schedule;
-    final title =
-        isEnd
-            ? l10n.group_event_end_date
-            : schedule.isRecurring
-            ? l10n.group_event_first_date
-            : schedule.isMultiDay
-            ? l10n.group_event_start_date
-            : l10n.group_event_date;
+    final title = isEnd
+        ? l10n.group_event_end_date
+        : schedule.isRecurring
+        ? l10n.group_event_first_date
+        : schedule.isMultiDay
+        ? l10n.group_event_start_date
+        : l10n.group_event_date;
     final picked = await GroupEventDateSheet.show(
       context,
       title: title,
@@ -90,15 +89,13 @@ class GroupEventWhenWhereStep extends StatelessWidget {
     final l10n = context.l10n;
     final locale = intlFormatLocaleOf(context);
     final schedule = _schedule;
-    final current =
-        isEnd
-            ? (schedule.endTime ?? const GroupEventTime(19, 0))
-            : (schedule.startTime ?? const GroupEventTime(18, 0));
+    final current = isEnd
+        ? (schedule.endTime ?? const GroupEventTime(19, 0))
+        : (schedule.startTime ?? const GroupEventTime(18, 0));
     final date = schedule.startDate;
-    final subtitle =
-        date == null
-            ? null
-            : '${formatDate(date, locale)} · ${isEnd ? l10n.group_event_time_ends(formatTime(current, locale)) : l10n.group_event_time_starts(formatTime(current, locale))}';
+    final subtitle = date == null
+        ? null
+        : '${formatDate(date, locale)} · ${isEnd ? l10n.group_event_time_ends(formatTime(current, locale)) : l10n.group_event_time_starts(formatTime(current, locale))}';
     final picked = await GroupEventTimeSheet.show(
       context,
       title: isEnd ? l10n.group_event_end_time : l10n.group_event_start_time,
@@ -176,45 +173,39 @@ class GroupEventWhenWhereStep extends StatelessWidget {
               labels: [l10n.group_event_one_time, l10n.group_event_recurring],
               selected: schedule.isRecurring ? 1 : 0,
               isDark: isDark,
-              onChanged:
-                  (index) => onScheduleChanged(
-                    schedule.copyWith(isRecurring: index == 1),
-                  ),
+              onChanged: (index) =>
+                  onScheduleChanged(schedule.copyWith(isRecurring: index == 1)),
             ),
           ),
           _Row(
             icon: AppAssets.calendarBlank,
-            label:
-                schedule.isRecurring
-                    ? l10n.group_event_first_date
-                    : schedule.isMultiDay
-                    ? l10n.group_event_start_date
-                    : l10n.group_event_date,
-            value:
-                schedule.startDate == null
-                    ? null
-                    : formatDate(schedule.startDate!, locale),
+            label: schedule.isRecurring
+                ? l10n.group_event_first_date
+                : schedule.isMultiDay
+                ? l10n.group_event_start_date
+                : l10n.group_event_date,
+            value: schedule.startDate == null
+                ? null
+                : formatDate(schedule.startDate!, locale),
             placeholder: l10n.group_event_choose_date,
             isError: dateRequired && schedule.startDate == null,
-            errorText:
-                dateRequired && schedule.startDate == null
-                    ? l10n.group_event_pick_date_hint
-                    : null,
+            errorText: dateRequired && schedule.startDate == null
+                ? l10n.group_event_pick_date_hint
+                : null,
             onTap: () => _pickDate(context, isEnd: false),
           ),
           if (schedule.isRecurring) ...[
             _Row(
               icon: AppAssets.arrowsClockwise,
               label: l10n.group_event_repeats,
-              value:
-                  schedule.recurrence == null || schedule.startDate == null
-                      ? null
-                      : recurrenceRuleLabel(
-                        schedule.recurrence!,
-                        schedule.startDate!,
-                        l10n,
-                        locale,
-                      ),
+              value: schedule.recurrence == null || schedule.startDate == null
+                  ? null
+                  : recurrenceRuleLabel(
+                      schedule.recurrence!,
+                      schedule.startDate!,
+                      l10n,
+                      locale,
+                    ),
               placeholder: l10n.group_event_choose_repeats,
               onTap: () => _pickRepeats(context),
             ),
@@ -228,32 +219,26 @@ class GroupEventWhenWhereStep extends StatelessWidget {
               trailing: _Stepper(
                 isDark: isDark,
                 enabled: schedule.recurrence != null,
-                onDecrement:
-                    () => _setDuration(
-                      (schedule.recurrence?.durationDays ?? 1) - 1,
-                    ),
-                onIncrement:
-                    () => _setDuration(
-                      (schedule.recurrence?.durationDays ?? 1) + 1,
-                    ),
+                onDecrement: () =>
+                    _setDuration((schedule.recurrence?.durationDays ?? 1) - 1),
+                onIncrement: () =>
+                    _setDuration((schedule.recurrence?.durationDays ?? 1) + 1),
               ),
             ),
           ] else ...[
             _ToggleRow(
               label: l10n.group_event_multi_day,
               value: schedule.isMultiDay,
-              onChanged:
-                  (value) =>
-                      onScheduleChanged(schedule.copyWith(isMultiDay: value)),
+              onChanged: (value) =>
+                  onScheduleChanged(schedule.copyWith(isMultiDay: value)),
             ),
             if (schedule.isMultiDay)
               _Row(
                 icon: AppAssets.calendarBlank,
                 label: l10n.group_event_end_date,
-                value:
-                    schedule.endDate == null
-                        ? null
-                        : formatDate(schedule.endDate!, locale),
+                value: schedule.endDate == null
+                    ? null
+                    : formatDate(schedule.endDate!, locale),
                 placeholder: l10n.group_event_choose_date,
                 onTap: () => _pickDate(context, isEnd: true),
               ),
@@ -262,27 +247,25 @@ class GroupEventWhenWhereStep extends StatelessWidget {
             label: l10n.group_event_all_day,
             value: schedule.allDay,
             hint: schedule.allDay ? l10n.group_event_all_day_hint : null,
-            onChanged:
-                (value) => onScheduleChanged(schedule.copyWith(allDay: value)),
+            onChanged: (value) =>
+                onScheduleChanged(schedule.copyWith(allDay: value)),
           ),
           if (!schedule.allDay) ...[
             _Row(
               icon: AppAssets.clock,
               label: l10n.group_event_start_time,
-              value:
-                  schedule.startTime == null
-                      ? null
-                      : formatTime(schedule.startTime!, locale),
+              value: schedule.startTime == null
+                  ? null
+                  : formatTime(schedule.startTime!, locale),
               placeholder: l10n.group_event_add_start_time,
               onTap: () => _pickTime(context, isEnd: false),
             ),
             _Row(
               icon: AppAssets.clock,
               label: l10n.group_event_end_time,
-              value:
-                  schedule.endTime == null
-                      ? null
-                      : formatTime(schedule.endTime!, locale),
+              value: schedule.endTime == null
+                  ? null
+                  : formatTime(schedule.endTime!, locale),
               placeholder: l10n.group_event_add_end_time,
               isError:
                   GroupEventScheduleUtils.validateSchedule(schedule) ==
@@ -309,24 +292,24 @@ class GroupEventWhenWhereStep extends StatelessWidget {
               ],
               selected: GroupEventFormat.values.indexOf(draft.format),
               isDark: isDark,
-              onChanged:
-                  (index) => onFormatChanged(GroupEventFormat.values[index]),
+              onChanged: (index) =>
+                  onFormatChanged(GroupEventFormat.values[index]),
             ),
           ),
           if (draft.format.needsVenue)
             draft.venue == null
                 ? _Row(
-                  icon: AppAssets.mapPin,
-                  label: l10n.group_event_venue,
-                  value: null,
-                  placeholder: l10n.group_event_add_venue,
-                  onTap: () => _pickVenue(context),
-                )
+                    icon: AppAssets.mapPin,
+                    label: l10n.group_event_venue,
+                    value: null,
+                    placeholder: l10n.group_event_add_venue,
+                    onTap: () => _pickVenue(context),
+                  )
                 : _VenueCard(
-                  venue: draft.venue!,
-                  isDark: isDark,
-                  onChange: () => _pickVenue(context),
-                ),
+                    venue: draft.venue!,
+                    isDark: isDark,
+                    onChange: () => _pickVenue(context),
+                  ),
           if (draft.format.needsLink)
             _LiveLinkField(
               controller: liveLinkController,
@@ -379,10 +362,12 @@ class _Segmented extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final inactiveColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final activeColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final inactiveColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
@@ -394,12 +379,9 @@ class _Segmented extends StatelessWidget {
           for (final (index, label) in labels.indexed)
             Expanded(
               child: Material(
-                color:
-                    index == selected
-                        ? (isDark
-                            ? AppColors.surfaceDark
-                            : AppColors.surfaceWhite)
-                        : Colors.transparent,
+                color: index == selected
+                    ? (isDark ? AppColors.surfaceDark : AppColors.surfaceWhite)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
                 elevation: index == selected ? 1 : 0,
                 shadowColor: Colors.black.withValues(alpha: 0.2),
@@ -415,10 +397,9 @@ class _Segmented extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight:
-                            index == selected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
+                        fontWeight: index == selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         color: index == selected ? activeColor : inactiveColor,
                       ),
                     ),
@@ -456,15 +437,15 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final valueColor =
-        isError
-            ? AppColors.danger
-            : value == null
-            ? secondaryColor
-            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
+    final valueColor = isError
+        ? AppColors.danger
+        : value == null
+        ? secondaryColor
+        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
 
     return InkWell(
       onTap: onTap,
@@ -535,8 +516,9 @@ class _ToggleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
     return Container(
@@ -603,12 +585,11 @@ class _Stepper extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 18,
-                color:
-                    enabled
-                        ? (isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary)
-                        : AppColors.grey400,
+                color: enabled
+                    ? (isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary)
+                    : AppColors.grey400,
               ),
             ),
           ),
@@ -649,8 +630,9 @@ class _VenueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final address = venue.address?.trim() ?? '';
 
@@ -738,20 +720,20 @@ class _LiveLinkField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final raw = controller.text.trim();
     final normalized = GroupEventScheduleUtils.normalizeLiveLink(raw);
     final isInvalid = raw.isNotEmpty && normalized == null;
-    final help =
-        isInvalid
-            ? l10n.group_event_live_link_invalid
-            : normalized == null
-            ? null
-            : GroupEventScheduleUtils.isYoutubeLink(normalized)
-            ? l10n.group_event_live_link_youtube_help
-            : l10n.group_event_live_link_custom_help;
+    final help = isInvalid
+        ? l10n.group_event_live_link_invalid
+        : normalized == null
+        ? null
+        : GroupEventScheduleUtils.isYoutubeLink(normalized)
+        ? l10n.group_event_live_link_youtube_help
+        : l10n.group_event_live_link_custom_help;
     final outline = isInvalid ? AppColors.danger : borderColor;
 
     return Padding(
@@ -777,10 +759,9 @@ class _LiveLinkField extends StatelessWidget {
                     hintText: l10n.group_event_live_link_hint,
                     hintStyle: TextStyle(fontSize: 15, color: secondaryColor),
                     filled: true,
-                    fillColor:
-                        isDark
-                            ? AppColors.surfaceVariantDark
-                            : AppColors.surfaceWhite,
+                    fillColor: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceWhite,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: outline),
@@ -788,12 +769,11 @@ class _LiveLinkField extends StatelessWidget {
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color:
-                            isInvalid
-                                ? AppColors.danger
-                                : (isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.textPrimary),
+                        color: isInvalid
+                            ? AppColors.danger
+                            : (isDark
+                                  ? AppColors.textPrimaryDark
+                                  : AppColors.textPrimary),
                       ),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
@@ -815,10 +795,9 @@ class _LiveLinkField extends StatelessWidget {
                     );
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
+                    foregroundColor: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                     side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

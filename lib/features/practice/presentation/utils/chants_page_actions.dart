@@ -60,7 +60,6 @@ Future<void> openSpaceChant(
   final item = chant.item;
   final textId = item.textId.trim();
   if (textId.isEmpty || item.id.trim().isEmpty) return;
-  final tracks = collectionAudioTracksFor(item);
   final navigationContext = groupRecitationCollectionNavigationContext(
     key: GroupRecitationCollectionKey(
       groupId: chant.collection.groupId,
@@ -69,7 +68,7 @@ Future<void> openSpaceChant(
     collection: chant.collection,
     item: item,
     completionState: const GroupRecitationCollectionCompletionState(),
-    initialAudio: play && tracks.isNotEmpty ? tracks.first : null,
+    play: play,
     groupName: chant.spaceName,
   );
   await context.push('/reader/$textId', extra: navigationContext);
@@ -81,7 +80,7 @@ Future<void> openSpaceChant(
 Future<void> createChantBook(BuildContext context, WidgetRef ref) async {
   final auth = ref.read(authProvider);
   if (auth.isGuest || !auth.isLoggedIn) {
-    LoginDrawer.show(context, ref);
+    LoginDrawer.show(context, ref, feature: 'chant_book_create');
     return;
   }
   try {

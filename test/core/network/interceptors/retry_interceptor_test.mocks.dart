@@ -3,13 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i4;
+import 'dart:async' as _i5;
 
-import 'package:auth0_flutter/auth0_flutter.dart' as _i5;
-import 'package:dio/src/dio_exception.dart' as _i6;
-import 'package:dio/src/dio_mixin.dart' as _i2;
-import 'package:dio/src/response.dart' as _i7;
+import 'package:dio/dio.dart' as _i6;
+import 'package:dio/src/dio_mixin.dart' as _i4;
 import 'package:flutter_pecha/features/auth/auth_service.dart' as _i3;
+import 'package:flutter_pecha/features/auth/data/session/session_token_store.dart'
+    as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 
 // ignore_for_file: type=lint
@@ -27,9 +27,20 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: subtype_of_sealed_class
 // ignore_for_file: invalid_use_of_internal_member
 
-class _FakeInterceptorState_0<T> extends _i1.SmartFake
-    implements _i2.InterceptorState<T> {
-  _FakeInterceptorState_0(Object parent, Invocation parentInvocation)
+class _FakeSessionTokens_0 extends _i1.SmartFake implements _i2.SessionTokens {
+  _FakeSessionTokens_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakePhoneLoginStart_1 extends _i1.SmartFake
+    implements _i3.PhoneLoginStart {
+  _FakePhoneLoginStart_1(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
+class _FakeInterceptorState_2<T> extends _i1.SmartFake
+    implements _i4.InterceptorState<T> {
+  _FakeInterceptorState_2(Object parent, Invocation parentInvocation)
     : super(parent, parentInvocation);
 }
 
@@ -42,55 +53,139 @@ class MockAuthService extends _i1.Mock implements _i3.AuthService {
   }
 
   @override
-  _i4.Future<void> initialize() =>
+  _i5.Future<void> initialize() =>
       (super.noSuchMethod(
             Invocation.method(#initialize, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<_i5.Credentials?> getCredentials() =>
+  bool takeLegacySessionRemoved() =>
       (super.noSuchMethod(
-            Invocation.method(#getCredentials, []),
-            returnValue: _i4.Future<_i5.Credentials?>.value(),
+            Invocation.method(#takeLegacySessionRemoved, []),
+            returnValue: false,
           )
-          as _i4.Future<_i5.Credentials?>);
+          as bool);
 
   @override
-  _i4.Future<_i5.Credentials?> loginWithGoogle() =>
+  _i5.Future<_i2.SessionTokens> loginWithGoogle() =>
       (super.noSuchMethod(
             Invocation.method(#loginWithGoogle, []),
-            returnValue: _i4.Future<_i5.Credentials?>.value(),
+            returnValue: _i5.Future<_i2.SessionTokens>.value(
+              _FakeSessionTokens_0(
+                this,
+                Invocation.method(#loginWithGoogle, []),
+              ),
+            ),
           )
-          as _i4.Future<_i5.Credentials?>);
+          as _i5.Future<_i2.SessionTokens>);
 
   @override
-  _i4.Future<_i5.Credentials?> loginWithApple() =>
+  _i5.Future<_i2.SessionTokens> loginWithApple() =>
       (super.noSuchMethod(
             Invocation.method(#loginWithApple, []),
-            returnValue: _i4.Future<_i5.Credentials?>.value(),
+            returnValue: _i5.Future<_i2.SessionTokens>.value(
+              _FakeSessionTokens_0(
+                this,
+                Invocation.method(#loginWithApple, []),
+              ),
+            ),
           )
-          as _i4.Future<_i5.Credentials?>);
+          as _i5.Future<_i2.SessionTokens>);
 
   @override
-  _i4.Future<void> localLogout() =>
+  _i5.Future<_i3.PhoneLoginStart> requestPhoneCode(
+    String? phoneNumber, {
+    int? resendToken,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #requestPhoneCode,
+              [phoneNumber],
+              {#resendToken: resendToken},
+            ),
+            returnValue: _i5.Future<_i3.PhoneLoginStart>.value(
+              _FakePhoneLoginStart_1(
+                this,
+                Invocation.method(
+                  #requestPhoneCode,
+                  [phoneNumber],
+                  {#resendToken: resendToken},
+                ),
+              ),
+            ),
+          )
+          as _i5.Future<_i3.PhoneLoginStart>);
+
+  @override
+  _i5.Future<_i2.SessionTokens> loginWithPhoneCode({
+    required String? verificationId,
+    required String? smsCode,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#loginWithPhoneCode, [], {
+              #verificationId: verificationId,
+              #smsCode: smsCode,
+            }),
+            returnValue: _i5.Future<_i2.SessionTokens>.value(
+              _FakeSessionTokens_0(
+                this,
+                Invocation.method(#loginWithPhoneCode, [], {
+                  #verificationId: verificationId,
+                  #smsCode: smsCode,
+                }),
+              ),
+            ),
+          )
+          as _i5.Future<_i2.SessionTokens>);
+
+  @override
+  _i5.Future<_i2.SessionTokens> getCredentials() =>
+      (super.noSuchMethod(
+            Invocation.method(#getCredentials, []),
+            returnValue: _i5.Future<_i2.SessionTokens>.value(
+              _FakeSessionTokens_0(
+                this,
+                Invocation.method(#getCredentials, []),
+              ),
+            ),
+          )
+          as _i5.Future<_i2.SessionTokens>);
+
+  @override
+  _i5.Future<String?> getValidAccessToken() =>
+      (super.noSuchMethod(
+            Invocation.method(#getValidAccessToken, []),
+            returnValue: _i5.Future<String?>.value(),
+          )
+          as _i5.Future<String?>);
+
+  @override
+  _i5.Future<String?> forceRefreshAccessToken() =>
+      (super.noSuchMethod(
+            Invocation.method(#forceRefreshAccessToken, []),
+            returnValue: _i5.Future<String?>.value(),
+          )
+          as _i5.Future<String?>);
+
+  @override
+  _i5.Future<bool> hasValidCredentials() =>
+      (super.noSuchMethod(
+            Invocation.method(#hasValidCredentials, []),
+            returnValue: _i5.Future<bool>.value(false),
+          )
+          as _i5.Future<bool>);
+
+  @override
+  _i5.Future<void> localLogout() =>
       (super.noSuchMethod(
             Invocation.method(#localLogout, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
-
-  @override
-  _i4.Future<void> globalLogout() =>
-      (super.noSuchMethod(
-            Invocation.method(#globalLogout, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
   bool isJwtExpired(String? jwt, {int? bufferSeconds = 120}) =>
@@ -105,14 +200,6 @@ class MockAuthService extends _i1.Mock implements _i3.AuthService {
           as bool);
 
   @override
-  bool isIdTokenExpired(String? idToken) =>
-      (super.noSuchMethod(
-            Invocation.method(#isIdTokenExpired, [idToken]),
-            returnValue: false,
-          )
-          as bool);
-
-  @override
   int jwtRemainingTtlSeconds(String? jwt) =>
       (super.noSuchMethod(
             Invocation.method(#jwtRemainingTtlSeconds, [jwt]),
@@ -121,94 +208,62 @@ class MockAuthService extends _i1.Mock implements _i3.AuthService {
           as int);
 
   @override
-  _i4.Future<String?> getValidAccessToken() =>
-      (super.noSuchMethod(
-            Invocation.method(#getValidAccessToken, []),
-            returnValue: _i4.Future<String?>.value(),
-          )
-          as _i4.Future<String?>);
-
-  @override
-  _i4.Future<String?> forceRefreshAccessToken() =>
-      (super.noSuchMethod(
-            Invocation.method(#forceRefreshAccessToken, []),
-            returnValue: _i4.Future<String?>.value(),
-          )
-          as _i4.Future<String?>);
-
-  @override
-  _i4.Future<String?> getIdTokenForIdentity() =>
-      (super.noSuchMethod(
-            Invocation.method(#getIdTokenForIdentity, []),
-            returnValue: _i4.Future<String?>.value(),
-          )
-          as _i4.Future<String?>);
-
-  @override
-  _i4.Future<bool> hasValidCredentials() =>
-      (super.noSuchMethod(
-            Invocation.method(#hasValidCredentials, []),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
-
-  @override
-  _i4.Future<void> saveGuestMode() =>
+  _i5.Future<void> saveGuestMode() =>
       (super.noSuchMethod(
             Invocation.method(#saveGuestMode, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<bool> isGuestMode() =>
+  _i5.Future<bool> isGuestMode() =>
       (super.noSuchMethod(
             Invocation.method(#isGuestMode, []),
-            returnValue: _i4.Future<bool>.value(false),
+            returnValue: _i5.Future<bool>.value(false),
           )
-          as _i4.Future<bool>);
+          as _i5.Future<bool>);
 
   @override
-  _i4.Future<void> clearGuestMode() =>
+  _i5.Future<void> clearGuestMode() =>
       (super.noSuchMethod(
             Invocation.method(#clearGuestMode, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 
   @override
-  _i4.Future<void> continueAsGuest() =>
+  _i5.Future<void> continueAsGuest() =>
       (super.noSuchMethod(
             Invocation.method(#continueAsGuest, []),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
           )
-          as _i4.Future<void>);
+          as _i5.Future<void>);
 }
 
 /// A class which mocks [ErrorInterceptorHandler].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockErrorInterceptorHandler extends _i1.Mock
-    implements _i2.ErrorInterceptorHandler {
+    implements _i6.ErrorInterceptorHandler {
   MockErrorInterceptorHandler() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i4.Future<_i2.InterceptorState<dynamic>> get future =>
+  _i5.Future<_i4.InterceptorState<dynamic>> get future =>
       (super.noSuchMethod(
             Invocation.getter(#future),
-            returnValue: _i4.Future<_i2.InterceptorState<dynamic>>.value(
-              _FakeInterceptorState_0<dynamic>(
+            returnValue: _i5.Future<_i4.InterceptorState<dynamic>>.value(
+              _FakeInterceptorState_2<dynamic>(
                 this,
                 Invocation.getter(#future),
               ),
             ),
           )
-          as _i4.Future<_i2.InterceptorState<dynamic>>);
+          as _i5.Future<_i4.InterceptorState<dynamic>>);
 
   @override
   bool get isCompleted =>
@@ -222,7 +277,7 @@ class MockErrorInterceptorHandler extends _i1.Mock
   );
 
   @override
-  void resolve(_i7.Response<dynamic>? response) => super.noSuchMethod(
+  void resolve(_i6.Response<dynamic>? response) => super.noSuchMethod(
     Invocation.method(#resolve, [response]),
     returnValueForMissingStub: null,
   );

@@ -25,19 +25,20 @@ class GroupRemovedNoticeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final bodyColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final bodyColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final expiry = expiresAt?.toLocal();
     final daysLeft = expiry == null ? null : _daysLeft(expiry);
 
     return Container(
       decoration: BoxDecoration(
-        color:
-            isDark
-                ? Color.lerp(AppColors.cardDark, AppColors.error, 0.12)
-                : Color.lerp(AppColors.surfaceWhite, AppColors.error, 0.06),
+        color: isDark
+            ? Color.lerp(AppColors.cardDark, AppColors.error, 0.12)
+            : Color.lerp(AppColors.surfaceWhite, AppColors.error, 0.06),
         border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -81,9 +82,9 @@ class GroupRemovedNoticeCard extends StatelessWidget {
             daysLeft == null
                 ? l10n.group_removed_message_no_date(groupTitle)
                 : l10n.group_removed_message(
-                  groupTitle,
-                  _durationLabel(context, daysLeft),
-                ),
+                    groupTitle,
+                    _durationLabel(context, daysLeft),
+                  ),
             style: TextStyle(
               fontSize: 14,
               color: bodyColor,

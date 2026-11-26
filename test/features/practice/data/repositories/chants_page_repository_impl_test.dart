@@ -357,37 +357,15 @@ void main() {
     });
   });
   group('getSpaceChants', () {
-    const audio = [
-      GroupRecitationAudio(
-        id: 'a',
-        title: 'Tara',
-        assetUrl: 'https://cdn/a.mp3',
-      ),
-    ];
-    GroupRecitationCollectionItem item(
-      String textId, {
-      bool withAudio = false,
-      String? audioUrl,
-    }) => GroupRecitationCollectionItem(
-      id: 'i-$textId',
-      textId: textId,
-      title: 'Chant $textId',
-      language: 'bo',
-      type: '',
-      displayOrder: 0,
-      audio:
-          audioUrl != null
-              ? [
-                GroupRecitationAudio(
-                  id: audioUrl,
-                  title: '',
-                  assetUrl: audioUrl,
-                ),
-              ]
-              : withAudio
-              ? audio
-              : const [],
-    );
+    GroupRecitationCollectionItem item(String textId, {String? title}) =>
+        GroupRecitationCollectionItem(
+          id: 'i-$textId',
+          textId: textId,
+          title: title ?? 'Chant $textId',
+          language: 'bo',
+          type: '',
+          displayOrder: 0,
+        );
     GroupRecitationCollection detail(
       String id,
       List<GroupRecitationCollectionItem> items,
@@ -410,20 +388,56 @@ void main() {
     List<String> ids(List<SpaceChant> chants) =>
         chants.map((c) => c.item.textId).toList();
 
-    test('splits chants by joined space and audio, in book order', () async {
+    test('looks up recordings ten at a time, every text once', () async {
       final spaces = _FakeSpaces(const []);
-      spaces.details['y'] = detail('y', [
-        item('t1', withAudio: true),
-        item('t2'),
+      spaces.details['big'] = detail('big', [
+        for (var i = 0; i < 35; i++) item('t$i'),
+        // The same text twice in one book is looked up once.
+        item('t0'),
       ]);
-      spaces.details['o'] = detail('o', [
-        item('t3'),
-        item('t4', withAudio: true),
-      ]);
+      var inFlight = 0;
+      var peak = 0;
+      final looked = <String>[];
       final repo = ChantsPageRepositoryImpl(
         collections: _FakeCollections(Exception('unused')),
         spaces: spaces,
         textRequests: _FakeTextRequests(),
+        hasRecordings: (textId) async {
+          looked.add(textId);
+          inFlight++;
+          if (inFlight > peak) peak = inFlight;
+          await Future<void>.delayed(Duration.zero);
+          inFlight--;
+          return textId == 't34';
+        },
+      );
+
+      final result = await repo.getSpaceChants(
+        SpaceChantBooks(others: [book('big', chants: 36)]),
+      );
+      final chants = result.getRight().toNullable()!;
+
+      expect(peak, ChantsPageRepositoryImpl.recordingLookupConcurrency);
+      expect(looked, hasLength(35));
+      expect(looked.toSet(), hasLength(35));
+      expect(ids(chants.othersAudio), ['t34']);
+      expect(chants.othersText, hasLength(34));
+    });
+
+    test('splits chants by joined space and audio, in book order', () async {
+      final spaces = _FakeSpaces(const []);
+      spaces.details['y'] = detail('y', [item('t1'), item('t2')]);
+      spaces.details['o'] = detail('o', [item('t3'), item('t4')]);
+      final looked = <String>[];
+      final repo = ChantsPageRepositoryImpl(
+        collections: _FakeCollections(Exception('unused')),
+        spaces: spaces,
+        textRequests: _FakeTextRequests(),
+        hasRecordings: (textId) async {
+          looked.add(textId);
+          if (textId == 't3') throw Exception('library down');
+          return textId == 't1' || textId == 't4';
+        },
       );
       final result = await repo.getSpaceChants(
         SpaceChantBooks(yours: [book('y', joined: true)], others: [book('o')]),
@@ -435,6 +449,9 @@ void main() {
       expect(ids(chants.othersText), ['t3']);
       expect(chants.yoursText.single.spaceName, 'Mine');
       expect(chants.othersText.single.collection.id, 'o');
+      expect(chants.yoursAudio.single.hasAudio, isTrue);
+      // Each text is looked up once; a failed lookup reads as no recording.
+      expect(looked..sort(), ['t1', 't2', 't3', 't4']);
     });
 
     test(
@@ -461,30 +478,52 @@ void main() {
       },
     );
 
-    test('keeps a recording when a joined book has the text only', () {
+    test('lists each kind A to Z by title, ignoring case', () {
+      final chants = splitSpaceChants(
+        [book('o'), book('p')],
+        [
+          detail('o', [
+            item('t1', title: 'Tara praise'),
+            item('t2', title: 'refuge'),
+            item('t3', title: 'Heart Sutra'),
+          ]),
+          detail('p', [
+            item('t4', title: 'Bodhicitta'),
+            item('t5', title: '  amitabha'),
+          ]),
+        ],
+        recordedTextIds: {'t1', 't3', 't5'},
+      );
+      expect(ids(chants.othersAudio), ['t5', 't3', 't1']);
+      expect(ids(chants.othersText), ['t4', 't2']);
+    });
+
+    test('sortChantsByTitle keeps the order of equal titles', () {
+      final chants = splitSpaceChants(
+        [book('o')],
+        [
+          detail('o', [
+            item('t2', title: 'Same'),
+            item('t1', title: 'same'),
+            item('t0', title: 'Another'),
+          ]),
+        ],
+      );
+      expect(ids(chants.othersText), ['t0', 't2', 't1']);
+    });
+
+    test('lists a recorded text once, under audio, joined book first', () {
       final chants = splitSpaceChants(
         [book('y', joined: true), book('o')],
         [
           detail('y', [item('t1'), item('t2')]),
-          detail('o', [item('t1', withAudio: true)]),
+          detail('o', [item('t1')]),
         ],
-      );
-      expect(ids(chants.othersAudio), ['t1']);
-      // The text-only copy would repeat what the audio row already opens.
-      expect(ids(chants.yoursText), ['t2']);
-    });
-
-    test('keeps distinct recordings of a text, the same one once', () {
-      final chants = splitSpaceChants(
-        [book('y', joined: true), book('o'), book('p')],
-        [
-          detail('y', [item('t1', audioUrl: 'https://cdn/a.mp3')]),
-          detail('o', [item('t1', audioUrl: 'https://cdn/b.mp3')]),
-          detail('p', [item('t1', audioUrl: 'https://cdn/a.mp3')]),
-        ],
+        recordedTextIds: {'t1'},
       );
       expect(chants.yoursAudio.single.collection.id, 'y');
-      expect(chants.othersAudio.single.collection.id, 'o');
+      expect(chants.othersAudio, isEmpty);
+      expect(ids(chants.yoursText), ['t2']);
     });
 
     test('leaves out a book that fails, fails only when all do', () async {

@@ -38,8 +38,9 @@ List<Section> _build(
 
     if (index < 0) {
       // Numbered by the headings before it, so every page names it alike.
-      final preceding =
-          toc.where((s) => s.spanStart <= run.first.spanStart).length;
+      final preceding = toc
+          .where((s) => s.spanStart <= run.first.spanStart)
+          .length;
       result.add(
         Section(
           id: '$gapPrefix/gap/$preceding',
@@ -61,19 +62,19 @@ List<Section> _build(
         titles: heading.title,
         sectionNumber: index + 1,
         parentId: parentId,
-        segments:
-            nested ? const [] : run.map(toSegment).toList(growable: false),
-        sections:
-            nested
-                ? _build(
-                  heading.subsections,
-                  run,
-                  toSegment,
-                  language,
-                  gapPrefix: heading.id,
-                  parentId: heading.id,
-                )
-                : const [],
+        segments: nested
+            ? const []
+            : run.map(toSegment).toList(growable: false),
+        sections: nested
+            ? _build(
+                heading.subsections,
+                run,
+                toSegment,
+                language,
+                gapPrefix: heading.id,
+                parentId: heading.id,
+              )
+            : const [],
       ),
     );
   }

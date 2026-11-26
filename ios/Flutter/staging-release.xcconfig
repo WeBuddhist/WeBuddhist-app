@@ -7,3 +7,6 @@ BUNDLE_ID=org.pecha.app.staging
 APP_NAME=[Staging] WeBuddhist
 AUTH0_SCHEME=org.pecha.app.staging
 AIRBRIDGE_APP_NAME=webuddhist
+// Staging has no Firebase app of its own and bundles the prod
+// GoogleService-Info.plist, so it uses that file's REVERSED_CLIENT_ID.
+GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.551646315172-gqk6dkovt3loao84lhertpoflqkn94d0

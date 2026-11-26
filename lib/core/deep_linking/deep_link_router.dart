@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_pecha/core/analytics/entry_analytics.dart';
 import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,7 +39,7 @@ class DeepLinkRouter {
           'Deep link from $source -> plan $planId day ${destination.dayNumber} lang ${destination.planLanguage} ($uri)',
         );
         planNavigator(planId, destination.dayNumber, destination.planLanguage);
-        _trackOpened(analytics, source, destination);
+        _trackOpened(analytics, source, destination, uri);
         return true;
       }
 
@@ -61,7 +62,7 @@ class DeepLinkRouter {
         });
       }
 
-      _trackOpened(analytics, source, destination);
+      _trackOpened(analytics, source, destination, uri);
       return true;
     } catch (e, stackTrace) {
       _logger.error(
@@ -77,11 +78,20 @@ class DeepLinkRouter {
     EntryAnalytics? analytics,
     String source,
     _DeepLinkDestination destination,
+    Uri uri,
   ) {
+    String? utm(String key) {
+      final value = uri.queryParameters[key]?.trim();
+      return value == null || value.isEmpty ? null : value;
+    }
+
     analytics?.deepLinkOpened(
       source: source,
       routeKind: destination.routeKind,
       targetId: destination.targetId,
+      utmSource: utm('utm_source'),
+      utmMedium: utm('utm_medium'),
+      utmCampaign: utm('utm_campaign'),
     );
   }
 
@@ -252,7 +262,10 @@ class DeepLinkRouter {
         segments[1] == 'events') {
       final eventId = segments[2];
       return _DeepLinkDestination(
-        '/home/events/${Uri.encodeComponent(eventId)}',
+        AppRoutes.groupEventPath(
+          Uri.encodeComponent(eventId),
+          source: 'deep_link',
+        ),
         routeKind: 'event',
         targetId: eventId,
         opensOnTop: true,
@@ -282,7 +295,7 @@ class DeepLinkRouter {
       final presetId = segments[2];
       return _DeepLinkDestination(
         AppRoutes.mala,
-        extra: {'presetId': presetId},
+        extra: {'presetId': presetId, 'source': MalaOpenSource.deepLink},
         routeKind: 'mala',
         targetId: presetId,
         opensOnTop: true,

@@ -4,6 +4,7 @@ import 'package:flutter_pecha/features/onboarding/data/datasource/onboarding_rem
 import 'package:flutter_pecha/features/onboarding/data/models/tradition_models.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/providers/onboarding_datasource_providers.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/user_tradition_codes_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final _logger = AppLogger('UserTraditionsNotifier');
@@ -52,6 +53,7 @@ class UserTraditionsNotifier
     try {
       await _remoteDatasource.deleteUserTradition(userTraditionId);
       ref.invalidate(traditionTagFilterProvider);
+      ref.invalidate(userTraditionCodesProvider);
       return true;
     } catch (e, stackTrace) {
       _logger.error('Failed to delete user tradition', e, stackTrace);
@@ -97,9 +99,11 @@ class UserTraditionsNotifier
       }
     }
 
-    // Chant lists are narrowed by these traditions; whatever was saved
-    // (even on partial failure) is what they should now reflect.
+    // Chant lists and the poems feed are narrowed by these traditions;
+    // whatever was saved (even on partial failure) is what they should now
+    // reflect.
     ref.invalidate(traditionTagFilterProvider);
+    ref.invalidate(userTraditionCodesProvider);
 
     final language = ref.read(contentLanguageProvider);
     state = await AsyncValue.guard(

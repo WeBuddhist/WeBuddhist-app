@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_pecha/core/config/api_config.dart';
 import 'package:flutter_pecha/core/error/exceptions.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_reaction_dto.dart';
@@ -142,10 +143,11 @@ class GroupChatRemoteDatasource {
 
   static final _noCache = Options(extra: {'no_cache': true});
 
+  /// v2, so each room says what is unread per type (`unread`).
   Future<ChatRoomsPage> listRooms({int skip = 0, int limit = 20}) async {
     try {
       final response = await _dio.get(
-        '/chat/rooms',
+        '${ApiConfig.chatV2Path}/rooms',
         queryParameters: {'skip': skip, 'limit': limit},
         options: _noCache,
       );
@@ -661,10 +663,16 @@ class GroupChatRemoteDatasource {
     }
   }
 
-  /// Bumps the caller's `last_read_at`. Returns 204 with no body.
-  Future<void> markRoomRead(String roomId) async {
+  /// Marks [messageType] read (`TEXT` the chat, `PRAYER` the prayer
+  /// requests), or every type when null. v2. Returns 204 with no body.
+  Future<void> markRoomRead(String roomId, {String? messageType}) async {
     try {
-      await _dio.post('/chat/rooms/$roomId/read');
+      await _dio.post(
+        '${ApiConfig.chatV2Path}/rooms/$roomId/read',
+        queryParameters: {
+          if (messageType != null) 'message_type': messageType,
+        },
+      );
     } on DioException catch (e) {
       throw _unwrap(e);
     }

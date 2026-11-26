@@ -222,6 +222,51 @@ class GroupChatAnalytics {
     AnalyticsProperties.eventId: scope?.eventId,
   };
 
+  /// A one-to-one chat screen opened. Direct rooms have no group, so they get
+  /// their own events instead of the group chat ones.
+  void directChatOpened({required String roomId}) {
+    _track(AnalyticsEvents.directChatOpened, {
+      AnalyticsProperties.roomId: roomId,
+    });
+  }
+
+  /// The server accepted a message in a one-to-one chat.
+  void directMessageSent({
+    required String roomId,
+    required String messageId,
+    required bool isReply,
+  }) {
+    _track(AnalyticsEvents.directMessageSent, {
+      AnalyticsProperties.roomId: roomId,
+      AnalyticsProperties.messageId: messageId,
+      AnalyticsProperties.isReply: isReply,
+    });
+  }
+
+  /// The chat list (inbox) opened. [hasUnread] is what the list last
+  /// showed; null when it hasn't loaded yet.
+  void chatsListOpened({bool? hasUnread}) {
+    _track(AnalyticsEvents.chatsListOpened, {
+      if (hasUnread != null) AnalyticsProperties.hasUnread: hasUnread,
+    });
+  }
+
+  /// A prayer-request list opened: an event's or a space's sheet, or the
+  /// user's own list (`scope: mine`). [source] says what opened it.
+  void prayerRequestsOpened({
+    required String scope,
+    String? eventId,
+    String? groupId,
+    String? source,
+  }) {
+    _track(AnalyticsEvents.prayerRequestsOpened, {
+      AnalyticsProperties.scope: scope,
+      if (eventId != null) AnalyticsProperties.eventId: eventId,
+      if (groupId != null) AnalyticsProperties.groupId: groupId,
+      if (source != null) AnalyticsProperties.source: source,
+    });
+  }
+
   void _track(String event, Map<String, Object?> properties) {
     unawaited(
       _analytics.track(event, properties: properties).catchError((

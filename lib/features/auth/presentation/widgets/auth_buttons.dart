@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/utils/auth_analytics.dart';
+import 'package:flutter_pecha/features/auth/presentation/widgets/login_form_widgets.dart';
 import 'package:flutter_pecha/features/auth/presentation/widgets/social_login_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,9 +17,11 @@ class AuthButtons extends ConsumerWidget {
     final isIOS = Platform.isIOS;
     final l10n = context.l10n;
     final authNotifier = ref.read(authProvider.notifier);
+    final loginError = ref.watch(authProvider.select((s) => s.loginError));
 
     return Column(
       children: [
+        LoginErrorText(reason: loginError),
         if (isIOS) ...[
           SocialLoginButton(
             connection: 'apple',

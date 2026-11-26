@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/analytics/media_analytics.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
@@ -83,11 +84,24 @@ class _PlanTextScreenState extends ConsumerState<PlanTextScreen> {
     if (item == null) return;
     final url = ctx.effectiveAudioUrlFor(item);
     if (url == null) return;
+    // Read now: the summary arrives from dispose, where `ref` is gone.
+    final media = ref.read(mediaAnalyticsProvider);
     _audioController = PlanSegmentAudioController(
       url: url,
       startMs: item.startMs,
       endMs: item.endMs,
       onSegmentComplete: _autoAdvance,
+      onListened:
+          (listen) => media.audioPlayed(
+            surface: AudioSurface.plan,
+            listened: listen.listened,
+            speed: listen.speed,
+            repeat: listen.repeat,
+            completed: listen.completed,
+            planId: ctx.planId,
+            dayNumber: ctx.dayNumber,
+            eventId: _eventId,
+          ),
     );
   }
 
@@ -214,7 +228,10 @@ class _PlanTextScreenState extends ConsumerState<PlanTextScreen> {
                     ),
                   ),
                   if (_hasAudio)
-                    PlanAudioPlayerBar(controller: _audioController),
+                    PlanAudioPlayerBar(
+                      controller: _audioController,
+                      onSettingChanged: _onAudioSettingChanged,
+                    ),
                   PlanNavigationBottomBar(
                     navigationContext: widget.navigationContext,
                     fallbackTitle: currentItem.title,
@@ -265,13 +282,36 @@ class _PlanTextScreenState extends ConsumerState<PlanTextScreen> {
     );
   }
 
+  void _onAudioSettingChanged(AudioSetting setting, Object value) => ref
+      .read(mediaAnalyticsProvider)
+      .audioSettingChanged(setting: setting, value: value);
+
+  /// Inline videos already counted on this screen, so replays don't repeat.
+  final Set<String> _trackedVideos = {};
+
+  void _onInlineVideoState(String videoUrl, bool playing) {
+    if (!playing || !_trackedVideos.add(videoUrl)) return;
+    ref
+        .read(mediaAnalyticsProvider)
+        .videoOpened(
+          surface: VideoSurface.planText,
+          videoUrl: videoUrl,
+          planId: widget.navigationContext.planId,
+          eventId: _eventId,
+        );
+  }
+
   /// The WebView eats gestures, so a translucent layer above it feeds
   /// horizontal drags to the screen's swipe handling; taps still reach it.
   Widget _buildVideo({required String videoUrl}) {
     final canSwipe = widget.navigationContext.canSwipe;
     return Stack(
       children: [
-        ReusableYoutubePlayer(videoUrl: videoUrl, showControls: true),
+        ReusableYoutubePlayer(
+          videoUrl: videoUrl,
+          showControls: true,
+          onStateChanged: (playing) => _onInlineVideoState(videoUrl, playing),
+        ),
         if (canSwipe)
           Positioned.fill(
             child: GestureDetector(

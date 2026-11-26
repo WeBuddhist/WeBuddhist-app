@@ -2,52 +2,100 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:auth0_flutter/auth0_flutter.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
-import 'package:flutter_pecha/features/auth/application/config_service.dart';
+import 'package:flutter_pecha/env.dart';
+import 'package:flutter_pecha/features/auth/data/session/auth_token_api.dart';
+import 'package:flutter_pecha/features/auth/data/session/firebase_sign_in.dart';
+import 'package:flutter_pecha/features/auth/data/session/legacy_auth0_cleanup.dart';
+import 'package:flutter_pecha/features/auth/data/session/session_token_store.dart';
+import 'package:flutter_pecha/features/auth/domain/entities/account_names.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Sign-in and the session.
+///
+/// Firebase Authentication (Google, Apple, phone) proves who the person is.
+/// Its ID token is exchanged at `POST /auth/firebase/exchange` for the
+/// backend's own access and refresh tokens, and those are the session from
+/// then on: the access token is the API bearer, and the refresh token gets a
+/// new one from `POST /auth/refresh-token`. Firebase is not asked again until
+/// the next sign-in.
 class AuthService {
   AuthService._internal();
   static final AuthService _instance = AuthService._internal();
   static AuthService get instance => _instance;
 
-  late final Auth0 _auth0;
+  /// A separate instance wired to fakes.
+  @visibleForTesting
+  AuthService.forTesting({
+    required SessionTokenStore store,
+    required AuthTokenApi api,
+    required FirebaseSignIn signIn,
+    LegacyAuth0Cleanup? legacyCleanup,
+  }) : _store = store,
+       _api = api,
+       _signIn = signIn,
+       _legacyCleanup = legacyCleanup;
+
   final _logger = AppLogger('AuthService');
+
+  SessionTokenStore? _store;
+  AuthTokenApi? _api;
+  FirebaseSignIn? _signIn;
+  LegacyAuth0Cleanup? _legacyCleanup;
 
   bool _isInitialized = false;
 
-  /// Minimum lifetime (seconds) a token must have left before we proactively
-  /// renew it through the credentials manager. Matches the 2-minute buffer in
-  /// [isJwtExpired].
+  /// Minimum lifetime (seconds) an access token must have left before it is
+  /// renewed ahead of a request. Matches the buffer in [isJwtExpired].
   static const int _kMinTokenTtlSeconds = 120;
 
-  /// Ceiling for awaiters of a native credentials call; the call itself runs on.
-  static const Duration _kCredentialsTimeout = Duration(seconds: 20);
+  /// Ceiling for one refresh call.
+  static const Duration _kRefreshTimeout = Duration(seconds: 20);
 
   // SharedPreferences key for guest mode
   static const String _guestModeKey = 'is_guest_mode';
 
-  /// [AuthException.code] used when the access token is opaque (not a JWT) and
-  /// therefore unusable as our API bearer. Recognised by
-  /// [isSessionPermanentlyLost] so the session is treated as terminal.
-  static const String opaqueAccessTokenCode = 'opaque_access_token';
+  /// Sign-in methods, as stored under [StorageKeys.signInMethod] and sent to
+  /// analytics.
+  static const String methodGoogle = 'google';
+  static const String methodApple = 'apple';
+  static const String methodPhone = 'phone';
 
-  /// Single-flight guard so concurrent proactive/reactive callers share one
-  /// in-flight renewal instead of each hitting the credentials manager.
-  Future<Credentials>? _inflightCredentials;
+  /// [AuthException.code]: nothing is stored, so there is no session.
+  static const String noSessionCode = 'no_session';
 
-  /// Whether [_inflightCredentials] is a *forced* renewal. A forced caller may
-  /// only share an in-flight call that is itself forced — otherwise it might
-  /// receive a plain cache read (the very token the server just rejected).
-  bool _inflightIsForced = false;
+  /// [AuthException.code]: the backend answered 401 to the refresh token
+  /// (expired, revoked, or the account is gone). The session is over.
+  static const String refreshRejectedCode = 'refresh_rejected';
 
-  /// A call whose awaiters timed out; the next fetch waits (bounded) behind it.
-  Future<Credentials>? _staleCredentials;
+  /// [AuthException.code]: the backend refused the refresh with another 4xx.
+  /// Terminal only where we know we are online, see [isTokenRenewalFailed].
+  static const String refreshRefusedCode = 'refresh_refused';
 
-  /// In-flight [initialize], shared so concurrent callers never double-assign [_auth0].
+  /// [AuthException.code]: the person closed the sign-in sheet.
+  static const String cancelledCode = 'cancelled';
+
+  /// One refresh at a time: every caller shares the call in flight.
+  Future<String>? _inflightRefresh;
+
+  /// Bumped on every login and logout, so a refresh that began under one
+  /// session can neither store its token in the next nor clear it.
+  int _sessionGeneration = 0;
+
+  /// Bumped when a sign-in starts or the session ends. An exchange that
+  /// answers under another value belongs to an attempt the person has left
+  /// (started another sign-in, signed out), and is dropped instead of
+  /// becoming the session.
+  int _loginAttempt = 0;
+
+  /// True once, after [initialize] removed an Auth0 session from an earlier
+  /// build. See [takeLegacySessionRemoved].
+  bool _legacySessionRemoved = false;
+
+  /// In-flight [initialize], shared so concurrent callers run it once.
   Future<void>? _initializing;
 
   Future<void> initialize() {
@@ -58,162 +106,376 @@ class AuthService {
   }
 
   Future<void> _doInitialize() async {
-    // load config from config service
-    final config = ConfigService.instance;
-    await config.loadConfig();
-    // Initialize Auth0
-    _auth0 = Auth0(config.auth0Domain!, config.auth0ClientId!);
-
+    // Before anything reads the session, so an old Auth0 login is gone.
+    _legacySessionRemoved =
+        await (_legacyCleanup ??= LegacyAuth0CleanupImpl()).run();
     _isInitialized = true;
   }
 
-  // Common login method
-  Future<Credentials?> _loginWithConnection(
-    String connection, [
-    Map<String, String>? additionalParameters,
-  ]) async {
-    try {
-      final parameters = {"connection": connection};
-      if (additionalParameters != null) {
-        parameters.addAll(additionalParameters);
-      }
+  // Built on first use rather than in [initialize]: a sign-out can run before
+  // it (the Android fresh-install clear) and must still reach the store.
+  SessionTokenStore get _tokens => _store ??= SecureSessionTokenStore();
 
-      final credentials = await _auth0
-          .webAuthentication(
-            scheme: ConfigService.instance.auth0Scheme ?? 'org.pecha.app',
-          )
-          .login(
-            useHTTPS: defaultTargetPlatform != TargetPlatform.macOS,
-            // Requesting the API audience yields a verifiable JWT access token
-            // (instead of an opaque /userinfo token). This access token — not
-            // the ID token — is the bearer we send to our backend.
-            audience: ConfigService.instance.auth0Audience,
-            parameters: parameters,
-            scopes: {"openid", "profile", "email", "offline_access"},
+  FirebaseSignIn get _firebase => _signIn ??= FirebaseSignInImpl();
+
+  AuthTokenApi get _tokenApi =>
+      _api ??= AuthTokenApi(
+        Dio(
+          BaseOptions(
+            baseUrl: Env.apiBaseUrl,
+            connectTimeout: const Duration(seconds: 15),
+            sendTimeout: const Duration(seconds: 15),
+            receiveTimeout: const Duration(seconds: 15),
+            headers: const {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          ),
+        ),
+      );
+
+  /// Whether [initialize] signed out an Auth0 session left by an earlier
+  /// build. Reads true once, so the caller can drop that account's identity.
+  bool takeLegacySessionRemoved() {
+    final removed = _legacySessionRemoved;
+    _legacySessionRemoved = false;
+    return removed;
+  }
+
+  // ========== Sign-in ==========
+
+  Future<SessionTokens> loginWithGoogle() =>
+      _login(methodGoogle, () => _firebase.signInWithGoogle());
+
+  Future<SessionTokens> loginWithApple() =>
+      _login(methodApple, () => _firebase.signInWithApple());
+
+  /// Sends an SMS code to [phoneNumber] (E.164). Returns how to continue, or
+  /// the session when Android verified the number without a code.
+  Future<PhoneLoginStart> requestPhoneCode(
+    String phoneNumber, {
+    int? resendToken,
+  }) async {
+    try {
+      await initialize();
+      final attempt = ++_loginAttempt;
+      final start = await _firebase.verifyPhoneNumber(
+        phoneNumber,
+        resendToken: resendToken,
+      );
+      switch (start) {
+        case PhoneVerificationCodeSent():
+          return PhoneLoginStart.codeSent(
+            verificationId: start.verificationId,
+            resendToken: start.resendToken,
+            autoSignIn: _autoSignIn(start.autoVerified, attempt),
           );
-
-      // Store credentials in the credentials manager
-      await _auth0.credentialsManager.storeCredentials(credentials);
-      _logger.info('Credentials stored successfully');
-
-      // VERIFY STORAGE IMMEDIATELY AFTER STORING
-      final verified = await _auth0.credentialsManager.hasValidCredentials();
-      _logger.debug('Verification after store: $verified');
-
-      _logger.info('Login successful for connection: $connection');
-      return credentials;
-    } on WebAuthenticationException catch (e) {
-      _logger.warning('WebAuth error for $connection: ${e.message}');
-      if (e.code == 'a0.session.user_cancelled') {
-        throw AuthException('Login was cancelled by user', code: e.code);
+        case PhoneVerificationAutoVerified():
+          return PhoneLoginStart.signedIn(
+            await _exchange(methodPhone, start.proof, attempt: attempt),
+          );
       }
-      throw AuthException('Login failed: ${e.message}', code: e.code);
     } catch (e) {
-      _logger.error('Unexpected login error for $connection', e);
-      throw AuthException(_unexpectedLoginMessage(e));
+      throw _loginFailure(methodPhone, e);
     }
   }
 
-  /// Keeps the cause in the text, which is all that reaches `reason_code`.
-  String _unexpectedLoginMessage(Object error) {
-    // `_auth0` is only set once the startup config load has succeeded.
-    if (!_isInitialized) return 'Login is not configured';
-    if (error is SocketException || error is TimeoutException) {
-      return 'Network error during login';
-    }
-    return 'An unexpected error occurred during login';
-  }
-
-  Future<Credentials?> getCredentials() async {
+  /// Android can read the SMS code itself. When it does, finish the sign-in
+  /// without the person typing anything. Completes with null when that did
+  /// not happen, or when the person got there first by typing the code (the
+  /// attempt has moved on) or left.
+  Future<SessionTokens?> _autoSignIn(
+    Future<FirebaseProof?>? autoVerified,
+    int attempt,
+  ) async {
+    if (autoVerified == null) return null;
+    final proof = await autoVerified;
+    if (proof == null) return null;
     try {
-      // Same renewal threshold as the request path (_validCredentials) so the
-      // launch/restore path and the API path never disagree on when to renew —
-      // and a low threshold keeps a safe margin below any configured Auth0
-      // access-token lifetime (the SDK throws when minTtl exceeds it).
-      return await _auth0.credentialsManager
-          .credentials(minTtl: _kMinTokenTtlSeconds)
-          .timeout(_kCredentialsTimeout);
-    } on CredentialsManagerException catch (e) {
-      // Surface the SDK code at the boundary for diagnostics, then rethrow so
-      // the repository maps it: no-credentials / no-refresh-token / opaque →
-      // AuthenticationFailure (re-login), everything else (incl. RENEW_FAILED,
-      // which at launch is almost always offline) → NetworkFailure (keep the
-      // session and renew on the next request). See
-      // [AuthRepositoryImpl._credentialFailure] and [isSessionPermanentlyLost].
-      _logger.warning('credentials() failed: ${e.code} ${e.message}');
-      rethrow;
+      return await _exchange(methodPhone, proof, attempt: attempt);
+    } catch (e) {
+      _logger.warning('Automatic phone sign-in did not finish: $e');
+      return null;
     }
   }
 
-  // Login with Google
-  Future<Credentials?> loginWithGoogle() async {
-    return _loginWithConnection('google-oauth2', {'prompt': 'select_account'});
+  /// The person left the code screen, or went back to change the number.
+  /// An automatic sign-in Android may still finish for that attempt is
+  /// dropped: they chose not to go on with it.
+  void cancelPhoneSignIn() => _loginAttempt++;
+
+  /// Finishes a phone sign-in with the code from the SMS.
+  Future<SessionTokens> loginWithPhoneCode({
+    required String verificationId,
+    required String smsCode,
+  }) => _login(
+    methodPhone,
+    () => _firebase.signInWithSmsCode(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    ),
+  );
+
+  Future<SessionTokens> _login(
+    String method,
+    Future<FirebaseProof> Function() signIn,
+  ) async {
+    try {
+      await initialize();
+      final attempt = ++_loginAttempt;
+      final proof = await signIn();
+      return await _exchange(method, proof, attempt: attempt);
+    } catch (e) {
+      throw _loginFailure(method, e);
+    }
   }
 
-  // Login with Apple
-  Future<Credentials?> loginWithApple() async {
-    return _loginWithConnection('apple');
+  Future<SessionTokens> _exchange(
+    String method,
+    FirebaseProof proof, {
+    required int attempt,
+  }) async {
+    SessionTokens tokens;
+    try {
+      tokens = await _tokenApi.exchangeFirebaseToken(
+        firebaseToken: proof.idToken,
+        firstName: proof.firstName,
+        lastName: proof.lastName,
+      );
+    } on ProfileNamesRequiredException {
+      // A new account, and the provider did not share a first and last name
+      // (phone never does). Nobody is asked for one mid sign-in: the missing
+      // part is filled in, and the account's owner names it afterwards, in
+      // onboarding or Edit profile.
+      //
+      // Only on this second try: an existing account must not be handed a
+      // made-up name the backend might act on.
+      _throwIfLeft(attempt);
+      final names = AccountNames.complete(proof.firstName, proof.lastName);
+      tokens = await _tokenApi.exchangeFirebaseToken(
+        firebaseToken: proof.idToken,
+        firstName: names.first,
+        lastName: names.last,
+      );
+    }
+    _throwIfLeft(attempt);
+    // Start the new session *before* storing it, so a refresh that began
+    // under the old one cannot overwrite or clear the tokens saved here.
+    _sessionGeneration++;
+    await _tokens.write(tokens);
+    await _saveSignInMethod(method);
+    _logger.info('Signed in with $method; session tokens stored');
+    return tokens;
   }
 
-  /// Login with a phone number via Auth0's passwordless SMS connection.
+  /// The exchange answered for an attempt the person has already left.
+  void _throwIfLeft(int attempt) {
+    if (attempt == _loginAttempt) return;
+    throw AuthException('Login was cancelled by user', code: cancelledCode);
+  }
+
+  /// Shown in Settings ("Signed in with Google"). The backend's tokens do not
+  /// say which provider was used, so it is remembered here.
+  Future<void> _saveSignInMethod(String method) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(StorageKeys.signInMethod, method);
+      // Outlives sign-out: marks the "Last used" button next time.
+      await prefs.setString(StorageKeys.lastSignInMethod, method);
+    } catch (e) {
+      _logger.warning('Failed to remember the sign-in method: $e');
+    }
+  }
+
+  /// One readable [AuthException] per failure. The text reaches analytics as
+  /// `reason_detail`, so it names the cause and carries no token or number.
+  AuthException _loginFailure(String method, Object error) {
+    if (error is AuthException) return error;
+    if (error is FirebaseSignInException) {
+      if (error.isCancelled) {
+        _logger.info('Sign-in with $method was cancelled by user');
+        return AuthException('Login was cancelled by user', code: cancelledCode);
+      }
+      _logger.warning('Firebase sign-in with $method failed: ${error.code}');
+      if (error.code == FirebaseSignInException.notConfigured) {
+        return AuthException('Login is not configured', code: error.code);
+      }
+      return AuthException('Sign-in failed (${error.code})', code: error.code);
+    }
+    if (error is ProfileNamesRequiredException) {
+      // Refused again with names filled in: nothing more the app can add.
+      _logger.warning('Exchange for $method still asks for names');
+      return AuthException(
+        'Sign-in was refused (HTTP 422)',
+        code: 'http_422',
+      );
+    }
+    if (error is AuthApiException) {
+      _logger.warning('Exchange for $method failed: $error');
+      return AuthException(
+        'Sign-in was refused (HTTP ${error.statusCode})',
+        code: 'http_${error.statusCode}',
+      );
+    }
+    if (error is DioException ||
+        error is SocketException ||
+        error is TimeoutException) {
+      _logger.warning('Network error during $method sign-in: $error');
+      return AuthException('Network error during login', code: 'network');
+    }
+    _logger.error('Unexpected login error for $method', error);
+    return AuthException('An unexpected error occurred during login');
+  }
+
+  // ========== Session ==========
+
+  /// The stored session, with the access token renewed first when it is
+  /// about to expire. Throws an [AuthException] the callers classify with
+  /// [isSessionPermanentlyLost]; anything else is a failure worth retrying.
+  Future<SessionTokens> getCredentials() async {
+    final tokens = await _readSession();
+    if (!isJwtExpired(tokens.accessToken)) return tokens;
+    final accessToken = await _refresh();
+    return tokens.withAccessToken(accessToken);
+  }
+
+  /// API bearer, renewed ahead of the request when within
+  /// [_kMinTokenTtlSeconds] of expiry.
+  Future<String?> getValidAccessToken() async {
+    final tokens = await _readSession();
+    if (!isJwtExpired(tokens.accessToken)) return tokens.accessToken;
+    return _refresh();
+  }
+
+  /// Reactive 401 path: the server refused the current access token, so get
+  /// a new one whatever its expiry says.
+  Future<String?> forceRefreshAccessToken() => _refresh();
+
+  Future<SessionTokens> _readSession() async {
+    final tokens = await _tokens.read();
+    if (tokens == null) {
+      throw AuthException('No session', code: noSessionCode);
+    }
+    return tokens;
+  }
+
+  /// All concurrent callers (the request path and the 401 path, across every
+  /// Dio client) share one call.
+  Future<String> _refresh() {
+    final inflight = _inflightRefresh;
+    if (inflight != null) return inflight;
+    late final Future<String> tracked;
+    tracked = _runRefresh().whenComplete(() {
+      if (identical(_inflightRefresh, tracked)) _inflightRefresh = null;
+    });
+    _inflightRefresh = tracked;
+    return tracked;
+  }
+
+  Future<String> _runRefresh() async {
+    final generation = _sessionGeneration;
+    final tokens = await _readSession();
+    final String accessToken;
+    try {
+      accessToken = await _tokenApi
+          .refreshAccessToken(tokens.refreshToken)
+          .timeout(_kRefreshTimeout);
+    } on AuthApiException catch (e) {
+      // The person signed out or in again while this was on the wire, so the
+      // answer is about a session that has ended. Reported as rejected or
+      // refused, it would end the new one too: the reactive 401 path signs
+      // out on those codes.
+      if (generation != _sessionGeneration) {
+        throw AuthException('Session changed during refresh');
+      }
+      if (e.statusCode == 401) {
+        // Asking again can never succeed. Remove the dead tokens so later
+        // calls and launches see "no session" without another round trip.
+        _logger.warning(
+          'The backend rejected the refresh token — clearing the session '
+          'and requiring sign-in',
+        );
+        try {
+          await _tokens.clear();
+        } catch (clearError) {
+          _logger.warning('Failed to clear rejected tokens: $clearError');
+        }
+        throw AuthException(
+          'Refresh token rejected: ${e.detail ?? ''}',
+          code: refreshRejectedCode,
+        );
+      }
+      if (e.statusCode >= 400 && e.statusCode < 500) {
+        throw AuthException(
+          'Refresh refused (HTTP ${e.statusCode})',
+          code: refreshRefusedCode,
+        );
+      }
+      rethrow; // 5xx: the backend is unwell, the session is not.
+    }
+    // The person signed out or in again while this was on the wire.
+    if (generation != _sessionGeneration) {
+      throw AuthException('Session changed during refresh');
+    }
+    await _tokens.write(tokens.withAccessToken(accessToken));
+    return accessToken;
+  }
+
+  /// Whether a session is stored.
   ///
-  /// Runs through Universal Login rather than the embedded
-  /// `api.startPasswordlessWithPhoneNumber` / `api.loginWithSmsCode` pair, so
-  /// phone entry, OTP entry, resend throttling and bot detection are all
-  /// handled by the hosted page — and, critically, this path already requests
-  /// the API `audience` and persists to the credentials manager. The embedded
-  /// API does neither by default.
-  Future<Credentials?> loginWithPhone() async {
-    return _loginWithConnection('sms');
+  /// A `false` result is INDETERMINATE, not proof the session is gone: a
+  /// keystore read that failed also collapses to `false`. Never use `false`
+  /// here as grounds for logging the user out — terminal decisions need the
+  /// typed errors from an actual refresh (see [isSessionPermanentlyLost]).
+  Future<bool> hasValidCredentials() async {
+    try {
+      return await _tokens.read().timeout(const Duration(seconds: 10)) != null;
+    } on TimeoutException {
+      // Indeterminate: let getCredentials() make the terminal call.
+      _logger.warning('Session check timed out — assuming a session');
+      return true;
+    } catch (e) {
+      _logger.warning('Error checking the stored session: $e');
+      return false;
+    }
   }
 
-  // Local logout - clears credentials from device only
+  /// Signs out on this device: the tokens and every local identity marker.
+  /// The backend has no session to end; its tokens simply stop being used.
   Future<void> localLogout() async {
+    _sessionGeneration++;
+    // Disowns an exchange still on the wire: its answer signs no one in.
+    _loginAttempt++;
     try {
-      await _auth0.credentialsManager.clearCredentials();
-      await _clearLocalIdentity();
-      _logger.info('Local logout successful');
+      await _tokens.clear();
     } catch (e) {
-      _logger.error('Logout failed', e);
+      _logger.error('Failed to clear session tokens', e);
     }
+    // Only where a sign-in ran: building it here would start the Google SDK
+    // on a phone that never used it.
+    unawaited(_signIn?.signOutProviders());
+    await _clearLocalIdentity();
+    _logger.info('Local logout successful');
   }
 
-  // Global logout - clears credentials from device and server
-  Future<void> globalLogout() async {
-    try {
-      await _auth0
-          .webAuthentication(
-            scheme: ConfigService.instance.auth0Scheme ?? 'org.pecha.app',
-          )
-          .logout(useHTTPS: defaultTargetPlatform != TargetPlatform.macOS);
-      await _auth0.credentialsManager.clearCredentials();
-      await _clearLocalIdentity();
-      _logger.info('Global logout successful');
-    } catch (e) {
-      _logger.error('Logout failed', e);
-    }
-  }
-
-  /// Clears every local identity marker so a subsequent reinstall/login can't
-  /// read stale identity. Auth0 tokens (access/refresh/id) are NOT handled here
-  /// — the credentials manager owns that storage and is cleared via
-  /// `clearCredentials()`; we deliberately do not touch `flutter_secure_storage`
-  /// (it stores no tokens in this app).
+  /// Clears every local identity marker so a later login can't read stale
+  /// identity.
   Future<void> _clearLocalIdentity() async {
     await clearGuestMode();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(StorageKeys.currentUserId);
       await prefs.remove(StorageKeys.userData);
+      await prefs.remove(StorageKeys.signInMethod);
     } catch (e) {
       _logger.warning('Failed to clear local identity markers: $e');
     }
   }
 
+  // ========== JWT helpers ==========
+
   /// Decode a JWT and report whether it is expired (or within [bufferSeconds]
   /// of expiry). Returns true on any parse failure (treat as expired).
-  ///
-  /// Token-agnostic: works for both access and ID tokens.
   bool isJwtExpired(String jwt, {int bufferSeconds = _kMinTokenTtlSeconds}) {
     try {
       final parts = jwt.split('.');
@@ -236,10 +498,6 @@ class AuthService {
     }
   }
 
-  /// Decode and check if an ID token is expired. Retained for ID-token
-  /// (identity) call sites; delegates to the token-agnostic [isJwtExpired].
-  bool isIdTokenExpired(String idToken) => isJwtExpired(idToken);
-
   /// Seconds of remaining lifetime for [jwt]; 0 if expired/unparseable.
   int jwtRemainingTtlSeconds(String jwt) {
     try {
@@ -259,201 +517,31 @@ class AuthService {
     }
   }
 
-  /// Returns valid credentials, renewing via the credentials manager when the
-  /// access token is within [_kMinTokenTtlSeconds] of expiry. All concurrent
-  /// callers (proactive + reactive, across both Dio clients) share one
-  /// in-flight renewal.
+  // ========== Failure classification ==========
+
+  /// Whether [error] from a session call means the session is truly gone and
+  /// the user must sign in again — as opposed to a transient/offline failure
+  /// we should tolerate (keep the user signed in and renew later).
   ///
-  /// The credentials manager is the **single** refresh path: it serializes its
-  /// own renewals and stores the rotated refresh token atomically, so a
-  /// single-use refresh token can never be consumed by two racing callers.
-  /// Do not call `_auth0.api.renewCredentials` directly anywhere.
-  Future<Credentials> _validCredentials({bool force = false}) {
-    final inflight = _inflightCredentials;
-    // Share the in-flight renewal when it satisfies us: a non-forced caller
-    // accepts any in-flight call; a forced caller only accepts one that is
-    // itself forced. A forced caller must NOT join a non-forced cache read, or
-    // it could be handed back the token the server just rejected.
-    if (inflight != null && (!force || _inflightIsForced)) {
-      return inflight.timeout(_kCredentialsTimeout);
-    }
+  /// Permanent: nothing stored, or a refresh token the backend answered 401
+  /// to. Offline, timeouts and 5xx stay transient: at app open they are
+  /// usually a connectivity problem, and wiping a valid session for that
+  /// would be a bug.
+  static bool isSessionPermanentlyLost(Object error) =>
+      error is AuthException &&
+      (error.code == noSessionCode || error.code == refreshRejectedCode);
 
-    // We need a (possibly forced) renewal that no in-flight call provides. If a
-    // non-forced call is currently running, sequence our forced fetch *after*
-    // it settles rather than racing it, so the credentials manager stays the
-    // single, rotation-safe refresh path (one renewal in flight at a time).
-    final previous = inflight ?? _staleCredentials;
-    // `tracked` IS the future we store and return, so its error is delivered to
-    // the awaiting caller (handled). Do NOT drop a separate `whenComplete`
-    // future here — its error would have no listener and surface as an
-    // unhandled async exception when a renewal fails.
-    late final Future<Credentials> tracked;
-    tracked = _runCredentialsFetch(force: force, after: previous).whenComplete(
-      () {
-        // Only clear if we're still the current in-flight; a later forced call
-        // may have already superseded us.
-        if (identical(_inflightCredentials, tracked)) {
-          _inflightCredentials = null;
-          _inflightIsForced = false;
-        }
-        if (identical(_staleCredentials, tracked)) _staleCredentials = null;
-      },
-    );
-    _inflightCredentials = tracked;
-    _inflightIsForced = force;
-    return tracked.timeout(
-      _kCredentialsTimeout,
-      onTimeout: () {
-        // Release the slot so later callers retry instead of queueing forever.
-        if (identical(_inflightCredentials, tracked)) {
-          _inflightCredentials = null;
-          _inflightIsForced = false;
-          _staleCredentials = tracked;
-        }
-        throw TimeoutException('Credentials call timed out', _kCredentialsTimeout);
-      },
-    );
-  }
-
-  Future<Credentials> _runCredentialsFetch({
-    required bool force,
-    Future<Credentials>? after,
-  }) async {
-    if (after != null) {
-      // Let the prior renewal finish (ignore its result/error) so two renewals
-      // never hit the rotating refresh token concurrently. Bounded, so a stuck
-      // call cannot block every later renewal.
-      try {
-        await after.timeout(_kCredentialsTimeout);
-      } catch (_) {
-        // Ignored — we proceed to our own fetch regardless.
-      }
-    }
-    return _fetchCredentials(force: force);
-  }
-
-  Future<Credentials> _fetchCredentials({required bool force}) async {
-    final Credentials creds;
-    if (force) {
-      // Forced (reactive 401) renewal. `renewCredentials()` unconditionally
-      // fetches a fresh credential set and stores the rotated refresh token
-      // atomically, so it renews even when the current access token still has
-      // lifetime left — and it stays inside the credentials manager (the
-      // single, rotation-safe refresh path).
-      //
-      // We previously forced via `credentials(minTtl: remaining + buffer)`, but
-      // the SDK rejects a `minTtl` greater than the token's configured lifetime
-      // ("minTTL requested … is greater than the lifetime of the renewed access
-      // token"); and capping `minTtl` at that lifetime is satisfied by a fresh
-      // token, so it would not force a renewal at all.
-      creds = await _auth0.credentialsManager.renewCredentials();
-    } else {
-      // Proactive: return the cached token, renewing only when it is within the
-      // skew buffer of expiry.
-      creds = await _auth0.credentialsManager.credentials(
-        minTtl: _kMinTokenTtlSeconds,
-      );
-    }
-    return creds;
-  }
-
-  /// API bearer. Proactive renewal happens inside the credentials manager when
-  /// the access token is within [_kMinTokenTtlSeconds] of expiry.
-  Future<String?> getValidAccessToken() async {
-    final creds = await _validCredentials();
-    return creds.accessToken;
-  }
-
-  /// Whether [token] is usable as our API bearer. The backend verifies a JWT
-  /// access token (minted only when the API `audience` is requested at login),
-  /// so an opaque `/userinfo` token — issued for sessions created before the
-  /// audience was configured — is not a JWT and can never authenticate API
-  /// calls. Such sessions cannot be salvaged by refresh (the refresh token is
-  /// not bound to the audience), so the only resolution is to sign in again.
-  static bool isUsableApiAccessToken(String token) =>
-      token.split('.').length == 3;
-
-  /// Reactive 401 path: force a renewal and return a fresh access token.
+  /// Whether [error] is a refresh the backend *refused* (any 4xx).
   ///
-  /// Throws an [AuthException] with [opaqueAccessTokenCode] when the renewed
-  /// token is still opaque (a pre-audience session). That surfaces as a
-  /// permanent session loss so the caller redirects to login, where a fresh
-  /// audience-scoped login mints a verifiable JWT.
-  Future<String?> forceRefreshAccessToken() async {
-    final creds = await _validCredentials(force: true);
-    final accessToken = creds.accessToken;
-    if (!isUsableApiAccessToken(accessToken)) {
-      _logger.warning(
-        'Access token is opaque (not a JWT) — pre-audience session cannot be '
-        'refreshed into an API bearer; re-authentication required.',
-      );
-      throw AuthException(
-        'Opaque access token; re-authentication required',
-        code: opaqueAccessTokenCode,
-      );
-    }
-    return accessToken;
-  }
-
-  /// Identity only (client-side). Profile claims (email/name/sub) live in the
-  /// ID token. Used at login/restore for identity — NEVER as an API bearer.
-  Future<String?> getIdTokenForIdentity() async {
-    final creds = await _validCredentials();
-    return creds.idToken;
-  }
-
-  /// Whether [error] from a credentials operation means the session is truly
-  /// gone and the user must sign in again — as opposed to a transient/offline
-  /// failure we should tolerate (keep the user signed in and renew later).
-  ///
-  /// Only a missing credential, a missing refresh token, or an opaque
-  /// (non-JWT) access token is treated as permanent. `RENEW_FAILED` is treated
-  /// as transient: at app open it is almost always a connectivity problem, and
-  /// wiping a valid session for that is the bug we are fixing.
-  static bool isSessionPermanentlyLost(Object error) {
-    if (error is AuthException && error.code == opaqueAccessTokenCode) {
-      return true;
-    }
-    return error is CredentialsManagerException &&
-        (error.isNoCredentialsFound || error.isNoRefreshTokenFound);
-  }
-
-  /// Whether [error] is a failed token *renewal* (`RENEW_FAILED` — the refresh
-  /// token could not be exchanged).
-  ///
-  /// Deliberately separate from [isSessionPermanentlyLost]: at **app open** a
-  /// renewal failure is usually transient/offline and must NOT wipe the
-  /// session. But in the **reactive 401 path** the server just answered us, so
-  /// we are provably online — a renewal failure there means the refresh token
-  /// is rejected (revoked/expired/rotated) and the session is terminal.
-  /// Without this, a dead refresh token traps the user in an endless 401 loop
-  /// with no prompt to re-authenticate.
+  /// Deliberately wider than [isSessionPermanentlyLost]: in the reactive 401
+  /// path the server just answered us, so we are provably online and talking
+  /// to the right backend — a refusal there means the refresh token cannot
+  /// be used, and the session must end instead of looping 401s forever.
   static bool isTokenRenewalFailed(Object error) =>
-      error is CredentialsManagerException && error.isTokenRenewFailed;
+      error is AuthException &&
+      (error.code == refreshRejectedCode || error.code == refreshRefusedCode);
 
-  /// Check if credentials exist and are valid.
-  ///
-  /// A `false` result is INDETERMINATE, not proof the session is gone: any
-  /// exception from the credentials manager (transient keystore/plugin IO)
-  /// is also collapsed to `false`. Never use `false` here as grounds for
-  /// logging the user out — terminal decisions need the typed errors from an
-  /// actual credentials/renewal attempt (see [isSessionPermanentlyLost]).
-  Future<bool> hasValidCredentials() async {
-    try {
-      return await _auth0.credentialsManager.hasValidCredentials().timeout(
-        const Duration(seconds: 10),
-      );
-    } on TimeoutException {
-      // Indeterminate: let credentials() make the terminal call, not a logout.
-      _logger.warning('Credentials check timed out — assuming a session');
-      return true;
-    } catch (e) {
-      _logger.warning('Error checking valid credentials: $e');
-      return false;
-    }
-  }
-
-  // Guest Mode Persistence Methods
+  // ========== Guest mode ==========
 
   /// Save guest mode preference to SharedPreferences
   Future<void> saveGuestMode() async {
@@ -499,6 +587,31 @@ class AuthService {
       _logger.warning('Failed to save guest mode: $e');
     }
   }
+}
+
+/// How a phone sign-in continues after the number was submitted.
+class PhoneLoginStart {
+  const PhoneLoginStart.codeSent({
+    required String this.verificationId,
+    this.resendToken,
+    this.autoSignIn,
+  }) : session = null;
+
+  const PhoneLoginStart.signedIn(SessionTokens this.session)
+    : verificationId = null,
+      resendToken = null,
+      autoSignIn = null;
+
+  /// Set when an SMS code went out.
+  final String? verificationId;
+  final int? resendToken;
+
+  /// Set when the number was verified without a code (Android).
+  final SessionTokens? session;
+
+  /// After a code went out: completes with the session if Android reads the
+  /// SMS and signs in by itself, with null if it does not.
+  final Future<SessionTokens?>? autoSignIn;
 }
 
 class AuthException implements Exception {

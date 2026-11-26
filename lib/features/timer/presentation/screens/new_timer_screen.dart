@@ -13,6 +13,7 @@ import 'package:flutter_pecha/features/timer/domain/usecases/update_user_timer_u
 import 'package:flutter_pecha/features/timer/presentation/providers/timers_providers.dart';
 import 'package:flutter_pecha/features/timer/presentation/widgets/ambient_sound_sheet.dart';
 import 'package:flutter_pecha/features/timer/presentation/widgets/duration_picker_sheet.dart';
+import 'package:flutter_pecha/features/timer/presentation/utils/timer_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -153,12 +154,24 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   Future<PresetTimer?> _createTimer() async {
     setState(() => _isSubmitting = true);
     final useCase = ref.read(createUserTimerUseCaseProvider);
+    // Read before the await: the screen may be gone when the reply lands.
+    final analytics = ref.read(timerAnalyticsProvider);
+    final ambientSoundId = _ambientSoundId;
     final result = await useCase(
       CreateUserTimerParams(
         name: _timerName,
         description: _timerDescription,
         durationMs: _durationMs,
         ambientSoundId: _ambientSoundId,
+      ),
+    );
+    result.fold(
+      (_) {},
+      (timer) => analytics.timerCreated(
+        presetId: timer.id,
+        // The saved value: the field stays editable while the request runs.
+        durationSeconds: timer.durationMs ~/ 1000,
+        ambientSoundId: ambientSoundId,
       ),
     );
     if (!mounted) return null;
@@ -181,6 +194,10 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
   Future<void> _onSaveChanges() async {
     if (_isSubmitting) return;
     setState(() => _isSubmitting = true);
+    final analytics = ref.read(timerAnalyticsProvider);
+    final timerId = widget.timer!.id;
+    final durationMs = _durationMs;
+    final ambientSoundId = _ambientSoundId;
     final result = await ref.read(updateUserTimerUseCaseProvider)(
       UpdateUserTimerParams(
         timerId: widget.timer!.id,
@@ -190,6 +207,13 @@ class _NewTimerScreenState extends ConsumerState<NewTimerScreen> {
         ambientSoundId: _ambientSoundId,
       ),
     );
+    if (result.isRight()) {
+      analytics.timerUpdated(
+        presetId: timerId,
+        durationSeconds: durationMs ~/ 1000,
+        ambientSoundId: ambientSoundId,
+      );
+    }
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -8,11 +11,20 @@ import 'package:just_audio/just_audio.dart';
 /// Volume is local-only UI state for the preview in the picker sheet; it is
 /// never sent to the backend (the create-timer API has no volume field).
 class AmbientSoundPlayer {
-  AmbientSoundPlayer() : _logger = AppLogger('AmbientSoundPlayer');
+  AmbientSoundPlayer({@visibleForTesting AudioPlayer Function()? createPlayer})
+    : _createPlayer = createPlayer ?? AudioPlayer.new,
+      _logger = AppLogger('AmbientSoundPlayer');
 
+  final AudioPlayer Function() _createPlayer;
   final AppLogger _logger;
   AudioPlayer? _player;
   bool _disposed = false;
+
+  /// Whether the caller wants sound held. Kept here rather than read off the
+  /// player, because [pause] can arrive while [play] is still loading a track:
+  /// there is no player playing yet to pause, and the track must not start
+  /// once it has loaded. Cleared only by [resume] and [stop].
+  bool _paused = false;
 
   /// Bumped by every [play]/[stop] request. Tapping through the picker starts
   /// overlapping requests whose awaits can complete out of order, so a request
@@ -25,7 +37,7 @@ class AmbientSoundPlayer {
     await _stopCurrent();
     if (_disposed || requestId != _requestId) return;
 
-    final player = AudioPlayer();
+    final player = _createPlayer();
     _player = player;
     try {
       await player.setLoopMode(LoopMode.one);
@@ -36,22 +48,37 @@ class AmbientSoundPlayer {
         await player.dispose();
         return;
       }
-      await player.play();
+      if (_paused) return;
+      _startPlayback(player);
     } catch (e) {
       _logger.warning('Failed to play ambient sound: $e');
     }
   }
 
+  /// Starts [player] without waiting on it. just_audio's `play()` completes
+  /// only when playback is paused or stopped, which for a looping track is
+  /// never on its own, so awaiting it would hold the caller for the whole
+  /// session.
+  void _startPlayback(AudioPlayer player) {
+    unawaited(
+      player.play().catchError((Object e) {
+        _logger.warning('Failed to play ambient sound: $e');
+      }),
+    );
+  }
+
   Future<void> pause() async {
+    _paused = true;
     try {
       await _player?.pause();
     } catch (_) {}
   }
 
   Future<void> resume() async {
-    try {
-      await _player?.play();
-    } catch (_) {}
+    _paused = false;
+    final player = _player;
+    if (player == null) return;
+    _startPlayback(player);
   }
 
   Future<void> setVolume(double volume) async {
@@ -62,6 +89,7 @@ class AmbientSoundPlayer {
 
   Future<void> stop() async {
     _requestId++;
+    _paused = false;
     await _stopCurrent();
   }
 

@@ -71,8 +71,8 @@ class GroupPostRepositoryImpl implements GroupPostRepositoryInterface {
     return _userSource(
       'group_posts',
       groupId: groupId,
-      fetchJson:
-          () => remote.fetchGroupPostsJson(groupId, skip: 0, limit: limit),
+      fetchJson: () =>
+          remote.fetchGroupPostsJson(groupId, skip: 0, limit: limit),
       parse: (json) => ConnectPostsPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group posts',
     );
@@ -96,12 +96,11 @@ class GroupPostRepositoryImpl implements GroupPostRepositoryInterface {
   }) async {
     if (skip == 0) return _postsSource(groupId, limit: limit).refresh();
     return _guard(
-      () async =>
-          (await remote.fetchGroupPosts(
-            groupId,
-            skip: skip,
-            limit: limit,
-          )).toEntity(),
+      () async => (await remote.fetchGroupPosts(
+        groupId,
+        skip: skip,
+        limit: limit,
+      )).toEntity(),
       'Failed to load group posts',
     );
   }

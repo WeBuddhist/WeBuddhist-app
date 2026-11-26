@@ -12,6 +12,7 @@ class SpaceChant extends Equatable {
     this.spaceName,
     this.groupAvatarUrl,
     this.isJoinedSpace = false,
+    this.hasAudio = false,
   });
 
   final GroupRecitationCollectionItem item;
@@ -20,8 +21,8 @@ class SpaceChant extends Equatable {
   final String? groupAvatarUrl;
   final bool isJoinedSpace;
 
-  /// Item audio is already limited to playable recordings by the model.
-  bool get hasAudio => item.audio.isNotEmpty;
+  /// The library has a recording of this chant's text.
+  final bool hasAudio;
 
   @override
   List<Object?> get props => [
@@ -30,6 +31,7 @@ class SpaceChant extends Equatable {
     spaceName,
     groupAvatarUrl,
     isJoinedSpace,
+    hasAudio,
   ];
 }
 
@@ -62,11 +64,10 @@ class SpaceChants extends Equatable {
   SpaceChants inLanguage(String languageCode) {
     final wanted = _mainTag(languageCode);
     if (wanted.isEmpty) return this;
-    List<SpaceChant> keep(List<SpaceChant> chants) =>
-        chants.where((chant) {
-          final language = _mainTag(chant.item.language);
-          return language.isEmpty || language == wanted;
-        }).toList();
+    List<SpaceChant> keep(List<SpaceChant> chants) => chants.where((chant) {
+      final language = _mainTag(chant.item.language);
+      return language.isEmpty || language == wanted;
+    }).toList();
     return SpaceChants(
       yoursAudio: keep(yoursAudio),
       yoursText: keep(yoursText),

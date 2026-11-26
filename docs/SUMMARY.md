@@ -23,7 +23,7 @@ Index and LLM usage guide: [lib/features/doc/README.md](../lib/features/doc/READ
 
 | Feature | Scope |
 | --- | --- |
-| [auth](../lib/features/auth/doc/README.md) | Auth0 login, guest mode, user profile |
+| [auth](../lib/features/auth/doc/README.md) | Firebase login (Google, Apple, phone), guest mode, user profile |
 | [calendar](../lib/features/calendar/doc/README.md) | Tibetan lunar calendar |
 | [connect](../lib/features/connect/doc/README.md) | Connect tab: feed, events, group discovery |
 | [explore](../lib/features/explore/doc/README.md) | Placeholder tab (not in navigation) |
@@ -71,7 +71,7 @@ Other docs inside feature folders:
 | Doc | Purpose | Status |
 | --- | --- | --- |
 | [LOCAL_FIRST_ARCHITECTURE.md](./architecture/LOCAL_FIRST_ARCHITECTURE.md) | Hive-backed local-first screen pattern (Home, Mala, Me stats) | current |
-| [AUTH_IMPLEMENTATION.md](./architecture/AUTH_IMPLEMENTATION.md) | Auth architecture: Auth0 access tokens, Dio interceptors, credentials-manager refresh | current (rewritten Oct 2026) |
+| [AUTH_IMPLEMENTATION.md](./architecture/AUTH_IMPLEMENTATION.md) | Auth architecture: Firebase sign-in, backend session tokens, Dio interceptors, refresh, the move from Auth0 | current (rewritten Nov 2026) |
 | [TOKEN_REFRESH_FLOW.md](./architecture/TOKEN_REFRESH_FLOW.md) | Original ID-token refresh deep dive | historical — refresh now goes through the Auth0 credentials manager |
 | [GUEST_MODE_PERSISTENCE.md](./architecture/GUEST_MODE_PERSISTENCE.md) | Guest mode persistence (`AuthNotifier` / `RouteGuard`) | current (synced Oct 2026) |
 

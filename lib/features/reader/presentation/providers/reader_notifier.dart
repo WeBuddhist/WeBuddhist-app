@@ -721,7 +721,10 @@ class ReaderNotifier extends StateNotifier<ReaderState>
     _analytics.readerOpened(
       textId: _params.textId,
       textTitle: textDetail.title,
-      source: readerOpenSourceFor(_params.navigationContext?.source),
+      source:
+          (_params.navigationContext?.fromBookmarks ?? false)
+              ? ReaderOpenSource.bookmark
+              : readerOpenSourceFor(_params.navigationContext?.source),
       language: textDetail.language,
       versionId: textDetail.id,
       script: _ref.read(

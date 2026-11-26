@@ -7,29 +7,24 @@ import 'package:flutter_pecha/core/services/service_providers.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/widgets/login_drawer.dart';
-import 'package:flutter_pecha/features/connect/presentation/providers/connect_unified_feed_providers.dart';
-import 'package:flutter_pecha/features/home/domain/entities/series.dart';
-import 'package:flutter_pecha/features/home/presentation/providers/featured_series_provider.dart';
-import 'package:flutter_pecha/features/home/presentation/providers/home_group_events_preview_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/routine_info_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/streak_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/verse_of_day_engagement_providers.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/verse_of_day_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/home_screen_constants.dart';
 import 'package:flutter_pecha/features/home/presentation/utils/home_analytics.dart';
-import 'package:flutter_pecha/features/home/presentation/widgets/community_feed_section.dart';
-import 'package:flutter_pecha/features/home/presentation/widgets/featured_plan_section.dart';
-import 'package:flutter_pecha/features/home/presentation/widgets/group_events_section.dart';
 import 'package:flutter_pecha/features/home/presentation/widgets/home_header.dart';
-import 'package:flutter_pecha/features/home/presentation/widgets/home_share_prompt.dart';
+import 'package:flutter_pecha/features/home/presentation/widgets/home_feed_sliver.dart';
 import 'package:flutter_pecha/features/home/presentation/widgets/home_shortcuts_row.dart';
+import 'package:flutter_pecha/features/home/presentation/providers/home_feed_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/home_poems_preview_provider.dart';
-import 'package:flutter_pecha/features/home/presentation/widgets/poems_section.dart';
 import 'package:flutter_pecha/features/home/presentation/widgets/my_practices_stats_card.dart';
 import 'package:flutter_pecha/features/home/presentation/widgets/my_practices_stats_card_skeleton.dart';
-import 'package:flutter_pecha/features/home/presentation/widgets/verse_of_day_card.dart';
+import 'package:flutter_pecha/features/home/presentation/widgets/verse_of_day_carousel.dart';
 import 'package:flutter_pecha/features/home/presentation/widgets/verse_of_day_skeleton.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/notifications/application/notification_sync_engine.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/providers/user_tradition_codes_provider.dart';
 import 'package:flutter_pecha/features/plans/data/utils/plan_utils.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/user_plans_provider.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/routine_provider.dart';
@@ -231,50 +226,48 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _onRefresh() async {
     _refreshVerseOfDayEngagement();
     final language = ref.read(contentLanguageProvider);
-    final series = ref.read(seriesDomainRepositoryProvider);
-    final events = ref.read(homeGroupEventsPreviewSourceProvider);
     await Future.wait<Object?>([
-      series.refreshSeriesList(language: language),
-      series.refreshFeaturedSeries(
-        language: language,
-        limit: homeFeaturedSeriesLimit,
-      ),
-      if (events != null) events.refresh(),
+      // A fresh mix: the feed drops its cursor.
+      ref.read(homeFeedProvider.notifier).refresh(),
       ref.read(homePoemsPreviewSourceProvider).refresh(),
-      ref.read(verseOfDayDomainRepositoryProvider).refreshVerseOfDay(
-        language: language,
-      ),
-      ref.read(todayEventsDomainRepositoryProvider).refreshTodayEvents(
-        language: language,
-      ),
+      // The verse-of-the-day week; also stores today's verse on its own.
+      // A failed tradition lookup is retried first so the verse isn't stuck
+      // on All traditions.
+      () async {
+        await ref.read(userTraditionCodesProvider.notifier).retryIfFailed();
+        await ref
+            .read(verseOfDayDomainRepositoryProvider)
+            .refreshRecentVerses(
+              language: language,
+              tradition: ref.read(verseOfDayTraditionProvider),
+            );
+      }(),
+      ref
+          .read(todayEventsDomainRepositoryProvider)
+          .refreshTodayEvents(language: language),
       ref.read(routineInfoDomainRepositoryProvider).refreshRoutineInfo(),
       ref.read(streakDomainRepositoryProvider).refreshStreak(),
-      // A member whose feed was empty may have joined groups since, so the
-      // own feed is re-read even while Home shows Discover.
-      if (ref.exists(myUnifiedConnectFeedProvider))
-        ref.read(myUnifiedConnectFeedProvider.notifier).refresh(),
-      if (ref.exists(discoverUnifiedConnectFeedProvider))
-        ref.read(discoverUnifiedConnectFeedProvider.notifier).refresh(),
     ]);
   }
 
   /// Opens a login-only feature shortcut (Mala, Timer). Guests are prompted to
   /// sign in via the login drawer instead of navigating, since these features
   /// need an authenticated account to persist progress.
-  void _openGatedFeature(String route) {
+  /// [feature] names the shortcut, for `home_card_tapped` and, for guests,
+  /// `login_prompt_shown`.
+  void _openGatedFeature(
+    String route, {
+    required String feature,
+    Object? extra,
+  }) {
+    ref
+        .read(homeAnalyticsProvider)
+        .cardTapped(section: HomeSection.shortcuts, targetId: feature);
     if (ref.read(authProvider).isGuest) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: feature);
       return;
     }
-    context.push(route);
-  }
-
-  void _navigateToSeries(Series series) {
-    context.pushNamed(
-      'home-series-detail',
-      pathParameters: {'id': series.id},
-      extra: {'series': series},
-    );
+    context.push(route, extra: extra);
   }
 
   @override
@@ -299,47 +292,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  /// Always shown to members, 0 included; a failed read leaves the count
+  /// out. Guests have no practices to count.
   Widget _buildMyPracticesSection() {
-    final routineInfoAsync = ref.watch(routineInfoFutureProvider);
+    final isGuest = ref.watch(
+      authProvider.select((auth) => !auth.isLoggedIn || auth.isGuest),
+    );
+    if (isGuest) return const SizedBox.shrink();
 
-    return routineInfoAsync.when(
-      data: (infoEither) {
-        return infoEither.fold((_) => const SizedBox.shrink(), (info) {
-          if (info.seriesCount == 0 && info.recitationCount == 0) {
-            return const SizedBox.shrink();
-          }
-          return MyPracticesStatsCard(
-            routineInfo: info,
-            onTap: () => context.pushNamed('my-practices'),
-          );
-        });
+    final routineInfoAsync = ref.watch(routineInfoFutureProvider);
+    if (routineInfoAsync.isLoading && !routineInfoAsync.hasValue) {
+      return const MyPracticesStatsCardSkeleton();
+    }
+    final count = routineInfoAsync.valueOrNull?.fold(
+      (_) => null,
+      (info) => info.totalCount,
+    );
+    return MyPracticesStatsCard(
+      count: count,
+      onTap: () {
+        ref.read(homeAnalyticsProvider).cardTapped(section: HomeSection.stats);
+        context.pushNamed('my-practices');
       },
-      loading: () => const MyPracticesStatsCardSkeleton(),
-      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
   /// Likes and comments live in their own providers, which stay alive with
   /// the card, so invalidating the verse alone leaves their counts stale.
+  ///
+  /// Covers every day of the week that has a card on screen; a day whose
+  /// providers don't exist loads fresh when its card first shows.
   void _refreshVerseOfDayEngagement() {
-    final verseId = ref
-        .read(verseOfDayFutureProvider)
-        .valueOrNull
-        ?.fold((_) => null, (verse) => verse.id);
-    if (verseId == null || verseId.isEmpty) return;
+    final weekIds =
+        ref
+            .read(recentVersesOfDayProvider)
+            .valueOrNull
+            ?.fold((_) => null, (verses) => verses.map((v) => v.id)) ??
+        const <String>[];
 
-    ref.read(verseOfDayLikesProvider(verseId).notifier).load();
-    ref.read(verseOfDayCommentsProvider(verseId).notifier).loadInitial();
+    for (final verseId in weekIds) {
+      if (verseId.isEmpty) continue;
+      if (ref.exists(verseOfDayLikesProvider(verseId))) {
+        ref.read(verseOfDayLikesProvider(verseId).notifier).load();
+      }
+      if (ref.exists(verseOfDayCommentsProvider(verseId))) {
+        ref.read(verseOfDayCommentsProvider(verseId).notifier).loadInitial();
+      }
+    }
   }
 
   Widget _buildVerseOfDaySection() {
-    final verseAsync = ref.watch(verseOfDayFutureProvider);
+    final versesAsync = ref.watch(recentVersesOfDayProvider);
 
-    return verseAsync.when(
-      data: (verseEither) {
-        return verseEither.fold(
+    return versesAsync.when(
+      data: (versesEither) {
+        return versesEither.fold(
           (_) => const SizedBox.shrink(),
-          (verse) => VerseOfDayCard(verseOfDay: verse),
+          (verses) => VerseOfDayCarousel(verses: verses),
         );
       },
       loading: () => const VerseOfDaySkeleton(),
@@ -351,39 +360,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Expanded(
       child: RefreshIndicator(
         onRefresh: _onRefresh,
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildVerseOfDaySection(),
-                  const SizedBox(height: HomeScreenConstants.cardSpacing),
-                  HomeShortcutsRow(
-                    onTimerTap: () => _openGatedFeature('/home/timers'),
-                    onMalaTap: () => _openGatedFeature('/mala'),
-                  ),
-                  const SizedBox(height: HomeScreenConstants.cardSpacing),
-                  _buildMyPracticesSection(),
-                  const SizedBox(height: HomeScreenConstants.cardSpacing),
-                  FeaturedPlanSection(
-                    onSeriesTap: (series) {
-                      _log.info('Featured series tapped: ${series.id}');
-                      _navigateToSeries(series);
-                    },
-                  ),
-                  const SizedBox(height: HomeScreenConstants.cardSpacing),
-                  const GroupEventsSection(),
-                  const SizedBox(height: HomeScreenConstants.cardSpacing),
-                  const PoemsSection(),
-                  const SizedBox(height: HomeScreenConstants.cardSpacing),
-                  const CommunityFeedSection(),
-                ],
+        child: NotificationListener<ScrollNotification>(
+          onNotification:
+              (notification) => HomeFeedSliver.onScroll(ref, notification),
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildVerseOfDaySection(),
+                    const SizedBox(height: HomeScreenConstants.cardSpacing),
+                    HomeShortcutsRow(
+                      onTimerTap:
+                          () => _openGatedFeature(
+                            '/home/timers',
+                            feature: 'timer',
+                          ),
+                      onMalaTap:
+                          () => _openGatedFeature(
+                            '/mala',
+                            feature: 'mala',
+                            extra: {'source': MalaOpenSource.home},
+                          ),
+                    ),
+                    const SizedBox(height: HomeScreenConstants.cardSpacing),
+                    _buildMyPracticesSection(),
+                    const SizedBox(height: HomeScreenConstants.cardSpacing),
+                  ],
+                ),
               ),
-            ),
-            const SliverToBoxAdapter(child: HomeSharePrompt()),
-          ],
+              const HomeFeedSliver(),
+              // Room below the last row, clear of the bottom navigation.
+              const SliverToBoxAdapter(
+                child: SizedBox(height: HomeScreenConstants.cardSpacing),
+              ),
+            ],
+          ),
         ),
       ),
     );

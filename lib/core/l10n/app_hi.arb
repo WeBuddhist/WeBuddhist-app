@@ -33,6 +33,14 @@
       }
     }
   },
+  "home_practices_sessions": "{count, plural,\n=1 {1 सत्र}\nother {{count} सत्र}\n}",
+  "@home_practices_sessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "home_shortcut_plans": "योजनाएँ",
   "home_chants": "जप",
   "home_mala": "माला",
@@ -75,7 +83,7 @@
     }
   },
   "mala_group_accumulations": "पाठ को इसमें जोड़ें",
-  "mala_groups_section": "Groups",
+  "mala_groups_section": "स्पेस",
   "mala_group_untitled": "बिना शीर्षक वाला स्पेस",
   "mala_all_time_accumulation": "मेरा अब तक का कुल संचय",
   "mala_personal_practice": "व्यक्तिगत अभ्यास",
@@ -111,7 +119,7 @@
       }
     }
   },
-  "home_share_support": "आपका सहयोग हमारे समुदाय को बढ़ने में मदद करता है।",
+  "home_share_support": "आपका सहयोग हमारे समुदाय को बढ़ने में मदद करता है",
   "no_feature_content": "कोई विशेष सामग्री उपलब्ध नहीं",
   "nav_home": "होम",
   "nav_explore": "एक्सप्लोर",
@@ -164,20 +172,19 @@
   "recitations_search_for": "पाठ खोजें",
   "recitations_no_found": "कोई पाठ नहीं मिला",
   "recitations_no_content": "कोई पाठ उपलब्ध नहीं",
-  "my_recitation_collection_new_title": "नया संग्रह",
+  "chant_book_new_title": "नई जप पुस्तक",
   "my_recitation_collection_next": "आगे",
   "my_recitation_collection_create": "बनाएँ",
-  "my_recitation_collection_create_button": "संग्रह बनाएँ",
   "my_recitation_collection_change_title": "शीर्षक बदलें",
   "my_recitation_collection_change": "बदलें",
   "my_recitation_collection_add_chants": "पाठ जोड़ें",
   "my_recitation_collection_search_chants": "पाठ खोजें",
-  "my_recitation_collection_add_to_collection": "संग्रह में जोड़ें",
-  "my_recitation_collection_edit": "संग्रह एडिट करें",
-  "my_recitation_collection_delete": "संग्रह हटाएँ",
-  "my_recitation_collection_delete_title": "संग्रह हटाएँ?",
-  "my_recitation_collection_delete_message": "यह संग्रह स्थायी रूप से हटा दिया जाएगा",
-  "my_recitation_collection_fallback_title": "पाठ संग्रह",
+  "chant_book_add_to": "जप पुस्तक में जोड़ें",
+  "chant_book_edit": "जप पुस्तक एडिट करें",
+  "chant_book_delete": "जप पुस्तक हटाएँ",
+  "chant_book_delete_title": "जप पुस्तक हटाएँ?",
+  "chant_book_delete_message": "यह जप पुस्तक स्थायी रूप से हटा दी जाएगी",
+  "chant_book_fallback_title": "जप पुस्तक",
   "my_recitation_collection_unavailable": "अब उपलब्ध नहीं",
   "my_recitation_collection_chant_count": "{count, plural,\n=0 {0 पाठ}\n=1 {1 पाठ}\nother {{count} पाठ}\n}",
   "@my_recitation_collection_chant_count": {
@@ -195,8 +202,8 @@
       }
     }
   },
-  "bookmarks_empty_chant_collections_title": "अभी तक कोई पाठ संग्रह बुकमार्क नहीं किया गया",
-  "bookmarks_empty_chant_collections_subtitle": "इसे यहाँ सहेजने के लिए किसी संग्रह को बुकमार्क करें",
+  "chant_book_bookmarks_empty_title": "अभी तक कोई जप पुस्तक बुकमार्क नहीं की गई",
+  "chant_book_bookmarks_empty_subtitle": "इसे यहाँ सहेजने के लिए किसी जप पुस्तक को बुकमार्क करें",
   "notification_allow_title": "नोटिफिकेशन की अनुमति दें",
   "notification_allow_subtitle_disabled": "अनुमति आवश्यक है। अनुमति देने के लिए सेटिंग्स में टैप करें",
   "notification_snack_permission_denied": "नोटिफिकेशन ब्लॉक हैं। उन्हें सेटिंग्स में चालू करें",
@@ -352,6 +359,26 @@
   "continueWithGoogle": "Google के साथ जारी रखें",
   "continueWithApple": "Apple के साथ जारी रखें",
   "continueWithPhone": "फ़ोन के साथ जारी रखें",
+  "login_last_used": "पिछली बार इस्तेमाल किया",
+  "phone_login_title": "अपना फ़ोन नंबर दर्ज करें",
+  "phone_login_subtitle": "आपकी पहचान की पुष्टि के लिए हम आपको एक कोड भेजेंगे।",
+  "phone_login_number_hint": "फ़ोन नंबर",
+  "phone_login_country_search": "देश खोजें",
+  "phone_login_send_code": "कोड भेजें",
+  "phone_login_code_title": "कोड दर्ज करें",
+  "phone_login_code_subtitle": "हमने {phoneNumber} पर 6 अंकों का कोड भेजा है।",
+  "phone_login_code_hint": "6 अंकों का कोड",
+  "phone_login_verify": "सत्यापित करें",
+  "phone_login_resend": "कोड दोबारा भेजें",
+  "phone_login_resend_in": "{seconds} सेकंड में कोड दोबारा भेजें",
+  "phone_login_change_number": "नंबर बदलें",
+  "login_error_invalid_phone": "कृपया मान्य फ़ोन नंबर दर्ज करें।",
+  "login_error_invalid_code": "यह कोड सही नहीं है। जाँचकर फिर से कोशिश करें।",
+  "login_error_code_expired": "इस कोड की समय-सीमा समाप्त हो गई है। नया कोड मँगाएँ।",
+  "login_error_too_many_requests": "बहुत अधिक प्रयास हो गए हैं। कृपया बाद में फिर कोशिश करें।",
+  "login_error_network": "अपना इंटरनेट कनेक्शन जाँचें और फिर से कोशिश करें।",
+  "login_error_email_not_verified": "इस खाते का ईमेल पता अभी सत्यापित नहीं है। अपने प्रदाता के पास इसे सत्यापित करके फिर से कोशिश करें।",
+  "login_error_generic": "हम आपको साइन इन नहीं कर सके। कृपया फिर से कोशिश करें।",
   "exploreAsGuest": "अतिथि के रूप में एक्सप्लोर करें",
   "signIn": "साइन इन",
   "profileError": "प्रोफ़ाइल लोड करने में त्रुटि",
@@ -563,6 +590,64 @@
       }
     }
   },
+  "calendar_choose_calendar": "कैलेंडर चुनें",
+  "calendar_tradition_vajrayana": "वज्रयान",
+  "calendar_tradition_theravada": "थेरवाद",
+  "calendar_tradition_mahayana": "महायान",
+  "calendar_type_phugpa": "तिब्बती (फुगपा)",
+  "calendar_type_tsurphu": "तिब्बती (त्सुरफू)",
+  "calendar_type_nyingmapa": "ञिङमा",
+  "calendar_type_sinhalese": "सिंहली",
+  "calendar_type_thai": "थाई",
+  "calendar_type_burmese": "बर्मी",
+  "calendar_type_lao": "लाओ",
+  "calendar_type_chinese": "चीनी",
+  "calendar_type_vietnamese": "वियतनामी",
+  "calendar_type_korean": "कोरियाई",
+  "calendar_type_japanese": "जापानी",
+  "calendar_today": "आज",
+  "calendar_no_events": "कोई कार्यक्रम नहीं",
+  "calendar_source_lunar": "चंद्र कैलेंडर",
+  "calendar_add_event": "कार्यक्रम जोड़ें",
+  "calendar_event_name": "कार्यक्रम का नाम",
+  "calendar_event_name_hint": "अपने कैलेंडर में कार्यक्रम जोड़ें",
+  "calendar_repeat": "दोहराएँ",
+  "calendar_does_not_repeat": "दोहराया नहीं जाता",
+  "calendar_repeat_weekly": "साप्ताहिक",
+  "calendar_repeat_monthly": "मासिक",
+  "calendar_repeat_yearly": "वार्षिक",
+  "calendar_repeat_monthly_lunar": "मासिक (चंद्र तिथि {day})",
+  "@calendar_repeat_monthly_lunar": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_repeat_yearly_lunar": "वार्षिक (चंद्र तिथि)",
+  "calendar_delete_event": "कार्यक्रम हटाएँ",
+  "calendar_delete_event_title": "कार्यक्रम हटाएँ?",
+  "calendar_delete_event_body": "\"{title}\" आपके कैलेंडर से हटा दिया जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
+  "@calendar_delete_event_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_delete_repeating_title": "दोहराया जाने वाला कार्यक्रम हटाएँ?",
+  "calendar_delete_repeating_body": "\"{title}\" ({repeat}) की सभी तिथियाँ आपके कैलेंडर से हटा दी जाएँगी। इसे पूर्ववत नहीं किया जा सकता।",
+  "@calendar_delete_repeating_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "repeat": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_event_deleted": "कार्यक्रम हटा दिया गया",
   "moon_phase_new_moon": "अमावस्या",
   "moon_phase_first_quarter": "प्रथम चतुर्थांश",
   "moon_phase_full_moon": "पूर्णिमा",
@@ -636,22 +721,22 @@
   "group_members_empty": "अभी कोई सदस्य नहीं",
   "group_member_admin": "एडमिन",
   "group_remove_member": "{name} को हटाएँ",
-  "group_remove_member_title": "स्पेस से हटाएँ?",
-  "group_remove_member_message": "{name} को इस स्पेस से हटा दिया जाएगा और प्रतिबंध हटने तक वे फिर से शामिल नहीं हो पाएँगे",
-  "group_remove_member_blocked_for": "प्रतिबंध अवधि:",
+  "group_remove_member_title": "{name} को हटाएँ",
+  "group_remove_member_message": "उन्हें इस स्पेस से हटा दिया जाएगा और वे {duration} तक फिर से शामिल नहीं हो पाएँगे।",
+  "group_remove_member_blocked_for": "फिर से शामिल होने पर रोक",
   "group_remove_member_duration_day": "1 दिन",
   "group_remove_member_duration_days": "{count} दिन",
   "group_remove_member_duration_year": "1 वर्ष",
   "group_remove_member_reason_label": "कारण (वैकल्पिक)",
-  "group_remove_member_reason_hint": "कुछ और...",
-  "group_remove_member_action": "हटाएँ",
+  "group_remove_member_reason_hint": "आप इस सदस्य को क्यों हटा रहे हैं?",
+  "group_remove_member_action": "सदस्य हटाएँ",
   "group_remove_member_success": "{name} को स्पेस से हटा दिया गया",
   "group_remove_member_error": "इस सदस्य को हटाया नहीं जा सका। पुनः प्रयास करें",
   "group_join_banned_until": "आपको इस स्पेस से हटा दिया गया था और आप {date} तक फिर से शामिल नहीं हो सकते",
-  "group_join_banned": "आपको इस स्पेस से हटा दिया गया था और प्रतिबंध हटने तक आप फिर से शामिल नहीं हो सकते",
+  "group_join_banned": "आपको इस स्पेस से हटा दिया गया था और आप अभी फिर से शामिल नहीं हो सकते",
   "group_removed_title": "आपको इस स्पेस से हटा दिया गया है",
   "group_removed_message": "{group} के एक एडमिन ने आपको इस स्पेस से हटा दिया है। आप इसकी पोस्ट, कार्यक्रम और अभ्यास नहीं देख पाएँगे और {duration} तक फिर से शामिल होने का अनुरोध भी नहीं कर पाएँगे।",
-  "group_removed_message_no_date": "{group} के एक एडमिन ने आपको इस स्पेस से हटा दिया है। आप इसकी पोस्ट, कार्यक्रम और अभ्यास नहीं देख पाएँगे और फिर से शामिल होने का अनुरोध भी नहीं कर पाएँगे",
+  "group_removed_message_no_date": "{group} के एक एडमिन ने आपको इस स्पेस से हटा दिया है। जब तक कोई एडमिन अनुमति न दे, आप फिर से शामिल नहीं हो पाएँगे",
   "group_removed_rejoin_label": "आप इस स्पेस में शामिल होने का अनुरोध इस तारीख को कर सकते हैं",
   "group_removed_rejoin_value": "{date} · {remaining}",
   "group_removed_day_left": "1 दिन बाकी",
@@ -690,7 +775,7 @@
   "group_accumulator_session_share_message": "मैंने WeBuddhist पर {group} स्पेस के संचय \"{accumulation}\" में {count} जाप पूरे किए। आप भी मेरे साथ जुड़ें!",
   "group_accumulator_session_share_message_no_group": "मैंने WeBuddhist पर \"{accumulation}\" संचय में {count} जाप पूरे किए। आप भी मेरे साथ जुड़ें!",
   "group_accumulator_session_share_error": "सत्र साझा नहीं कर सके। कृपया पुनः प्रयास करें",
-  "share_this_quote": "यह उद्धरण शेयर करें",
+  "share_this_verse": "यह श्लोक शेयर करें",
   "shared_from": "यहाँ से शेयर किया गया",
   "verse_share_error": "उद्धरण शेयर नहीं हो सका। कृपया फिर से प्रयास करें",
   "share_app_message": "मैं इस ऐप का उपयोग दैनिक बौद्ध अभ्यास बनाने के लिए कर रहा हूँ, और मुझे लगा कि आपको यह पसंद आएगा।",
@@ -977,7 +1062,7 @@
   "event_prayer_empty_title": "अभी तक कोई प्रार्थना अनुरोध नहीं",
   "event_prayer_empty_body": "आपका अनुरोध और आपके स्पेस के अनुरोध यहाँ दिखाई देंगे",
   "event_prayer_add": "प्रार्थना अनुरोध जोड़ें",
-  "event_prayer_hint": "आज हम आपके लिए कैसे प्रार्थना कर सकते हैं?",
+  "event_prayer_hint": "प्रार्थना अनुरोध साझा करें",
   "event_prayer_load_failed": "प्रार्थना अनुरोध लोड नहीं किए जा सके",
   "event_prayer_closed": "इस कार्यक्रम के लिए प्रार्थना अनुरोध बंद हैं",
   "event_prayer_pray": "प्रार्थना करें",
@@ -1120,7 +1205,7 @@
   "group_leave_space_confirm_title": "यह स्पेस छोड़ें?",
   "group_leave_space_failed": "स्पेस छोड़ा नहीं जा सका। पुनः प्रयास करें",
   "group_accumulator_join_before_practice": "इसे अपने अभ्यास में जोड़ने से पहले इस संचय में शामिल हों",
-  "group_recitation_collection_share_message": "WeBuddhist पर {group} स्पेस का पाठ संग्रह \"{collection}\" देखें। अभ्यास में हमारे साथ जुड़ें!",
+  "group_recitation_collection_share_message": "WeBuddhist पर {group} की जप पुस्तक \"{collection}\" देखें। अभ्यास में हमारे साथ जुड़ें!",
   "@group_recitation_collection_share_message": {
     "placeholders": {
       "collection": {
@@ -1131,7 +1216,7 @@
       }
     }
   },
-  "group_recitation_collection_share_message_no_group": "WeBuddhist पर पाठ संग्रह \"{collection}\" देखें। अभ्यास में हमारे साथ जुड़ें!",
+  "group_recitation_collection_share_message_no_group": "WeBuddhist पर जप पुस्तक \"{collection}\" देखें। अभ्यास में हमारे साथ जुड़ें!",
   "@group_recitation_collection_share_message_no_group": {
     "placeholders": {
       "collection": {
@@ -1141,7 +1226,7 @@
   },
   "bookmarks_empty_group_accumulations_title": "अभी तक कोई स्पेस संचय बुकमार्क नहीं किया गया",
   "bookmarks_empty_group_accumulations_subtitle": "इसे यहाँ सहेजने के लिए किसी संचय को बुकमार्क करें",
-  "practice_collection_already_added": "यह संग्रह पहले से आपके अभ्यास में है",
+  "chant_book_already_in_practices": "यह जप पुस्तक पहले से आपके अभ्यास में है",
   "practice_group_accumulator_already_added": "यह संचय पहले से आपके अभ्यास में है",
   "group_member_owner": "स्वामी",
   "reader_display_title": "प्रदर्शन",
@@ -1177,7 +1262,7 @@
   "chants_filter_all": "सभी",
   "chants_chant_books": "जप पुस्तकें",
   "chants_filter_single_chants": "एकल जप",
-  "chants_my_chant_books": "मेरी जप पुस्तकें",
+  "chants_my_chant_books_title": "मेरी जप पुस्तकें",
   "chants_text_only": "केवल पाठ वाले जप",
   "chants_from_your_spaces": "आपके स्पेस से",
   "chants_explore_more": "और देखें",
@@ -1185,7 +1270,7 @@
   "chants_open_chant": "जप खोलें",
   "chants_your_spaces": "आपके स्पेस",
   "chants_other_spaces": "अन्य स्पेस",
-  "chants_search_hint": "जप और जप पुस्तकें खोजें",
+  "chants_search_hint_chant_books": "जप और जप पुस्तकें खोजें",
   "chants_cant_find": "जो पाठ आप ढूँढ रहे हैं वह नहीं मिला?",
   "chants_request_text": "पाठ का अनुरोध करें",
   "chants_request_done": "अनुरोध भेजा गया",
@@ -1194,5 +1279,58 @@
   "chants_with_audio": "ऑडियो वाले जप",
   "chants_audio_chants": "ऑडियो जप",
   "reader_no_resources_title": "इस खंड के लिए कोई टीका या संस्करण उपलब्ध नहीं है",
-  "reader_no_resources_subtitle": "हम नियमित रूप से नए ग्रंथ जोड़ते हैं; जल्द ही फिर देखें"
+  "reader_no_resources_subtitle": "हम नियमित रूप से नए ग्रंथ जोड़ते हैं; जल्द ही फिर देखें",
+  "mala_section_practice": "अभ्यास",
+  "mala_section_appearance": "रूप-रंग",
+  "mala_section_save_share": "सहेजें और साझा करें",
+  "mala_mantra_animation": "मंत्र एनिमेशन",
+  "mala_play_animation": "एनिमेशन चलाएँ",
+  "mala_speed": "गति",
+  "mala_animation_off": "बंद",
+  "mala_bead_style": "मनके की शैली",
+  "mala_bead_default": "डिफ़ॉल्ट",
+  "mala_use_this_style": "यह शैली इस्तेमाल करें",
+  "mala_bead_style_updated": "मनके की शैली अपडेट हो गई",
+  "mala_change_image": "छवि बदलें",
+  "mala_use_image": "इस्तेमाल करें",
+  "mala_restore_default_image": "डिफ़ॉल्ट पर लौटाएँ",
+  "mala_image_updated": "छवि अपडेट हो गई",
+  "mala_images_empty": "कोई छवि उपलब्ध नहीं",
+  "mala_images_load_error": "छवियाँ लोड नहीं हो सकीं",
+  "mala_bookmarked": "बुकमार्क किया गया",
+  "mala_beads_load_error": "मनके की शैलियाँ लोड नहीं हो सकीं",
+  "mala_appearance_save_failed": "सहेजा नहीं जा सका। कृपया फिर से प्रयास करें",
+  "session_search_plans_hint": "योजनाएँ खोजें",
+  "session_search_chants_hint": "जप खोजें",
+  "session_search_malas_hint": "मालाएँ खोजें",
+  "session_search_timers_hint": "नाम या अवधि से टाइमर खोजें",
+  "search_min_query_length": "खोजने के लिए कम से कम {count} अक्षर लिखें",
+  "splash_tagline_1": "हम बौद्ध साथ मिलकर साधना करते हैं",
+  "splash_tagline_2": "हम बौद्ध प्रतिदिन साधना करते हैं",
+  "practice_next_session": "अगला सत्र",
+  "practice_more_in_session": "इस सत्र में +{count} और",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "आपके स्पेस से",
+  "practice_discover_more": "और खोजें",
+  "practice_space_accumulations": "स्पेस संचय",
+  "practice_no_space_accumulations": "अभी अन्य स्पेस से कोई संचय नहीं है",
+  "practice_search_hint": "अभ्यास खोजें",
+  "practice_search_recent": "हाल ही में",
+  "practice_search_no_results": "\"{query}\" के लिए कोई परिणाम नहीं",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "लोकप्रिय अभ्यास",
+  "practice_start_routine": "दिनचर्या शुरू करें",
+  "practice_start_routine_hint": "या किसी अभ्यास पर टैप करके \"मेरे अभ्यास में जोड़ें\" चुनें।"
 }

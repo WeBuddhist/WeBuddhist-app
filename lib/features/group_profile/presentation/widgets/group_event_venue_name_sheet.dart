@@ -24,11 +24,8 @@ class GroupEventVenueNameSheet extends StatefulWidget {
   }) {
     return GroupEventSheet.show<GroupEventVenueDraft>(
       context,
-      builder:
-          (_) => GroupEventVenueNameSheet(
-            venue: venue,
-            onChangePlace: onChangePlace,
-          ),
+      builder: (_) =>
+          GroupEventVenueNameSheet(venue: venue, onChangePlace: onChangePlace),
     );
   }
 
@@ -58,8 +55,9 @@ class _GroupEventVenueNameSheetState extends State<GroupEventVenueNameSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final name = _name.text.trim();
@@ -70,12 +68,10 @@ class _GroupEventVenueNameSheetState extends State<GroupEventVenueNameSheet> {
       footer: GroupEventSheet.primaryButton(
         context,
         label: l10n.group_event_save_venue,
-        onPressed:
-            name.isEmpty
-                ? null
-                : () => Navigator.of(
-                  context,
-                ).pop(widget.venue.copyWith(name: name)),
+        onPressed: name.isEmpty
+            ? null
+            : () =>
+                  Navigator.of(context).pop(widget.venue.copyWith(name: name)),
       ),
       child: SingleChildScrollView(
         child: Column(
@@ -149,10 +145,9 @@ class _GroupEventVenueNameSheetState extends State<GroupEventVenueNameSheet> {
                       hintText: l10n.group_event_venue_name_hint,
                       hintStyle: TextStyle(fontSize: 16, color: secondaryColor),
                       filled: true,
-                      fillColor:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.surfaceWhite,
+                      fillColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.surfaceWhite,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: borderColor),
@@ -160,10 +155,9 @@ class _GroupEventVenueNameSheetState extends State<GroupEventVenueNameSheet> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color:
-                              isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimary,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.textPrimary,
                         ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(

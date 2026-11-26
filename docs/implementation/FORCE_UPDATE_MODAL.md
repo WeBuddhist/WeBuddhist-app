@@ -121,3 +121,39 @@ const debugDisplayAlways = true; // revert to false before shipping
 - **Any newer store version is treated as mandatory.** There is no backend-driven `min_supported_version` flag. If you need selective enforcement (e.g. patch versions optional, minor versions forced), add a `min_supported_version` field to the `/props` endpoint and compare against `PackageInfo.version`.
 - **Store version detection requires network.** Users who launch offline are not blocked until the next resume with a successful lookup — acceptable behaviour, since they couldn't update anyway.
 - **iOS iTunes lookup can lag** up to ~30 minutes after a new release is published. The modal will not appear until the lookup returns the new version.
+- **Staged / phased rollouts can lock users out.** The Play Store listing advertises the new version to everyone as soon as it is published, but a user outside a staged-rollout percentage is offered no "Update" button on the store page. Such a user is blocked by the modal with no way forward. Publish to 100% on Play, or add a backend-driven minimum version before using staged rollouts. iOS phased releases are safer: a user can always update manually from the App Store page.
+- **iOS lookup is per storefront.** The lookup uses the device's locale country (falling back to `US`). If the app is not listed in that country's App Store, no version is returned and the user is not blocked.
+
+---
+
+## Version History
+
+Which installed versions are actually blocked depends on the code they contain, not just on the store version.
+
+| Installed version | Behaviour |
+|-------------------|-----------|
+| < 2.6.0 | No update check exists. These users can never be forced to update. |
+| 2.6.0 – 2.31.2 | Modal is pushed with `showDialog` and GoRouter removes it on the first redirect; Android back also bypasses it. Users see the modal flash and can keep using the app. |
+| ≥ 2.31.3 (build 35, 2026-09-25) | Fully enforced. Both fixes shipped here: stacked modal (`0f8aa98de`) and Android back swallowing (`2e10f5036`). |
+
+Original implementation: `9027c1d64` (2026-06-08), first released in 2.6.0.
+
+---
+
+## Manual Verification
+
+A release build whose version is below the store version must show the modal over the splash screen within a few seconds of launch, survive backgrounding and resume, and ignore the back button / back gesture. The prod flavor is required so the bundle id / application id (`org.pecha.app`) matches the store listing; dev and staging ids have no listing and are never blocked.
+
+```sh
+# Pick a device with `flutter devices`. Requires prod signing.
+flutter run --release --flavor prod -t lib/main_prod.dart -d <device-id>
+```
+
+The current store version can be checked without a device:
+
+```sh
+# App Store (country must match the device storefront)
+curl -s 'https://itunes.apple.com/lookup?bundleId=org.pecha.app&country=US' | python3 -c 'import sys,json; print([r["version"] for r in json.load(sys.stdin)["results"]])'
+# Play Store
+curl -sL -A 'Mozilla/5.0' 'https://play.google.com/store/apps/details?id=org.pecha.app&hl=en' | grep -oE '\[\[\["[0-9]+\.[0-9]+(\.[0-9]+)?"\]\]' | head -1
+```

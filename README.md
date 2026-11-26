@@ -31,8 +31,15 @@ forced-update prompt (`upgrader`).
 ## 📦 Getting Started
 
 ### Requirements
-- Flutter **3.41.9** (stable) — the version CI pins in `.github/workflows/*.yml`
-  (Dart SDK constraint in `pubspec.yaml`: `^3.7.2`)
+- Flutter **3.41.9** (stable). Everyone uses this one version, the one CI
+  builds with. `flutter pub get` fails on an older Flutter (`pubspec.yaml`),
+  and CI fails when `pubspec.lock` was made with a newer one
+  (`--enforce-lockfile`). With [FVM](https://fvm.app), run
+  `fvm use` to get it from `.fvmrc`.
+  To move to a new version, change it in one PR in every place it is set:
+  `pubspec.yaml`, `.fvmrc`, `.github/workflows/*.yml` and
+  this line, then run `flutter pub get` on the new version and commit
+  `pubspec.lock`.
 - Xcode (iOS/macOS) and Android Studio / JDK 17 (Android)
 
 ### 1. Clone the repository
@@ -360,9 +367,9 @@ and [`lib/core/config/router/README.md`](lib/core/config/router/README.md).
 | Workflow | Trigger | What it does |
 | --- | --- | --- |
 | `ci.yml` | PR into `develop` / `main` | Tolgee bridge check, ARB doctor, `flutter analyze`, `flutter test` |
-| `release-dev.yml` | push to `develop` | Previews the next version, builds the **dev** flavor, uploads to Play internal + TestFlight |
-| `release-prod.yml` | push to `main` | Bumps the version (committed + tagged), builds the **prod** flavor, uploads to stores, creates a GitHub release |
-| `build-android.yml` / `build-ios.yml` | called by the release workflows | Signed build per flavor; `.env.*` written by `ci/scripts/create_env_files.sh` from secrets |
+| `release-prod.yml` | push to `main` | Bumps the version (committed to `main`), builds `org.pecha.app` against the **testing** server, uploads to TestFlight + Play internal |
+| `release-prod.yml` | push a `vX.Y.Z` tag | Builds against the **prod** server, submits for App Store review (auto-release), Play production at 100%, GitHub Release. See [CONTRIBUTING.md](CONTRIBUTING.md) |
+| `build-android.yml` / `build-ios.yml` | called by `release-prod.yml` | Signed `org.pecha.app` build for one server; `.env.<server>` written by `ci/scripts/create_env_files.sh` (URLs in the script, keys from secrets) |
 | `tolgee-sync.yml` | weekly / manual | Syncs ARB ↔ Tolgee and opens a PR |
 | `code-review.yml` | PRs, PR comments, pushes to `main` | Automated code review (Amchi) |
 

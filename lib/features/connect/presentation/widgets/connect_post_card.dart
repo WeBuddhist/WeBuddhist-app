@@ -351,7 +351,7 @@ class _ConnectPostCardState extends ConsumerState<ConnectPostCard> {
 
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'post_like');
       return;
     }
 
@@ -366,6 +366,7 @@ class _ConnectPostCardState extends ConsumerState<ConnectPostCard> {
           optimisticLikeCount: _likeCount,
           includeUnfollowed: widget.includeUnfollowed,
           groupId: widget.groupId,
+          surface: 'card',
         );
 
     if (!mounted) return;

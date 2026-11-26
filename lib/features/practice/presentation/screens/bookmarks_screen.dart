@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/practice/data/models/bookmark_models.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/bookmark_card.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/filter_pill.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
+import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -51,8 +53,8 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
       context.l10n.bookmarks_empty_plans_subtitle,
     ),
     BookmarkTab.chants => (
-      context.l10n.bookmarks_empty_chant_collections_title,
-      context.l10n.bookmarks_empty_chant_collections_subtitle,
+      context.l10n.chant_book_bookmarks_empty_title,
+      context.l10n.chant_book_bookmarks_empty_subtitle,
     ),
     BookmarkTab.mala => (
       context.l10n.bookmarks_empty_malas_title,
@@ -75,6 +77,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
   @override
   void initState() {
     super.initState();
+    ref.read(practiceAnalyticsProvider).bookmarksOpened();
     _tabs = ref.read(bookmarksProvider).visibleTabs;
     _tabController = TabController(length: _tabs.length, vsync: this);
   }
@@ -137,7 +140,10 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
         final textId = bookmark.textId ?? bookmark.sourceId;
         context.push(
           '/reader/$textId',
-          extra: NavigationContext(source: NavigationSource.normal),
+          extra: const NavigationContext(
+            source: NavigationSource.normal,
+            fromBookmarks: true,
+          ),
         );
       case BookmarkItemType.series:
         context.pushNamed(
@@ -159,7 +165,13 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
           ),
         );
       case BookmarkItemType.accumulator:
-        context.push('/mala', extra: {'presetId': bookmark.sourceId});
+        context.push(
+          '/mala',
+          extra: {
+            'presetId': bookmark.sourceId,
+            'source': MalaOpenSource.bookmarks,
+          },
+        );
       case BookmarkItemType.groupRecitationCollection:
         final groupId = bookmark.groupId;
         if (groupId == null || groupId.isEmpty) return;
@@ -190,7 +202,7 @@ class _BookmarksScreenState extends ConsumerState<BookmarksScreen>
     if (preferred != null && preferred.trim().isNotEmpty) {
       return preferred.trim();
     }
-    return context.l10n.my_recitation_collection_fallback_title;
+    return context.l10n.chant_book_fallback_title;
   }
 
   @override

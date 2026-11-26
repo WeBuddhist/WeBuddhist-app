@@ -36,6 +36,8 @@ class ProtectedRoutes {
 
     // Community group chat (REST).
     '/chat/',
+    // v2 chat: rooms inbox with per-type unread, mark read by type.
+    '${ApiConfig.chatV2Path}/',
 
     // Timers
     '/timers',
@@ -56,6 +58,14 @@ class ProtectedRoutes {
     '/accumulators/', // Catch-all: detail, create (/user), update (/user/{id})
     // Group accumulator counts (submit requires auth).
     '/group-accumulators/', // Catch-all: POST count, GET detail, etc.
+    // Mala appearance (v2). A space's own mantra needs the token for its
+    // images, and the mala screen is login-gated, so all of these send it.
+    '${ApiConfig.mantrasV2Path}/',
+    ApiConfig.malaSkinsV2Path,
+    '${ApiConfig.userMantrasV2Path}/',
+    // v2 preset catalogue: without the token every `last_used_at` is null and
+    // the server can't filter by the user's saved traditions.
+    ApiConfig.accumulationsV2Path,
     // Group join / follow
     '/author/groups/{groupId}/join',
     '/author/groups/{groupId}/follow',
@@ -91,6 +101,9 @@ class ProtectedRoutes {
     // In-app feedback: the backend takes the sender from the token.
     '/feedback',
 
+    // v2 home feed: personalised per member, 403 without the token.
+    ApiConfig.feedV2Path,
+
     // "Request text" from Chants search: needs a signed-in user (the server
     // rate-limits per user).
     '/text-requests',
@@ -105,6 +118,9 @@ class ProtectedRoutes {
   /// The token is sent when the user is authenticated; silently skipped for guests.
   static const List<String> optionalPaths = [
     '/plans/{planId}/days',
+    // Poems feed: public for guests (All traditions poems only); with a token
+    // the backend adds poems for the caller's saved traditions.
+    '/poems',
     // Verse of the day: public for guests; when logged in, Bearer + existing
     // X-Timezone lets the backend upsert user_metadata.timezone.
     '/verse-of-day/today',
@@ -137,6 +153,9 @@ class ProtectedRoutes {
     '/groups/author/posts/{postId}/comments',
     // Group feeds: sends auth when logged in for user-specific fields.
     '/author/groups/feeds',
+    // v2 spaces feed (Home's guest feed): same `liked_by_me` / `is_joined`
+    // enrichment when a token is present.
+    ApiConfig.spacesFeedV2Path,
   ];
 
   /// Check if a given path is protected (requires authentication).

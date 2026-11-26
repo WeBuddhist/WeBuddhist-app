@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/analytics/share_analytics.dart';
-import 'package:flutter_pecha/core/config/router/app_routes.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/deep_linking/deep_link_url_builder.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
@@ -20,8 +19,6 @@ import 'package:flutter_pecha/features/connect/domain/entities/connect_post.dart
 import 'package:flutter_pecha/features/connect/presentation/utils/connect_analytics.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_feed_card_layout.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_practice_card.dart';
-import 'package:flutter_pecha/features/group_chat/domain/prayer_room_scope.dart';
-import 'package:flutter_pecha/features/group_chat/presentation/widgets/prayer_requests_sheet.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_accumulator.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_event_cms_item.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
@@ -36,7 +33,9 @@ import 'package:flutter_pecha/features/group_profile/presentation/screens/group_
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_event_composer_screen.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/screens/group_post_composer_screen.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_analytics.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_member_menu.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_join_request_drawer.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_notification_settings_drawer.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_join_requests_row.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_reports_row.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_events_tab.dart';
@@ -51,22 +50,31 @@ import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_
 import 'package:flutter_pecha/features/home/presentation/providers/series_enrollment_provider.dart';
 import 'package:flutter_pecha/features/plans/presentation/widgets/plan_inline_markdown_view.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_pecha/core/utils/network_image_utils.dart';
+import 'package:flutter_pecha/core/config/router/app_routes.dart';
 
 class GroupProfileBody extends ConsumerStatefulWidget {
   final GroupProfile profile;
   final bool isDark;
   final VoidCallback? onSeriesTap;
 
+  /// Opens a community scrolled past its header, with only the app bar and
+  /// the pinned tabs above the feed; scrolling up reveals the header. Set by
+  /// the Connect tab for a space it has opened before (its landing rule).
+  /// Read once, when the tabs are first laid out.
+  final bool startCollapsed;
+
   const GroupProfileBody({
     super.key,
     required this.profile,
     required this.isDark,
     this.onSeriesTap,
+    this.startCollapsed = false,
   });
 
   @override
@@ -82,6 +90,20 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     with TickerProviderStateMixin {
   TabController? _tabController;
   List<_GroupProfileTab> _visibleTabs = const [];
+
+  /// The community page's outer scroll, the one that moves the header.
+  final ScrollController _outerScrollController = ScrollController();
+
+  /// The outer offset [GroupProfileBody.startCollapsed] left the page at,
+  /// null until the first jump. The header can still grow after it (an
+  /// admin's reports row arriving, a cached profile replaced by a fresh
+  /// one), so the end is re-pinned on later builds while the member has
+  /// not scrolled away from it.
+  double? _collapsedOffset;
+
+  /// Set once the member scrolls the collapsed page (or scrolled before it
+  /// could collapse), so [startCollapsed] never fights their own scrolling.
+  bool _collapseSettled = false;
 
   /// Last tab reported, so settling twice or rebuilding the controller when
   /// the tab set changes does not report the same tab again.
@@ -181,10 +203,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     final previous = _tabController;
     if (previous != null && listEquals(_visibleTabs, tabs)) return;
 
-    final selectedTab =
-        previous != null && previous.index < _visibleTabs.length
-            ? _visibleTabs[previous.index]
-            : null;
+    final selectedTab = previous != null && previous.index < _visibleTabs.length
+        ? _visibleTabs[previous.index]
+        : null;
     var initialIndex = selectedTab == null ? -1 : tabs.indexOf(selectedTab);
     if (initialIndex < 0) initialIndex = tabs.indexOf(_GroupProfileTab.posts);
     if (initialIndex < 0) {
@@ -257,25 +278,23 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   }
 
   void _syncPracticeEnrollmentFromList(List<GroupPractice> practices) {
-    final accumulators =
-        practices
-            .where((practice) => practice.type == GroupPracticeType.accumulator)
-            .map((practice) => practice.accumulator)
-            .whereType<GroupAccumulator>()
-            .toList();
+    final accumulators = practices
+        .where((practice) => practice.type == GroupPracticeType.accumulator)
+        .map((practice) => practice.accumulator)
+        .whereType<GroupAccumulator>()
+        .toList();
     ref
         .read(groupAccumulatorJoinCacheProvider(widget.profile.id).notifier)
         .syncFromApi(accumulators);
 
-    final apiEnrolledIds =
-        practices
-            .where(
-              (practice) =>
-                  practice.series != null &&
-                  practice.series!.isGroupEnrolled == true,
-            )
-            .map((practice) => practice.series!.id)
-            .toSet();
+    final apiEnrolledIds = practices
+        .where(
+          (practice) =>
+              practice.series != null &&
+              practice.series!.isGroupEnrolled == true,
+        )
+        .map((practice) => practice.series!.id)
+        .toSet();
     final apiNotEnrolledIds = practices
         .where(
           (practice) =>
@@ -311,7 +330,39 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     _membersNeedsRefreshSub?.close();
     _tabController?.removeListener(_onTabChanged);
     _tabController?.dispose();
+    _outerScrollController.dispose();
     super.dispose();
+  }
+
+  /// Scrolls the header away, from the first frame the tabs are laid out.
+  /// The outer scroll's end is exactly the header's scrollable height (the
+  /// pinned tab bar stays), so nothing needs measuring. Called from every
+  /// build so a header that grows after the first jump is scrolled away
+  /// too; it stops as soon as the member scrolls the page themselves.
+  void _maybeStartCollapsed() {
+    if (!widget.startCollapsed || _collapseSettled) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _collapseSettled || !_outerScrollController.hasClients) {
+        return;
+      }
+      final position = _outerScrollController.position;
+      final pinned = _collapsedOffset;
+      final memberScrolled = pinned == null
+          ? position.pixels > 0
+          : position.pixels != pinned;
+      if (memberScrolled) {
+        _collapseSettled = true;
+        return;
+      }
+      final end = position.maxScrollExtent;
+      if (end == pinned) return;
+      _outerScrollController.jumpTo(end);
+      _collapsedOffset = end;
+      // The title's position is only current after the next layout.
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _syncAppBarTitleVisibility(),
+      );
+    });
   }
 
   void _syncAppBarTitleVisibility() {
@@ -323,8 +374,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     final renderBox = titleContext.findRenderObject() as RenderBox?;
     if (renderBox == null || !renderBox.hasSize) return;
 
-    final titleBottom =
-        renderBox.localToGlobal(Offset(0, renderBox.size.height)).dy;
+    final titleBottom = renderBox
+        .localToGlobal(Offset(0, renderBox.size.height))
+        .dy;
     final collapseThreshold =
         MediaQuery.paddingOf(titleContext).top + _groupProfileAppBarHeight;
     final shouldShow = titleBottom <= collapseThreshold;
@@ -464,9 +516,8 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     // Keep the events tab when loading failed so its retry action stays
     // reachable.
     final hasEvents = eventsAsync.maybeWhen(
-      data:
-          (either) =>
-              either.fold((_) => true, (page) => page.events.isNotEmpty),
+      data: (either) =>
+          either.fold((_) => true, (page) => page.events.isNotEmpty),
       error: (_, _) => true,
       orElse: () => false,
     );
@@ -508,6 +559,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     ];
     if (!isTabDataLoading) _syncTabController(tabs);
     final controller = _tabController;
+    if (controller != null) _maybeStartCollapsed();
 
     return RefreshIndicator(
       onRefresh: () => _onRefresh(profile),
@@ -520,6 +572,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
           return false;
         },
         child: NestedScrollView(
+          controller: _outerScrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           headerSliverBuilder: (context, _) {
             final slivers = <Widget>[
@@ -544,8 +597,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
                     pinned: true,
                     delegate: _GroupProfileTabBarDelegate(
                       tabBar: _buildTabBar(isDark, profile),
-                      backgroundColor:
-                          Theme.of(context).scaffoldBackgroundColor,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).scaffoldBackgroundColor,
                     ),
                   ),
                 ),
@@ -558,23 +612,23 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
               // No controller means no SliverOverlapAbsorber in the header,
               // so the nested-tab skeleton (which injects) would throw.
               controller == null
-                  ? const GroupProfileTabSkeleton.box(
-                    variant: GroupProfileTabSkeletonVariant.feed,
-                    itemCount: 2,
-                  )
-                  : TabBarView(
-                    controller: controller,
-                    children: [
-                      for (final tab in _visibleTabs)
-                        _buildTabContent(
-                          tab,
-                          profile,
-                          isDark,
-                          lineHeight,
-                          canPost: canPost,
-                        ),
-                    ],
-                  ),
+              ? const GroupProfileTabSkeleton.box(
+                  variant: GroupProfileTabSkeletonVariant.feed,
+                  itemCount: 2,
+                )
+              : TabBarView(
+                  controller: controller,
+                  children: [
+                    for (final tab in _visibleTabs)
+                      _buildTabContent(
+                        tab,
+                        profile,
+                        isDark,
+                        lineHeight,
+                        canPost: canPost,
+                      ),
+                  ],
+                ),
         ),
       ),
     );
@@ -614,28 +668,27 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
             ),
             SliverFillRemaining(
               hasScrollBody: false,
-              child:
-                  removal != null
-                      ? Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: GroupRemovedNoticeCard(
-                            groupTitle: profile.title,
-                            expiresAt: removal.expiresAt,
-                            isDark: isDark,
-                            lineHeight: lineHeight,
-                          ),
-                        ),
-                      )
-                      : Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: _buildRestrictedMessage(
-                          isDark,
-                          lineHeight,
-                          profile.myJoinRequestStatus,
+              child: removal != null
+                  ? Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: GroupRemovedNoticeCard(
+                          groupTitle: profile.title,
+                          expiresAt: removal.expiresAt,
+                          isDark: isDark,
+                          lineHeight: lineHeight,
                         ),
                       ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: _buildRestrictedMessage(
+                        isDark,
+                        lineHeight,
+                        profile.myJoinRequestStatus,
+                      ),
+                    ),
             ),
           ],
         ),
@@ -746,10 +799,12 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     GroupJoinRequestStatus? joinRequestStatus,
   ) {
     final isPending = joinRequestStatus == GroupJoinRequestStatus.pending;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Center(
       child: Column(
@@ -851,7 +906,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   Future<void> _onCreatePost(GroupProfile profile) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_post_create');
       return;
     }
     if (!_canPublishPosts(profile)) return;
@@ -869,7 +924,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   Future<void> _onCreateEvent(GroupProfile profile) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_event_create');
       return;
     }
     if (!_canPublishPosts(profile)) return;
@@ -901,7 +956,11 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     ref.invalidate(groupEventsProvider(profile.id));
     ref.invalidate(groupCmsEventsProvider(profile.id));
     if (result.isDraft) _showPostSnackBar(context.l10n.group_event_draft_saved);
-    if (result.openEvent) context.push('/home/events/${result.event.id}');
+    if (result.openEvent) {
+      context.push(
+        AppRoutes.groupEventPath(result.event.id, source: 'created'),
+      );
+    }
   }
 
   Future<void> _onDeleteDraft(
@@ -909,6 +968,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     GroupEventCmsItem item,
   ) async {
     final l10n = context.l10n;
+    final analytics = ref.read(groupEventAnalyticsProvider);
     final success = await showDestructiveConfirmationDialog(
       context,
       title: l10n.group_event_draft_delete_title,
@@ -920,6 +980,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
         return result.isRight();
       },
     );
+    if (success == true) {
+      analytics.eventDeleted(eventId: item.event.id, groupId: profile.id);
+    }
     if (!mounted || success == null) return;
     if (success) {
       ref.invalidate(groupCmsEventsProvider(profile.id));
@@ -959,8 +1022,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     return ConnectPost(
       id: post.id,
       groupId: post.groupId.isNotEmpty ? post.groupId : profile.id,
-      groupName:
-          post.groupName.trim().isNotEmpty ? post.groupName : profile.title,
+      groupName: post.groupName.trim().isNotEmpty
+          ? post.groupName
+          : profile.title,
       groupAvatarUrl: post.groupAvatarUrl ?? profile.avatarUrl,
       caption: post.caption,
       status: post.status,
@@ -986,8 +1050,8 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   GroupProfile _resolveProfile() {
     final freshProfile = ref.watch(groupProfileProvider(widget.profile.id));
     return freshProfile.maybeWhen(
-      data:
-          (either) => either.fold((_) => widget.profile, (profile) => profile),
+      data: (either) =>
+          either.fold((_) => widget.profile, (profile) => profile),
       orElse: () => widget.profile,
     );
   }
@@ -1005,29 +1069,30 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     double? lineHeight,
     List<GroupProfileSocialLink> orderedLinks,
   ) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
     final memberCount = profile.memberOrFollowerCount;
-    final memberLabel =
-        profile.groupType.isPage
-            ? (memberCount == 1
-                ? context.l10n.group_follower
-                : context.l10n.group_followers)
-            : (memberCount == 1
-                ? context.l10n.group_member
-                : context.l10n.group_members);
+    final memberLabel = profile.groupType.isPage
+        ? (memberCount == 1
+              ? context.l10n.group_follower
+              : context.l10n.group_followers)
+        : (memberCount == 1
+              ? context.l10n.group_member
+              : context.l10n.group_members);
     final formattedCount = _formatCompactCount(
       memberCount,
       intlFormatLocaleOf(context),
     );
-    final countLabel =
-        context.isTibetanLocale
-            ? '$memberLabel ${toTibetanDigits(formattedCount)}'
-            : '$formattedCount $memberLabel';
-    final aboutDescription =
-        _isCommunityGroup(profile) ? _aboutDescription(profile) : null;
+    final countLabel = context.isTibetanLocale
+        ? '$memberLabel ${toTibetanDigits(formattedCount)}'
+        : '$formattedCount $memberLabel';
+    final aboutDescription = _isCommunityGroup(profile)
+        ? _aboutDescription(profile)
+        : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -1043,15 +1108,15 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
                   height: 44,
                   child:
                       profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty
-                          ? CachedNetworkImageWidget(
-                            key: networkImageKey(profile.avatarUrl),
-                            imageUrl: profile.avatarUrl,
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                            errorWidget: _buildAvatarFallback(isDark),
-                          )
-                          : _buildAvatarFallback(isDark),
+                      ? CachedNetworkImageWidget(
+                          key: networkImageKey(profile.avatarUrl),
+                          imageUrl: profile.avatarUrl,
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.cover,
+                          errorWidget: _buildAvatarFallback(isDark),
+                        )
+                      : _buildAvatarFallback(isDark),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1125,8 +1190,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     bool isDark,
     double? lineHeight,
   ) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1153,12 +1219,11 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
           Navigator.of(context).push(
             MaterialPageRoute(
               settings: const RouteSettings(name: 'group-about'),
-              builder:
-                  (_) => GroupAboutScreen(
-                    title: profile.title,
-                    description: description,
-                    links: orderedLinks,
-                  ),
+              builder: (_) => GroupAboutScreen(
+                title: profile.title,
+                description: description,
+                links: orderedLinks,
+              ),
             ),
           );
         }
@@ -1206,8 +1271,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   ) {
     final primaryLink = links.first;
     final moreCount = links.length - 1;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return GestureDetector(
       onTap: () {
@@ -1227,10 +1293,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
               TextSpan(
                 style: TextStyle(
                   fontSize: 14,
-                  color:
-                      isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimary,
                   height: lineHeight,
                 ),
                 children: [
@@ -1252,8 +1317,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   }
 
   Widget _buildTabBar(bool isDark, GroupProfile profile) {
-    final labelColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final labelColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
     final dividerColor = isDark ? AppColors.grey800 : AppColors.grey300;
 
     return Column(
@@ -1318,14 +1384,10 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
         (practicesState.isLoadingMore ? 1 : 0);
 
     return NotificationListener<ScrollNotification>(
-      onNotification:
-          (notification) => _onTabScrollLoadMore(
-            notification,
-            () =>
-                ref
-                    .read(groupPracticesProvider(profile.id).notifier)
-                    .loadMore(),
-          ),
+      onNotification: (notification) => _onTabScrollLoadMore(
+        notification,
+        () => ref.read(groupPracticesProvider(profile.id).notifier).loadMore(),
+      ),
       child: GroupProfileNestedTabScrollView(
         pageStorageKey: pageStorageKey,
         slivers: [
@@ -1336,13 +1398,12 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
             ),
             sliver: SliverList.separated(
               itemCount: itemCount,
-              separatorBuilder:
-                  (context, _) => ColoredBox(
-                    color: ConnectFeedCardLayout.listGapColor(isDark),
-                    child: const SizedBox(
-                      height: ConnectFeedCardLayout.listItemGap,
-                    ),
-                  ),
+              separatorBuilder: (context, _) => ColoredBox(
+                color: ConnectFeedCardLayout.listGapColor(isDark),
+                child: const SizedBox(
+                  height: ConnectFeedCardLayout.listItemGap,
+                ),
+              ),
               itemBuilder: (context, index) {
                 if (index >= practicesState.practices.length) {
                   return const Padding(
@@ -1375,26 +1436,27 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     return ConnectPracticeCard(
       practice: withGroup,
       showGroupLink: false,
-      isSeriesEnrolled:
-          series != null ? _seriesGroupEnrollmentStatus(series) == true : null,
-      isEnrollingSeries:
-          series != null ? _enrollingSeriesId == series.id : null,
-      onSeriesTap:
-          series != null
-              ? () => _navigateToSeriesDetail(profile, series)
-              : null,
-      onSeriesJoinTap:
-          series != null ? () => _onPracticeWithUsTap(profile, series) : null,
-      isJoiningAccumulator:
-          accumulator != null ? _joiningAccumulatorId == accumulator.id : null,
-      onAccumulatorTap:
-          accumulator != null
-              ? () => _navigateToAccumulatorDetail(accumulator.id)
-              : null,
-      onAccumulatorJoinTap:
-          accumulator != null
-              ? () => _onJoinAccumulatorTap(profile, accumulator)
-              : null,
+      isSeriesEnrolled: series != null
+          ? _seriesGroupEnrollmentStatus(series) == true
+          : null,
+      isEnrollingSeries: series != null
+          ? _enrollingSeriesId == series.id
+          : null,
+      onSeriesTap: series != null
+          ? () => _navigateToSeriesDetail(profile, series)
+          : null,
+      onSeriesJoinTap: series != null
+          ? () => _onPracticeWithUsTap(profile, series)
+          : null,
+      isJoiningAccumulator: accumulator != null
+          ? _joiningAccumulatorId == accumulator.id
+          : null,
+      onAccumulatorTap: accumulator != null
+          ? () => _navigateToAccumulatorDetail(accumulator.id)
+          : null,
+      onAccumulatorJoinTap: accumulator != null
+          ? () => _onJoinAccumulatorTap(profile, accumulator)
+          : null,
     );
   }
 
@@ -1411,7 +1473,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_accumulator_join');
       return;
     }
 
@@ -1422,6 +1484,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
       groupId: profile.id,
       group: profile,
       awaitRefresh: false,
+      source: 'group_page',
     );
 
     if (!mounted) return;
@@ -1520,7 +1583,7 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'practice_with_us');
       return;
     }
 
@@ -1563,10 +1626,9 @@ class _GroupProfileBodyState extends ConsumerState<GroupProfileBody>
     }
 
     final state = ref.read(seriesEnrollmentProvider(series.id));
-    final message =
-        state is SeriesEnrollmentFailure
-            ? state.failure.message
-            : context.l10n.series_enroll_error;
+    final message = state is SeriesEnrollmentFailure
+        ? state.failure.message
+        : context.l10n.series_enroll_error;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
@@ -1583,8 +1645,9 @@ class _GroupFollowButton extends ConsumerWidget {
 
   Future<void> _onInvitePressed(BuildContext context, WidgetRef ref) async {
     final shareMessage = context.l10n.share_group_invite_message;
-    final longUrl =
-        DeepLinkUrlBuilder.groupLink(groupId: profile.id).toString();
+    final longUrl = DeepLinkUrlBuilder.groupLink(
+      groupId: profile.id,
+    ).toString();
     final shareUrl = await resolveShareUrlRef(ref, longUrl);
     if (!context.mounted) return;
 
@@ -1612,7 +1675,7 @@ class _GroupFollowButton extends ConsumerWidget {
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_join_request');
       return;
     }
 
@@ -1655,7 +1718,7 @@ class _GroupFollowButton extends ConsumerWidget {
       return _buildPrivateMembershipLoadingButton(context);
     }
 
-    // Same rule as the ⋮ on the app bar: a leave in flight or a failed leave
+    // Same rule as the ⋮ member menu: a leave in flight or a failed leave
     // keeps the member row instead of offering to join again.
     if (lastConfirmedGroupMembership(followState)) {
       final isAdmin =
@@ -1701,27 +1764,25 @@ class _GroupFollowButton extends ConsumerWidget {
         false;
 
     // Communities and Pages share the joined row; leaving or unfollowing is
-    // in the ⋮ member menu on the app bar, and membership follows the same
+    // in the ⋮ member menu beside Invite, and membership follows the same
     // rule as that ⋮, so the two never disagree mid-leave.
-    final actions =
-        lastConfirmedGroupMembership(followState)
-            ? _buildJoinedActions(context, ref)
-            : _buildPrimaryFollowButton(
-              context,
-              ref,
-              followKey,
-              isLoading,
-              isPage,
-            );
+    final actions = lastConfirmedGroupMembership(followState)
+        ? _buildJoinedActions(context, ref)
+        : _buildPrimaryFollowButton(context, ref, followKey, isLoading, isPage);
 
     if (!isAdmin) return actions;
 
     return Column(
-      children: [actions, GroupReportsRow(groupId: profile.id, isDark: isDark)],
+      children: [
+        actions,
+        GroupReportsRow(groupId: profile.id, isDark: isDark),
+      ],
     );
   }
 
-  /// Chat + Invite for a member or Page follower.
+  /// Invite + ⋮ for a member. Chat and prayer requests sit on the app bar
+  /// ([GroupProfileScreen]) so they stay reachable once the header scrolls
+  /// away; ⋮ opens the member sheet (notifications, leave space).
   Widget _buildJoinedActions(BuildContext context, WidgetRef ref) {
     const fontSize = 16.0;
     final locale = Localizations.localeOf(context);
@@ -1737,39 +1798,21 @@ class _GroupFollowButton extends ConsumerWidget {
       elevation: 0,
     );
 
+    final followKey = GroupFollowKey(
+      groupId: profile.id,
+      groupType: profile.groupType,
+    );
+    final followState = ref.watch(groupFollowProvider(followKey));
     final authState = ref.watch(authProvider);
-    final showChat = authState.isLoggedIn && !authState.isGuest;
+    final showMenu = showsGroupMemberMenu(
+      followState: followState,
+      signedIn: authState.isLoggedIn && !authState.isGuest,
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Row(
         children: [
-          // Chat and prayer requests share the space's room; both need an
-          // account, like the ⋮ member menu.
-          if (showChat) ...[
-            _RoundActionButton(
-              icon: AppAssets.chatCircleDots,
-              tooltip: context.l10n.group_chat_open,
-              size: buttonHeight,
-              isDark: isDark,
-              onTap: () => context.push(AppRoutes.groupChatPath(profile.id)),
-            ),
-            const SizedBox(width: 12),
-            _RoundActionButton(
-              icon: AppAssets.handsPraying,
-              tooltip: context.l10n.event_prayer_requests,
-              size: buttonHeight,
-              isDark: isDark,
-              onTap:
-                  () => unawaited(
-                    PrayerRequestsSheet.show(
-                      context,
-                      scope: PrayerRoomScope.group(profile.id),
-                    ),
-                  ),
-            ),
-            const SizedBox(width: 12),
-          ],
           Expanded(
             child: ElevatedButton(
               onPressed: () => _onInvitePressed(context, ref),
@@ -1793,6 +1836,23 @@ class _GroupFollowButton extends ConsumerWidget {
               ),
             ),
           ),
+          if (showMenu) ...[
+            const SizedBox(width: 12),
+            _RoundActionButton(
+              icon: AppAssets.dotsThreeVerticalBold,
+              tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+              size: buttonHeight,
+              isDark: isDark,
+              // Not while a join or leave is still in flight.
+              onTap: followState is GroupFollowLoading
+                  ? null
+                  : () => openGroupMemberMenu(
+                      context,
+                      profile,
+                      followKey: followKey,
+                    ),
+            ),
+          ],
         ],
       ),
     );
@@ -1810,8 +1870,9 @@ class _GroupFollowButton extends ConsumerWidget {
         child: ElevatedButton(
           onPressed: null,
           style: ElevatedButton.styleFrom(
-            disabledBackgroundColor:
-                isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
+            disabledBackgroundColor: isDark
+                ? AppColors.surfaceVariantDark
+                : AppColors.grey100,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -1845,10 +1906,12 @@ class _GroupFollowButton extends ConsumerWidget {
               horizontal: 24,
               vertical: isTibetan ? 10 : 12,
             ),
-            disabledBackgroundColor:
-                isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-            disabledForegroundColor:
-                isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
+            disabledBackgroundColor: isDark
+                ? AppColors.surfaceVariantDark
+                : AppColors.grey100,
+            disabledForegroundColor: isDark
+                ? AppColors.surfaceWhite
+                : AppColors.textPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -1885,46 +1948,48 @@ class _GroupFollowButton extends ConsumerWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed:
-              isLoading || isRemoved
-                  ? null
-                  : () => _onRequestToJoinPressed(context, ref),
+          onPressed: isLoading || isRemoved
+              ? null
+              : () => _onRequestToJoinPressed(context, ref),
           style: ElevatedButton.styleFrom(
             minimumSize: Size(double.infinity, buttonHeight),
             padding: EdgeInsets.symmetric(
               horizontal: 24,
               vertical: isTibetan ? 10 : 12,
             ),
-            backgroundColor:
-                isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-            foregroundColor:
-                isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
-            disabledBackgroundColor:
-                isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-            disabledForegroundColor:
-                isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+            backgroundColor: isDark
+                ? AppColors.surfaceWhite
+                : AppColors.textPrimary,
+            foregroundColor: isDark
+                ? AppColors.textPrimary
+                : AppColors.surfaceWhite,
+            disabledBackgroundColor: isDark
+                ? AppColors.surfaceVariantDark
+                : AppColors.grey100,
+            disabledForegroundColor: isDark
+                ? AppColors.textTertiaryDark
+                : AppColors.textSecondary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
             elevation: 0,
           ),
-          child:
-              isLoading
-                  ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Text(
-                    context.l10n.group_request_to_join,
-                    textAlign: TextAlign.center,
-                    strutStyle: context.tibetanStrutStyle(fontSize),
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: getSystemFontFamily(locale.languageCode),
-                    ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(
+                  context.l10n.group_request_to_join,
+                  textAlign: TextAlign.center,
+                  strutStyle: context.tibetanStrutStyle(fontSize),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: getSystemFontFamily(locale.languageCode),
                   ),
+                ),
         ),
       ),
     );
@@ -1958,10 +2023,9 @@ class _GroupFollowButton extends ConsumerWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed:
-              isLoading
-                  ? null
-                  : () => _onFollowPressed(context, ref, followKey),
+          onPressed: isLoading
+              ? null
+              : () => _onFollowPressed(context, ref, followKey),
           style: buttonStyle.copyWith(
             backgroundColor: WidgetStatePropertyAll(
               isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
@@ -1973,23 +2037,22 @@ class _GroupFollowButton extends ConsumerWidget {
               Size(double.infinity, buttonHeight),
             ),
           ),
-          child:
-              isLoading
-                  ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Text(
-                    isPage ? context.l10n.follow : context.l10n.join,
-                    textAlign: TextAlign.center,
-                    strutStyle: context.tibetanStrutStyle(fontSize),
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: getSystemFontFamily(locale.languageCode),
-                    ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(
+                  isPage ? context.l10n.follow : context.l10n.join,
+                  textAlign: TextAlign.center,
+                  strutStyle: context.tibetanStrutStyle(fontSize),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: getSystemFontFamily(locale.languageCode),
                   ),
+                ),
         ),
       ),
     );
@@ -2002,7 +2065,7 @@ class _GroupFollowButton extends ConsumerWidget {
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_follow');
       return;
     }
 
@@ -2045,7 +2108,8 @@ class _GroupProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
   }
 }
 
-/// Round icon button beside Invite, the same height as it.
+/// Round icon button beside Invite, the same height as it. A null [onTap]
+/// disables it.
 class _RoundActionButton extends StatelessWidget {
   const _RoundActionButton({
     required this.icon,
@@ -2059,7 +2123,7 @@ class _RoundActionButton extends StatelessWidget {
   final String tooltip;
   final double size;
   final bool isDark;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

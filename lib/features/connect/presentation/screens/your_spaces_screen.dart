@@ -4,6 +4,7 @@ import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_space_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/connect_landing_view.dart';
+import 'package:flutter_pecha/features/connect/presentation/widgets/connect_unread_dot.dart';
 import 'package:flutter_pecha/features/connect/presentation/widgets/group_search_result_card.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -37,7 +38,7 @@ class YourSpacesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final spaces = ref.watch(joinedSpacesProvider).spaces;
-    final unread = ref.watch(unreadSpaceIdsProvider);
+    final unread = ref.watch(unreadSpacesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dividerColor = isDark ? AppColors.grey800 : AppColors.grey300;
     final secondaryColor =
@@ -86,7 +87,7 @@ class YourSpacesScreen extends ConsumerWidget {
                     child: GroupSearchResultCard(
                       group: space,
                       trailing:
-                          unread.contains(space.id)
+                          unread.containsKey(space.id)
                               ? const ConnectUnreadDot()
                               : null,
                       onTap: () {
@@ -133,32 +134,6 @@ class YourSpacesScreen extends ConsumerWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// The red dot for a space with unread chat messages.
-class ConnectUnreadDot extends StatelessWidget {
-  const ConnectUnreadDot({super.key, this.size = 9});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color:
-            theme.brightness == Brightness.dark
-                ? AppColors.unreadBadgeDark
-                : AppColors.unreadBadge,
-        shape: BoxShape.circle,
-        // Rings the dot in the background colour so it stays legible over
-        // an icon.
-        border: Border.all(color: theme.scaffoldBackgroundColor),
       ),
     );
   }

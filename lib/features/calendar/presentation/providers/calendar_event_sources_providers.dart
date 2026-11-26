@@ -7,6 +7,8 @@ import 'package:flutter_pecha/features/calendar/data/repositories/personal_calen
 import 'package:flutter_pecha/features/calendar/domain/models/calendar_event.dart';
 import 'package:flutter_pecha/features/calendar/domain/models/personal_calendar_event.dart';
 import 'package:flutter_pecha/features/calendar/domain/repositories/personal_calendar_repository.dart';
+import 'package:flutter_pecha/features/calendar/presentation/providers/calendar_type_providers.dart';
+import 'package:flutter_pecha/features/calendar/presentation/utils/calendar_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ============ Who is viewing ============
@@ -28,6 +30,7 @@ final calendarViewerProvider = Provider<CalendarViewer>((ref) {
 final personalCalendarRepositoryProvider = Provider<PersonalCalendarRepository>(
   (ref) => PersonalCalendarRepositoryImpl(
     PersonalCalendarRemoteDatasource(dio: ref.watch(dioProvider)),
+    calendarType: ref.watch(selectedCalendarTypeProvider),
   ),
 );
 
@@ -86,6 +89,8 @@ class PersonalCalendarController {
 
   void _refreshFeed() => _ref.invalidate(calendarFeedProvider);
 
+  CalendarAnalytics get _analytics => _ref.read(calendarAnalyticsProvider);
+
   Future<Failure?> add({
     required String title,
     required DateTime startDate,
@@ -97,6 +102,7 @@ class PersonalCalendarController {
       repeat: repeat,
     );
     return result.fold((failure) => failure, (_) {
+      _analytics.personalEventCreated(repeat: repeat);
       _refreshFeed();
       return null;
     });
@@ -114,6 +120,7 @@ class PersonalCalendarController {
       repeat: repeat,
     );
     return result.fold((failure) => failure, (_) {
+      _analytics.personalEventUpdated(repeat: repeat);
       _refreshFeed();
       return null;
     });
@@ -124,6 +131,7 @@ class PersonalCalendarController {
   Future<Failure?> delete(String eventId) async {
     final result = await _repository.deleteEvent(eventId);
     return result.fold((failure) => failure, (_) {
+      _analytics.personalEventDeleted();
       _refreshFeed();
       return null;
     });

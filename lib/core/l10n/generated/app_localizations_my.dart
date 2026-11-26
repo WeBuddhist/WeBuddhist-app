@@ -73,6 +73,16 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
+  String home_practices_sessions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ကြိမ်',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get home_shortcut_plans => 'သင်ခန်းစာအစီအစဉ်များ';
 
   @override
@@ -164,12 +174,6 @@ class AppLocalizationsMy extends AppLocalizations {
   String get mala_settings_section => 'ပုတီး ဆက်တင်များ';
 
   @override
-  String get mala_others_section => 'အခြား';
-
-  @override
-  String get mala_mantra_speed => 'မန္တန် အမြန်နှုန်း';
-
-  @override
   String get mala_speed_normal => 'ပုံမှန်';
 
   @override
@@ -184,7 +188,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get mala_group_accumulations => 'ရွတ်ဆိုမှု ထည့်မည့်နေရာ';
 
   @override
-  String get mala_groups_section => 'ပွဲများ';
+  String get mala_groups_section => 'အဖွဲ့များ';
 
   @override
   String get mala_group_untitled => 'အမည်မဲ့ အဖွဲ့';
@@ -379,16 +383,13 @@ class AppLocalizationsMy extends AppLocalizations {
   String get recitations_no_content => 'ရွတ်ဆိုရန်စာ မရှိပါ';
 
   @override
-  String get my_recitation_collection_new_title => 'စုစည်းမှုအသစ်';
+  String get chant_book_new_title => 'စုစည်းမှုအသစ်';
 
   @override
   String get my_recitation_collection_next => 'ရှေ့ဆက်ရန်';
 
   @override
   String get my_recitation_collection_create => 'ဖန်တီးရန်';
-
-  @override
-  String get my_recitation_collection_create_button => 'စုစည်းမှု ဖန်တီးရန်';
 
   @override
   String get my_recitation_collection_change_title => 'ခေါင်းစဉ် ပြောင်းရန်';
@@ -404,25 +405,23 @@ class AppLocalizationsMy extends AppLocalizations {
       'ရွတ်ဆိုရန်စာများ ရှာဖွေရန်';
 
   @override
-  String get my_recitation_collection_add_to_collection =>
-      'စုစည်းမှုသို့ ထည့်ရန်';
+  String get chant_book_add_to => 'စုစည်းမှုသို့ ထည့်ရန်';
 
   @override
-  String get my_recitation_collection_edit => 'စုစည်းမှု ပြင်ဆင်ရန်';
+  String get chant_book_edit => 'စုစည်းမှု ပြင်ဆင်ရန်';
 
   @override
-  String get my_recitation_collection_delete => 'စုစည်းမှု ဖျက်ရန်';
+  String get chant_book_delete => 'စုစည်းမှု ဖျက်ရန်';
 
   @override
-  String get my_recitation_collection_delete_title => 'စုစည်းမှုကို ဖျက်မလား။';
+  String get chant_book_delete_title => 'စုစည်းမှုကို ဖျက်မလား။';
 
   @override
-  String get my_recitation_collection_delete_message =>
+  String get chant_book_delete_message =>
       'ဤစုစည်းမှုကို အပြီးတိုင် ဖယ်ရှားပါမည်';
 
   @override
-  String get my_recitation_collection_fallback_title =>
-      'ရွတ်ဆိုရန်စာ စုစည်းမှု';
+  String get chant_book_fallback_title => 'ရွတ်ဆိုရန်စာ စုစည်းမှု';
 
   @override
   String get my_recitation_collection_unavailable => 'မရရှိနိုင်တော့ပါ';
@@ -452,11 +451,11 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
+  String get chant_book_bookmarks_empty_title =>
       'မှတ်ထားသော ရွတ်ဆိုရန်စာ စုစည်းမှု မရှိသေးပါ';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
+  String get chant_book_bookmarks_empty_subtitle =>
       'တစ်ခုကို မှတ်ထားပါက ဤနေရာတွင် သိမ်းထားပါမည်';
 
   @override
@@ -1137,6 +1136,76 @@ class AppLocalizationsMy extends AppLocalizations {
   String get continueWithPhone => 'ဖုန်းဖြင့် ဆက်လက်ရန်';
 
   @override
+  String get login_last_used => 'နောက်ဆုံးအသုံးပြုခဲ့သည်';
+
+  @override
+  String get phone_login_title => 'သင့်ဖုန်းနံပါတ်ကို ထည့်ပါ';
+
+  @override
+  String get phone_login_subtitle =>
+      'သင်ဖြစ်ကြောင်း အတည်ပြုရန် ကုဒ်တစ်ခုကို စာတိုဖြင့် ပို့ပေးပါမည်။';
+
+  @override
+  String get phone_login_number_hint => 'ဖုန်းနံပါတ်';
+
+  @override
+  String get phone_login_country_search => 'နိုင်ငံရှာရန်';
+
+  @override
+  String get phone_login_send_code => 'ကုဒ်ပို့ရန်';
+
+  @override
+  String get phone_login_code_title => 'ကုဒ်ထည့်ပါ';
+
+  @override
+  String phone_login_code_subtitle(String phoneNumber) {
+    return '$phoneNumber သို့ ဂဏန်း ၆ လုံးပါ ကုဒ်ကို ပို့ပြီးပါပြီ။';
+  }
+
+  @override
+  String get phone_login_code_hint => 'ဂဏန်း ၆ လုံးကုဒ်';
+
+  @override
+  String get phone_login_verify => 'အတည်ပြုရန်';
+
+  @override
+  String get phone_login_resend => 'ကုဒ်ပြန်ပို့ရန်';
+
+  @override
+  String phone_login_resend_in(int seconds) {
+    return '$seconds စက္ကန့်အကြာတွင် ကုဒ်ပြန်ပို့နိုင်သည်';
+  }
+
+  @override
+  String get phone_login_change_number => 'နံပါတ်ပြောင်းရန်';
+
+  @override
+  String get login_error_invalid_phone => 'မှန်ကန်သော ဖုန်းနံပါတ်ကို ထည့်ပါ။';
+
+  @override
+  String get login_error_invalid_code =>
+      'ကုဒ်မမှန်ပါ။ စစ်ဆေးပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get login_error_code_expired =>
+      'ကုဒ်သက်တမ်းကုန်သွားပါပြီ။ ကုဒ်အသစ်တောင်းပါ။';
+
+  @override
+  String get login_error_too_many_requests =>
+      'ကြိုးစားမှုအကြိမ်ရေ များလွန်းပါသည်။ နောက်မှ ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get login_error_network =>
+      'အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get login_error_email_not_verified =>
+      'ဤအကောင့်၏ အီးမေးလ်လိပ်စာကို အတည်မပြုရသေးပါ။ သင့်ဝန်ဆောင်မှုပေးသူထံတွင် အတည်ပြုပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get login_error_generic => 'အကောင့်ဝင်၍ မရပါ။ ထပ်ကြိုးစားပါ။';
+
+  @override
   String get exploreAsGuest => 'ဧည့်သည်အဖြစ် လေ့လာရန်';
 
   @override
@@ -1590,67 +1659,115 @@ class AppLocalizationsMy extends AppLocalizations {
   String get calendar_title => 'ပြက္ခဒိန်';
 
   @override
-  String get calendar_today => 'Today';
+  String get calendar_choose_calendar => 'ပြက္ခဒိန် ရွေးရန်';
 
   @override
-  String get calendar_no_events => 'No events';
+  String get settings_calendar_row => 'Calendar';
 
   @override
-  String get calendar_source_lunar => 'Lunar calendar';
+  String get calendar_tradition_vajrayana => 'ဝဇီရယာန';
 
   @override
-  String get calendar_add_event => 'Add event';
+  String get calendar_tradition_theravada => 'ထေရဝါဒ';
 
   @override
-  String get calendar_event_name => 'Event name';
+  String get calendar_tradition_mahayana => 'မဟာယာန';
 
   @override
-  String get calendar_event_name_hint => 'Add an event to your calendar';
+  String get calendar_type_phugpa => 'တိဗက် (ဖုဂ်ပ)';
 
   @override
-  String get calendar_repeat => 'Repeat';
+  String get calendar_type_tsurphu => 'တိဗက် (ဆူးဖူး)';
 
   @override
-  String get calendar_does_not_repeat => 'Does not repeat';
+  String get calendar_type_nyingmapa => 'ညင်းမ';
 
   @override
-  String get calendar_repeat_weekly => 'Weekly';
+  String get calendar_type_sinhalese => 'ဆင်ဟာလ';
 
   @override
-  String get calendar_repeat_monthly => 'Monthly';
+  String get calendar_type_thai => 'ထိုင်း';
 
   @override
-  String get calendar_repeat_yearly => 'Yearly';
+  String get calendar_type_burmese => 'မြန်မာ';
+
+  @override
+  String get calendar_type_lao => 'လာအို';
+
+  @override
+  String get calendar_type_chinese => 'တရုတ်';
+
+  @override
+  String get calendar_type_vietnamese => 'ဗီယက်နမ်';
+
+  @override
+  String get calendar_type_korean => 'ကိုရီးယား';
+
+  @override
+  String get calendar_type_japanese => 'ဂျပန်';
+
+  @override
+  String get calendar_today => 'ယနေ့';
+
+  @override
+  String get calendar_no_events => 'ပွဲမရှိပါ';
+
+  @override
+  String get calendar_source_lunar => 'စန္ဒရ ပြက္ခဒိန်';
+
+  @override
+  String get calendar_add_event => 'ပွဲထည့်ရန်';
+
+  @override
+  String get calendar_event_name => 'ပွဲအမည်';
+
+  @override
+  String get calendar_event_name_hint => 'သင့်ပြက္ခဒိန်ထဲသို့ ပွဲတစ်ခု ထည့်ပါ';
+
+  @override
+  String get calendar_repeat => 'ထပ်ခါလုပ်ရန်';
+
+  @override
+  String get calendar_does_not_repeat => 'ထပ်ခါမလုပ်ပါ';
+
+  @override
+  String get calendar_repeat_weekly => 'အပတ်စဉ်';
+
+  @override
+  String get calendar_repeat_monthly => 'လစဉ်';
+
+  @override
+  String get calendar_repeat_yearly => 'နှစ်စဉ်';
 
   @override
   String calendar_repeat_monthly_lunar(String day) {
-    return 'Monthly ($day lunar)';
+    return 'လစဉ် (စန္ဒရ $day ရက်)';
   }
 
   @override
-  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+  String get calendar_repeat_yearly_lunar => 'နှစ်စဉ် (စန္ဒရ ရက်စွဲ)';
 
   @override
-  String get calendar_delete_event => 'Delete event';
+  String get calendar_delete_event => 'ပွဲဖျက်ရန်';
 
   @override
-  String get calendar_delete_event_title => 'Delete event?';
+  String get calendar_delete_event_title => 'ပွဲကို ဖျက်မလား။';
 
   @override
   String calendar_delete_event_body(String title) {
-    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+    return '\"$title\" ကို သင့်ပြက္ခဒိန်မှ ဖယ်ရှားပါမည်။ ပြန်ပြင်၍ မရပါ။';
   }
 
   @override
-  String get calendar_delete_repeating_title => 'Delete repeating event?';
+  String get calendar_delete_repeating_title => 'ထပ်ခါဖြစ်သော ပွဲကို ဖျက်မလား။';
 
   @override
   String calendar_delete_repeating_body(String title, String repeat) {
-    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+    return '\"$title\" ($repeat) ၏ ရက်စွဲအားလုံးကို သင့်ပြက္ခဒိန်မှ ဖယ်ရှားပါမည်။ ပြန်ပြင်၍ မရပါ။';
   }
 
   @override
-  String get calendar_event_deleted => 'Event deleted';
+  String get calendar_event_deleted => 'ပွဲကို ဖျက်ပြီးပါပြီ';
 
   @override
   String get calendar_upcoming_events => 'လာမည့် ပွဲများ';
@@ -1906,15 +2023,17 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get group_remove_member_title => 'အဖွဲ့မှ ဖယ်ရှားမလား။';
-
-  @override
-  String group_remove_member_message(String name) {
-    return '$name ကို ဤအဖွဲ့မှ ဖယ်ရှားမည်ဖြစ်ပြီး ပိတ်ပင်မှု မရုပ်သိမ်းမချင်း ပြန်ဝင်၍ မရပါ';
+  String group_remove_member_title(String name) {
+    return '$name ကို ဖယ်ရှားရန်';
   }
 
   @override
-  String get group_remove_member_blocked_for => 'ပိတ်ပင်မည့် ကာလ:';
+  String group_remove_member_message(String duration) {
+    return '၎င်းတို့ကို ဤအဖွဲ့မှ ဖယ်ရှားမည်ဖြစ်ပြီး $duration ကြာ ပြန်ဝင်၍ မရပါ။';
+  }
+
+  @override
+  String get group_remove_member_blocked_for => 'ပြန်ဝင်၍ မရသည့် ကာလ';
 
   @override
   String get group_remove_member_duration_day => '1 ရက်';
@@ -1931,10 +2050,11 @@ class AppLocalizationsMy extends AppLocalizations {
   String get group_remove_member_reason_label => 'အကြောင်းရင်း (ရွေးချယ်နိုင်)';
 
   @override
-  String get group_remove_member_reason_hint => 'အခြားအကြောင်းအရာ...';
+  String get group_remove_member_reason_hint =>
+      'ဤအဖွဲ့ဝင်ကို အဘယ်ကြောင့် ဖယ်ရှားသနည်း။';
 
   @override
-  String get group_remove_member_action => 'ဖယ်ရှားရန်';
+  String get group_remove_member_action => 'အဖွဲ့ဝင်ကို ဖယ်ရှားရန်';
 
   @override
   String group_remove_member_success(String name) {
@@ -2083,6 +2203,39 @@ class AppLocalizationsMy extends AppLocalizations {
   String get group_accumulator_finish_session => 'ဤအကြိမ် ပြီးဆုံးရန်';
 
   @override
+  String get group_accumulator_completed_recitations =>
+      'You completed recitations';
+
+  @override
+  String get group_accumulator_recite_again => 'Recite again';
+
+  @override
+  String get group_accumulator_finish_and_count => 'Finish and count';
+
+  @override
+  String get group_accumulator_finish_without_counting =>
+      'Finish without counting';
+
+  @override
+  String group_accumulator_recitations_counted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recitations counted',
+      one: '1 recitation counted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String group_accumulator_recitation_count_badge(int count) {
+    return '×$count';
+  }
+
+  @override
+  String get undo => 'Undo';
+
+  @override
   String get group_accumulator_offline_recitation => 'အက်ပ်ပြင်ပ ရွတ်ဆိုမှု';
 
   @override
@@ -2145,7 +2298,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဤကုသိုလ်ကြောင့် သတ္တဝါအားလုံး\nဆင်းရဲဒုက္ခမှ လွတ်မြောက်ကြပါစေ';
 
   @override
-  String get share_this_quote => 'ဤဆိုမိန့်ကို မျှဝေရန်';
+  String get share_this_verse => 'ဤဂါထာကို မျှဝေရန်';
 
   @override
   String get shared_from => 'မျှဝေထားသည့်နေရာ';
@@ -2767,7 +2920,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get group_post_updated => 'သင့်ပြောင်းလဲမှုများကို သိမ်းပြီးပါပြီ';
 
   @override
-  String get practice_collection_already_added =>
+  String get chant_book_already_in_practices =>
       'ဤစုစည်းမှုသည် သင့်ကျင့်စဉ်များထဲတွင် ရှိပြီးသားဖြစ်ပါသည်';
 
   @override
@@ -4100,6 +4253,34 @@ class AppLocalizationsMy extends AppLocalizations {
   String get timer_duration_sec => 'စက္ကန့်';
 
   @override
+  String get timer_resume => 'Resume';
+
+  @override
+  String get timer_paused_caption => 'Paused · tap to resume';
+
+  @override
+  String get timer_discard_title => 'Discard this session?';
+
+  @override
+  String timer_discard_message(String elapsed) {
+    return 'Your $elapsed of practice won’t be saved';
+  }
+
+  @override
+  String get timer_save_session => 'Save session';
+
+  @override
+  String get timer_session_saved => 'Session saved';
+
+  @override
+  String get timer_session_complete => 'Session complete';
+
+  @override
+  String timer_saved_to_practice(String elapsed) {
+    return '$elapsed · saved to your practice';
+  }
+
+  @override
   String get reader_display_title => 'Display';
 
   @override
@@ -4211,7 +4392,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get chants_filter_single_chants => 'Single chants';
 
   @override
-  String get chants_my_chant_books => 'My chantbooks';
+  String get chants_my_chant_books_title => 'My chant books';
 
   @override
   String get chants_text_only => 'Text-only chants';
@@ -4235,7 +4416,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get chants_other_spaces => 'Other spaces';
 
   @override
-  String get chants_search_hint => 'Search chants and chantbooks';
+  String get chants_search_hint_chant_books => 'Search chants and chant books';
 
   @override
   String get chants_cant_find => 'Can\'t find the text you\'re looking for?';
@@ -4266,4 +4447,124 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get reader_no_resources_subtitle =>
       'ကျမ်းစာအသစ်များကို ပုံမှန်ထည့်နေပါသည်။ မကြာမီ ပြန်ကြည့်ပါ။';
+
+  @override
+  String get mala_section_practice => 'အလေ့အကျင့်';
+
+  @override
+  String get mala_section_appearance => 'အသွင်အပြင်';
+
+  @override
+  String get mala_section_save_share => 'သိမ်းဆည်းခြင်းနှင့် မျှဝေခြင်း';
+
+  @override
+  String get mala_mantra_animation => 'မန္တန် လှုပ်ရှားပုံ';
+
+  @override
+  String get mala_play_animation => 'လှုပ်ရှားပုံ ဖွင့်ရန်';
+
+  @override
+  String get mala_speed => 'အမြန်နှုန်း';
+
+  @override
+  String get mala_animation_off => 'ပိတ်';
+
+  @override
+  String get mala_bead_style => 'ပုတီးစေ့ ပုံစံ';
+
+  @override
+  String get mala_bead_default => 'မူလ';
+
+  @override
+  String get mala_use_this_style => 'ဤပုံစံကို သုံးရန်';
+
+  @override
+  String get mala_bead_style_updated => 'ပုတီးစေ့ ပုံစံ ပြောင်းပြီးပါပြီ';
+
+  @override
+  String get mala_change_image => 'ပုံ ပြောင်းရန်';
+
+  @override
+  String get mala_use_image => 'သုံးရန်';
+
+  @override
+  String get mala_restore_default_image => 'မူလသို့ ပြန်ထားရန်';
+
+  @override
+  String get mala_image_updated => 'ပုံ ပြောင်းပြီးပါပြီ';
+
+  @override
+  String get mala_images_empty => 'ပုံများ မရှိပါ';
+
+  @override
+  String get mala_images_load_error => 'ပုံများ ဖွင့်၍ မရပါ';
+
+  @override
+  String get mala_bookmarked => 'မှတ်ထားပြီး';
+
+  @override
+  String get mala_beads_load_error => 'ပုတီးစေ့ ပုံစံများ ဖွင့်၍ မရပါ';
+
+  @override
+  String get mala_appearance_save_failed => 'သိမ်း၍ မရပါ။ ထပ်ကြိုးစားပါ';
+
+  @override
+  String get session_search_plans_hint => 'သင်ခန်းစာအစီအစဉ်များ ရှာဖွေရန်';
+
+  @override
+  String get session_search_chants_hint => 'ရွတ်ဆိုရန်စာများ ရှာဖွေရန်';
+
+  @override
+  String get session_search_malas_hint => 'ပုတီးများ ရှာဖွေရန်';
+
+  @override
+  String get session_search_timers_hint =>
+      'အမည် သို့မဟုတ် ကြာချိန်ဖြင့် အချိန်မှတ်စက် ရှာဖွေရန်';
+
+  @override
+  String search_min_query_length(int count) {
+    return 'ရှာဖွေရန် အနည်းဆုံး စာလုံး $count လုံး ရိုက်ထည့်ပါ';
+  }
+
+  @override
+  String get practice_next_session => 'နောက်အချိန်အပိုင်း';
+
+  @override
+  String practice_more_in_session(int count) {
+    return 'ဤအချိန်အပိုင်းတွင် +နောက်ထပ် $count ခု';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'သင့်အဖွဲ့များမှ';
+
+  @override
+  String get practice_discover_more => 'ထပ်မံရှာဖွေရန်';
+
+  @override
+  String get practice_space_accumulations => 'အဖွဲ့ စုဆောင်းမှုများ';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'လောလောဆယ် အခြားအဖွဲ့များမှ စုဆောင်းမှု မရှိပါ';
+
+  @override
+  String get practice_search_hint => 'ကျင့်စဉ်များ ရှာရန်';
+
+  @override
+  String get practice_search_recent => 'မကြာသေးမီက';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '\"$query\" အတွက် ရလဒ် မရှိပါ';
+  }
+
+  @override
+  String get practice_popular_practices => 'လူကြိုက်များသော ကျင့်စဉ်များ';
+
+  @override
+  String get practice_start_routine => 'ကျင့်စဉ် စတင်ရန်';
+
+  @override
+  String get practice_start_routine_hint =>
+      'သို့မဟုတ် ကျင့်စဉ်တစ်ခုကို နှိပ်ပြီး \"ကျွန်ုပ်၏ ကျင့်စဉ်များသို့ ထည့်ရန်\" ကို ရွေးပါ။';
 }

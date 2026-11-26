@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter_pecha/core/analytics/search_analytics.dart';
 import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/features/connect/domain/repositories/connect_repository.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
@@ -48,11 +49,15 @@ class GroupSearchState {
 }
 
 class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
-  GroupSearchNotifier({required this.repository, required this.language})
-    : super(const GroupSearchState());
+  GroupSearchNotifier({
+    required this.repository,
+    required this.language,
+    this.analytics,
+  }) : super(const GroupSearchState());
 
   final ConnectRepository repository;
   final String language;
+  final SearchAnalytics? analytics;
   Timer? _debounceTimer;
   static const int _limit = 20;
 
@@ -128,6 +133,14 @@ class GroupSearchNotifier extends StateNotifier<GroupSearchState> {
           skip: skip + page.groups.length,
           clearError: true,
         );
+        // The first page only; result_count is that page's size.
+        if (reset) {
+          analytics?.searched(
+            surface: SearchSurface.groups,
+            query: query,
+            resultCount: page.groups.length,
+          );
+        }
       },
     );
   }
@@ -179,5 +192,6 @@ final groupSearchProvider =
       return GroupSearchNotifier(
         repository: ref.watch(connectRepositoryProvider),
         language: language,
+        analytics: ref.watch(searchAnalyticsProvider),
       );
     });

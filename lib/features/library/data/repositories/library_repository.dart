@@ -6,6 +6,7 @@ import 'package:flutter_pecha/features/library/data/models/library_alignment.dar
 import 'package:flutter_pecha/features/library/data/models/library_edition.dart';
 import 'package:flutter_pecha/features/library/data/models/library_page.dart';
 import 'package:flutter_pecha/features/library/data/models/library_reader_models.dart';
+import 'package:flutter_pecha/features/library/data/models/library_recording.dart';
 import 'package:flutter_pecha/features/library/data/models/library_search_result.dart';
 import 'package:flutter_pecha/features/library/data/models/library_segment.dart';
 import 'package:flutter_pecha/features/library/data/models/library_text.dart';
@@ -22,6 +23,7 @@ class LibraryRepository {
     this.relatedPageSize = 20,
     this.maxPages = 1000,
     this.segmentCacheSize = 6,
+    this.recordingCacheSize = 100,
     this.yigchungTimeout = const Duration(seconds: 5),
   }) : _datasource = datasource;
 
@@ -38,6 +40,9 @@ class LibraryRepository {
   /// Editions whose full segment list stays in memory; the parallel reader
   /// needs two at once.
   final int segmentCacheSize;
+
+  /// Chants whose recording lists stay in memory.
+  final int recordingCacheSize;
   final _logger = AppLogger('LibraryRepository');
 
   // Library metadata never changes, so each id is fetched once per session.
@@ -51,6 +56,7 @@ class LibraryRepository {
   final Map<String, Future<List<LibraryTocSection>>> _tocs = {};
   final Map<String, Future<List<LibraryLineSpan>>> _yigchungs = {};
   final Map<String, Future<Map<String, List<String>>>> _alignments = {};
+  final Map<String, Future<List<LibraryRecording>>> _recordings = {};
 
   /// Coverage by `original>translation`: a number each, so not capped.
   final Map<String, Future<double>> _coverages = {};
@@ -106,6 +112,87 @@ class LibraryRepository {
 
   Future<LibrarySegment> getSegment(String segmentId) =>
       _datasource.fetchSegment(segmentId);
+
+  /// Recordings of the chant [id] (an edition id, or a text id from older
+  /// links). Those that follow the edition come first: only they can
+  /// highlight its verses. Then the text's other performances, which play
+  /// without highlighting. Empty when the text has none.
+  Future<List<LibraryRecording>> getChantRecordings(String id) {
+    return _memo(_recordings, id, () async {
+      final edition = await resolveEdition(id);
+      final own = await _emptyIfNotFound(
+        () => _datasource.fetchEditionRecordings(edition.id),
+      );
+      final text = await _textOrNull(edition.textId);
+      final covered = {for (final r in own) r.audioId};
+      final missing = [
+        for (final audioId in text?.audioIds ?? const <String>[])
+          if (!covered.contains(audioId)) audioId,
+      ];
+      if (missing.isEmpty) return own;
+      final more = await Future.wait(
+        missing.map(
+          (audioId) =>
+              _emptyIfNotFound(() => _datasource.fetchAudioRecordings(audioId)),
+        ),
+      );
+      final seen = {for (final r in own) r.id};
+      return [
+        ...own,
+        for (final r in more.expand((list) => list))
+          if (seen.add(r.id)) r,
+      ];
+    }, capacity: recordingCacheSize);
+  }
+
+  /// Whether the chant [id] has any recording, from its text's performance
+  /// list alone, so a list of chants can be sorted without a call per
+  /// recording. Errors count as none.
+  Future<bool> hasChantRecordings(String id) async {
+    try {
+      final edition = await resolveEdition(id);
+      final text = await _textOrNull(edition.textId);
+      return text?.audioIds.isNotEmpty ?? false;
+    } catch (e) {
+      _logger.debug('hasChantRecordings($id) failed: $e');
+      return false;
+    }
+  }
+
+  /// Every performance of [textId], with titles and performers.
+  Future<List<LibraryAudio>> getTextAudios(String textId) =>
+      _emptyIfNotFound(() => _datasource.fetchTextAudios(textId));
+
+  /// A fresh presigned link for [recordingId]. Not memoized: it expires, and
+  /// a player that hits an error asks for a new one.
+  Future<String> getRecordingAudioUrl(String recordingId) async {
+    final result = await _datasource.fetchRecordingAudioUrl(recordingId);
+    if (result.url.isEmpty) {
+      throw NotFoundException('Recording $recordingId has no audio url');
+    }
+    return result.url;
+  }
+
+  Future<LibraryText?> _textOrNull(String textId) async {
+    if (textId.isEmpty) return null;
+    try {
+      return await getText(textId);
+    } catch (e) {
+      if (_isNotFound(e)) return null;
+      rethrow;
+    }
+  }
+
+  static Future<List<T>> _emptyIfNotFound<T>(
+    Future<List<T>> Function() load,
+  ) async {
+    try {
+      return await load();
+    } catch (e) {
+      if (_isNotFound(e)) return const [];
+      rethrow;
+    }
+  }
 
   Future<List<LibrarySearchResult>> search({
     required String query,
@@ -353,10 +440,9 @@ class LibraryRepository {
     }
     numbers ??= segmentNumbers(segments);
     final total = segments.length;
-    var anchorIndex =
-        anchorSegmentId == null
-            ? -1
-            : segments.indexWhere((s) => s.id == anchorSegmentId);
+    var anchorIndex = anchorSegmentId == null
+        ? -1
+        : segments.indexWhere((s) => s.id == anchorSegmentId);
     if (anchorIndex < 0 && anchorSegmentId != null) {
       anchorIndex = await _foreignAnchorIndex(
         anchorSegmentId,
@@ -544,6 +630,7 @@ class LibraryRepository {
       }
       return null;
     }
+
     final last = orNext ? source.length - 1 : sourceIndex;
     for (var i = sourceIndex; i <= last; i++) {
       final index = at(i);
@@ -583,10 +670,9 @@ class LibraryRepository {
         );
         final int covered;
         if (aligned.isNotEmpty) {
-          covered =
-              original
-                  .where((s) => (aligned[s.id] ?? const <String>[]).isNotEmpty)
-                  .length;
+          covered = original
+              .where((s) => (aligned[s.id] ?? const <String>[]).isNotEmpty)
+              .length;
         } else {
           final translation =
               _segments[translationEditionId] ??
@@ -609,10 +695,9 @@ class LibraryRepository {
     String targetId, {
     bool cache = true,
   }) async {
-    Future<Map<String, List<String>>> alignment(String from, String to) =>
-        cache
-            ? getAlignment(from, to)
-            : _alignments['$from>$to'] ?? _fetchAlignment(from, to);
+    Future<Map<String, List<String>>> alignment(String from, String to) => cache
+        ? getAlignment(from, to)
+        : _alignments['$from>$to'] ?? _fetchAlignment(from, to);
     final forward = await alignment(sourceId, targetId);
     if (forward.isNotEmpty) return forward;
     final inverted = <String, List<String>>{};
@@ -685,15 +770,14 @@ class LibraryRepository {
         ),
         (s) => s.id,
       );
-      final usable =
-          related
-              .where(
-                (s) =>
-                    s.textId != null &&
-                    s.editionId != null &&
-                    s.textId != openTextId,
-              )
-              .toList();
+      final usable = related
+          .where(
+            (s) =>
+                s.textId != null &&
+                s.editionId != null &&
+                s.textId != openTextId,
+          )
+          .toList();
 
       final textIds = {
         if (openTextId != null) openTextId,
@@ -716,10 +800,9 @@ class LibraryRepository {
       }
 
       final openWorkId = openTextId == null ? null : works[openTextId];
-      final openWork =
-          openWorkId == null
-              ? null
-              : (texts[openWorkId] ?? await _tryGetText(openWorkId));
+      final openWork = openWorkId == null
+          ? null
+          : (texts[openWorkId] ?? await _tryGetText(openWorkId));
       String? rootWorkId;
       if (openWork != null && openWork.isCommentary) {
         final root = await _tryGetText(openWork.commentaryOf!);
@@ -785,8 +868,9 @@ class LibraryRepository {
     }
     final result = <LibraryRelatedEdition>[];
     for (final entry in byWork.entries) {
-      final originals =
-          entry.value.where((c) => c.textId == entry.key).toList();
+      final originals = entry.value
+          .where((c) => c.textId == entry.key)
+          .toList();
       if (originals.isEmpty) {
         result.addAll(entry.value);
         continue;
@@ -882,15 +966,14 @@ class LibraryRepository {
     LibrarySegment segment,
   ) async {
     final editionId = segment.editionId;
-    final editionFuture =
-        editionId == null
-            ? Future<LibraryEdition?>.value(null)
-            : getEdition(editionId).then<LibraryEdition?>((e) => e).catchError((
-              Object error,
-            ) {
-              _logger.warning('Edition $editionId failed', error);
-              return null;
-            });
+    final editionFuture = editionId == null
+        ? Future<LibraryEdition?>.value(null)
+        : getEdition(editionId).then<LibraryEdition?>((e) => e).catchError((
+            Object error,
+          ) {
+            _logger.warning('Edition $editionId failed', error);
+            return null;
+          });
 
     final content = await _datasource.fetchSegmentContent(segment.id);
     final edition = await editionFuture;

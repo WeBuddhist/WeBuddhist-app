@@ -108,10 +108,9 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
       context,
       title: l10n.group_reports_delete_confirm_title,
       message: l10n.group_reports_delete_message_confirm,
-      onConfirmed:
-          () => ref
-              .read(groupReportsProvider(widget.groupId).notifier)
-              .deleteMessageItem(item),
+      onConfirmed: () => ref
+          .read(groupReportsProvider(widget.groupId).notifier)
+          .deleteMessageItem(item),
     );
     if (!mounted) return;
     setState(() {
@@ -182,8 +181,9 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(groupReportsProvider(widget.groupId));
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -250,32 +250,30 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
       return RefreshIndicator(
         onRefresh: notifier.loadInitial,
         child: LayoutBuilder(
-          builder:
-              (context, constraints) => SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: constraints.maxHeight,
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Text(
-                        context.l10n.group_reports_empty,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color:
-                              isDark
-                                  ? AppColors.textTertiaryDark
-                                  : AppColors.textSecondary,
-                          fontFamily: getSystemFontFamily(
-                            Localizations.localeOf(context).languageCode,
-                          ),
-                        ),
+          builder: (context, constraints) => SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: constraints.maxHeight,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    context.l10n.group_reports_empty,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textSecondary,
+                      fontFamily: getSystemFontFamily(
+                        Localizations.localeOf(context).languageCode,
                       ),
                     ),
                   ),
                 ),
               ),
+            ),
+          ),
         ),
       );
     }
@@ -304,14 +302,14 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
             onDismiss: _busyItemKeys.isNotEmpty ? null : () => _resolve(item),
             onView:
                 item.kind == GroupReportKind.chatMessage &&
-                        (item.latest.messageId?.trim().isNotEmpty ?? false)
-                    ? () => _viewMessage(item)
-                    : null,
+                    (item.latest.messageId?.trim().isNotEmpty ?? false)
+                ? () => _viewMessage(item)
+                : null,
             onDelete:
                 item.kind != GroupReportKind.chatMessage ||
-                        _busyItemKeys.isNotEmpty
-                    ? null
-                    : () => _deleteMessage(item),
+                    _busyItemKeys.isNotEmpty
+                ? null
+                : () => _deleteMessage(item),
           ),
         );
       }
@@ -366,14 +364,16 @@ class _GroupReportsScreenState extends ConsumerState<GroupReportsScreen> {
             strutStyle: context.tibetanStrutStyle(14),
             style: TextStyle(
               fontSize: 14,
-              color:
-                  isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textSecondary,
               fontFamily: fontFamily,
             ),
           ),
           TextButton(
-            onPressed:
-                ref.read(groupReportsProvider(widget.groupId).notifier).retry,
+            onPressed: ref
+                .read(groupReportsProvider(widget.groupId).notifier)
+                .retry,
             child: Text(
               context.l10n.retry,
               style: TextStyle(fontFamily: fontFamily),
@@ -509,10 +509,9 @@ class _ReportedContentCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color:
-            isDark
-                ? AppColors.cardBackgroundDark
-                : AppColors.cardBackgroundLight,
+        color: isDark
+            ? AppColors.cardBackgroundDark
+            : AppColors.cardBackgroundLight,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark ? AppColors.cardBorderDark : AppColors.grey300,
@@ -533,7 +532,9 @@ class _ReportedContentCard extends StatelessWidget {
                   isDark: isDark,
                 ),
                 const SizedBox(width: 8),
-                Expanded(child: _MessageBubble(item: item, isDark: isDark)),
+                Expanded(
+                  child: _MessageBubble(item: item, isDark: isDark),
+                ),
                 _DismissButton(isDark: isDark, onPressed: onDismiss),
               ],
             )
@@ -550,10 +551,9 @@ class _ReportedContentCard extends StatelessWidget {
               Expanded(
                 child: _CardActionButton(
                   label: viewLabel,
-                  color:
-                      isDark
-                          ? AppColors.textTertiaryDark
-                          : AppColors.textSecondary,
+                  color: isDark
+                      ? AppColors.textTertiaryDark
+                      : AppColors.textSecondary,
                   onPressed: onView,
                 ),
               ),
@@ -591,8 +591,9 @@ class _AuthoredContent extends StatelessWidget {
     final fontFamily = getSystemFontFamily(
       Localizations.localeOf(context).languageCode,
     );
-    final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final textColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
     final author = item.reportedUser;
 
     return Column(
@@ -645,15 +646,15 @@ class _DismissButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enabledColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final enabledColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
     // A null handler means a dismiss is already in flight. The icon stays
     // visible so the row does not jump, but greyed so a tap that does
     // nothing does not look available.
-    final color =
-        onPressed == null
-            ? (isDark ? AppColors.grey600 : AppColors.grey400)
-            : enabledColor;
+    final color = onPressed == null
+        ? (isDark ? AppColors.grey600 : AppColors.grey400)
+        : enabledColor;
     return SizedBox(
       width: 28,
       height: 28,
@@ -708,10 +709,9 @@ class _MessageBubble extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color:
-                        isDark
-                            ? AppColors.accentGold
-                            : AppColors.accentGoldDark,
+                    color: isDark
+                        ? AppColors.accentGold
+                        : AppColors.accentGoldDark,
                     fontFamily: fontFamily,
                   ),
                 ),
@@ -722,10 +722,9 @@ class _MessageBubble extends StatelessWidget {
                   strutStyle: context.tibetanStrutStyle(14),
                   style: TextStyle(
                     fontSize: 14,
-                    color:
-                        isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                     fontFamily: fontFamily,
                   ),
                 ),
@@ -842,10 +841,9 @@ class _ReporterRow extends StatelessWidget {
     final name = report.reporter?.displayName ?? '';
     // Reports made off a fixed reason carry no description, and the reason is
     // then the only word on why this was filed.
-    final detail =
-        report.description.isNotEmpty
-            ? report.description
-            : groupReportReasonLabel(context.l10n, report.reason);
+    final detail = report.description.isNotEmpty
+        ? report.description
+        : groupReportReasonLabel(context.l10n, report.reason);
 
     return Padding(
       padding: const EdgeInsets.only(left: 8, bottom: 12),
@@ -875,10 +873,9 @@ class _ReporterRow extends StatelessWidget {
                     strutStyle: context.tibetanStrutStyle(13, compact: true),
                     style: TextStyle(
                       fontSize: 13,
-                      color:
-                          isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                       fontFamily: getSystemFontFamily(
                         Localizations.localeOf(context).languageCode,
                       ),
@@ -926,10 +923,9 @@ class _NameAndTime extends StatelessWidget {
             TextSpan(
               text: name.isEmpty ? relativeTime : ' · $relativeTime',
               style: TextStyle(
-                color:
-                    isDark
-                        ? AppColors.textTertiaryDark
-                        : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textTertiaryDark
+                    : AppColors.textSecondary,
               ),
             ),
         ],
@@ -960,28 +956,29 @@ class _UserAvatar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final id = userId?.trim() ?? '';
-    final avatarUrl =
-        id.isEmpty ? null : ref.watch(groupReportAvatarsProvider(groupId))[id];
+    final avatarUrl = id.isEmpty
+        ? null
+        : ref.watch(groupReportAvatarsProvider(groupId))[id];
     final trimmed = name.trim();
-    final initial =
-        trimmed.isEmpty ? '' : trimmed.characters.first.toUpperCase();
+    final initial = trimmed.isEmpty
+        ? ''
+        : trimmed.characters.first.toUpperCase();
     final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
     return ClipOval(
       child: SizedBox(
         width: 28,
         height: 28,
-        child:
-            hasAvatar
-                ? CachedNetworkImageWidget(
-                  key: networkImageKey(avatarUrl),
-                  imageUrl: avatarUrl,
-                  width: 28,
-                  height: 28,
-                  fit: BoxFit.cover,
-                  errorWidget: _fallback(initial),
-                )
-                : _fallback(initial),
+        child: hasAvatar
+            ? CachedNetworkImageWidget(
+                key: networkImageKey(avatarUrl),
+                imageUrl: avatarUrl,
+                width: 28,
+                height: 28,
+                fit: BoxFit.cover,
+                errorWidget: _fallback(initial),
+              )
+            : _fallback(initial),
       ),
     );
   }
@@ -990,21 +987,20 @@ class _UserAvatar extends ConsumerWidget {
     return ColoredBox(
       color: isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
       child: Center(
-        child:
-            initial.isEmpty
-                ? Icon(
-                  AppAssets.profile,
-                  size: 16,
-                  color: isDark ? AppColors.grey500 : AppColors.grey600,
-                )
-                : Text(
-                  initial,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? AppColors.grey400 : AppColors.grey800,
-                  ),
+        child: initial.isEmpty
+            ? Icon(
+                AppAssets.profile,
+                size: 16,
+                color: isDark ? AppColors.grey500 : AppColors.grey600,
+              )
+            : Text(
+                initial,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? AppColors.grey400 : AppColors.grey800,
                 ),
+              ),
       ),
     );
   }

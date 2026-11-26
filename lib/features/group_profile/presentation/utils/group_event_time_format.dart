@@ -10,10 +10,9 @@ String formatGroupEventTime(DateTime value, String locale) {
   final pattern = DateFormat.jm(locale).pattern!;
   final literalsRemoved = pattern.replaceAll(RegExp(r"'[^']*'"), '');
   final hasDayPeriod = literalsRemoved.contains('a');
-  final format =
-      hasDayPeriod && value.minute == 0
-          ? DateFormat(pattern.replaceFirst(RegExp(r'[:.]mm'), ''), locale)
-          : DateFormat(pattern, locale);
+  final format = hasDayPeriod && value.minute == 0
+      ? DateFormat(pattern.replaceFirst(RegExp(r'[:.]mm'), ''), locale)
+      : DateFormat(pattern, locale);
   return format.format(value).toLowerCase();
 }
 

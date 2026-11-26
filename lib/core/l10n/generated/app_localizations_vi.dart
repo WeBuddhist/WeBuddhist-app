@@ -73,6 +73,16 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String home_practices_sessions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count buổi',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get home_shortcut_plans => 'Lộ trình';
 
   @override
@@ -164,12 +174,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mala_settings_section => 'Cài đặt chuỗi hạt';
 
   @override
-  String get mala_others_section => 'Khác';
-
-  @override
-  String get mala_mantra_speed => 'Tốc độ tụng chú';
-
-  @override
   String get mala_speed_normal => 'Bình thường';
 
   @override
@@ -184,7 +188,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get mala_group_accumulations => 'Thêm lượt tụng vào';
 
   @override
-  String get mala_groups_section => 'Sự kiện';
+  String get mala_groups_section => 'Nhóm';
 
   @override
   String get mala_group_untitled => 'Nhóm chưa đặt tên';
@@ -379,16 +383,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get recitations_no_content => 'Không có bài tụng nào';
 
   @override
-  String get my_recitation_collection_new_title => 'Tuyển tập mới';
+  String get chant_book_new_title => 'Tuyển tập mới';
 
   @override
   String get my_recitation_collection_next => 'Tiếp';
 
   @override
   String get my_recitation_collection_create => 'Tạo';
-
-  @override
-  String get my_recitation_collection_create_button => 'Tạo tuyển tập';
 
   @override
   String get my_recitation_collection_change_title => 'Đổi tiêu đề';
@@ -403,23 +404,22 @@ class AppLocalizationsVi extends AppLocalizations {
   String get my_recitation_collection_search_chants => 'Tìm kiếm bài tụng';
 
   @override
-  String get my_recitation_collection_add_to_collection => 'Thêm vào tuyển tập';
+  String get chant_book_add_to => 'Thêm vào tuyển tập';
 
   @override
-  String get my_recitation_collection_edit => 'Chỉnh sửa tuyển tập';
+  String get chant_book_edit => 'Chỉnh sửa tuyển tập';
 
   @override
-  String get my_recitation_collection_delete => 'Xóa tuyển tập';
+  String get chant_book_delete => 'Xóa tuyển tập';
 
   @override
-  String get my_recitation_collection_delete_title => 'Xóa tuyển tập?';
+  String get chant_book_delete_title => 'Xóa tuyển tập?';
 
   @override
-  String get my_recitation_collection_delete_message =>
-      'Tuyển tập này sẽ bị xóa vĩnh viễn';
+  String get chant_book_delete_message => 'Tuyển tập này sẽ bị xóa vĩnh viễn';
 
   @override
-  String get my_recitation_collection_fallback_title => 'Tuyển tập bài tụng';
+  String get chant_book_fallback_title => 'Tuyển tập bài tụng';
 
   @override
   String get my_recitation_collection_unavailable => 'Không còn khả dụng';
@@ -449,11 +449,11 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title =>
+  String get chant_book_bookmarks_empty_title =>
       'Chưa đánh dấu tuyển tập bài tụng nào';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle =>
+  String get chant_book_bookmarks_empty_subtitle =>
       'Đánh dấu một tuyển tập để lưu vào đây';
 
   @override
@@ -1130,6 +1130,74 @@ class AppLocalizationsVi extends AppLocalizations {
   String get continueWithPhone => 'Tiếp tục bằng số điện thoại';
 
   @override
+  String get login_last_used => 'Dùng lần trước';
+
+  @override
+  String get phone_login_title => 'Nhập số điện thoại của bạn';
+
+  @override
+  String get phone_login_subtitle =>
+      'Chúng tôi sẽ gửi mã qua tin nhắn để xác nhận đó là bạn.';
+
+  @override
+  String get phone_login_number_hint => 'Số điện thoại';
+
+  @override
+  String get phone_login_country_search => 'Tìm quốc gia';
+
+  @override
+  String get phone_login_send_code => 'Gửi mã';
+
+  @override
+  String get phone_login_code_title => 'Nhập mã';
+
+  @override
+  String phone_login_code_subtitle(String phoneNumber) {
+    return 'Chúng tôi đã gửi mã gồm 6 chữ số đến $phoneNumber.';
+  }
+
+  @override
+  String get phone_login_code_hint => 'Mã 6 chữ số';
+
+  @override
+  String get phone_login_verify => 'Xác minh';
+
+  @override
+  String get phone_login_resend => 'Gửi lại mã';
+
+  @override
+  String phone_login_resend_in(int seconds) {
+    return 'Gửi lại mã sau $seconds giây';
+  }
+
+  @override
+  String get phone_login_change_number => 'Đổi số';
+
+  @override
+  String get login_error_invalid_phone => 'Vui lòng nhập số điện thoại hợp lệ.';
+
+  @override
+  String get login_error_invalid_code =>
+      'Mã không đúng. Hãy kiểm tra và thử lại.';
+
+  @override
+  String get login_error_code_expired => 'Mã đã hết hạn. Hãy yêu cầu mã mới.';
+
+  @override
+  String get login_error_too_many_requests =>
+      'Quá nhiều lần thử. Vui lòng thử lại sau.';
+
+  @override
+  String get login_error_network => 'Hãy kiểm tra kết nối internet và thử lại.';
+
+  @override
+  String get login_error_email_not_verified =>
+      'Địa chỉ email của tài khoản này chưa được xác minh. Hãy xác minh với nhà cung cấp của bạn rồi thử lại.';
+
+  @override
+  String get login_error_generic => 'Không thể đăng nhập. Vui lòng thử lại.';
+
+  @override
   String get exploreAsGuest => 'Khám phá với tư cách khách';
 
   @override
@@ -1578,67 +1646,115 @@ class AppLocalizationsVi extends AppLocalizations {
   String get calendar_title => 'Lịch';
 
   @override
-  String get calendar_today => 'Today';
+  String get calendar_choose_calendar => 'Chọn lịch';
 
   @override
-  String get calendar_no_events => 'No events';
+  String get settings_calendar_row => 'Calendar';
 
   @override
-  String get calendar_source_lunar => 'Lunar calendar';
+  String get calendar_tradition_vajrayana => 'Kim Cương thừa';
 
   @override
-  String get calendar_add_event => 'Add event';
+  String get calendar_tradition_theravada => 'Nguyên thủy';
 
   @override
-  String get calendar_event_name => 'Event name';
+  String get calendar_tradition_mahayana => 'Đại thừa';
 
   @override
-  String get calendar_event_name_hint => 'Add an event to your calendar';
+  String get calendar_type_phugpa => 'Tây Tạng (Phugpa)';
 
   @override
-  String get calendar_repeat => 'Repeat';
+  String get calendar_type_tsurphu => 'Tây Tạng (Tsurphu)';
 
   @override
-  String get calendar_does_not_repeat => 'Does not repeat';
+  String get calendar_type_nyingmapa => 'Nyingma';
 
   @override
-  String get calendar_repeat_weekly => 'Weekly';
+  String get calendar_type_sinhalese => 'Sinhala';
 
   @override
-  String get calendar_repeat_monthly => 'Monthly';
+  String get calendar_type_thai => 'Thái';
 
   @override
-  String get calendar_repeat_yearly => 'Yearly';
+  String get calendar_type_burmese => 'Miến Điện';
+
+  @override
+  String get calendar_type_lao => 'Lào';
+
+  @override
+  String get calendar_type_chinese => 'Trung Hoa';
+
+  @override
+  String get calendar_type_vietnamese => 'Việt Nam';
+
+  @override
+  String get calendar_type_korean => 'Hàn Quốc';
+
+  @override
+  String get calendar_type_japanese => 'Nhật Bản';
+
+  @override
+  String get calendar_today => 'Hôm nay';
+
+  @override
+  String get calendar_no_events => 'Không có sự kiện';
+
+  @override
+  String get calendar_source_lunar => 'Âm lịch';
+
+  @override
+  String get calendar_add_event => 'Thêm sự kiện';
+
+  @override
+  String get calendar_event_name => 'Tên sự kiện';
+
+  @override
+  String get calendar_event_name_hint => 'Thêm sự kiện vào lịch của bạn';
+
+  @override
+  String get calendar_repeat => 'Lặp lại';
+
+  @override
+  String get calendar_does_not_repeat => 'Không lặp lại';
+
+  @override
+  String get calendar_repeat_weekly => 'Hằng tuần';
+
+  @override
+  String get calendar_repeat_monthly => 'Hằng tháng';
+
+  @override
+  String get calendar_repeat_yearly => 'Hằng năm';
 
   @override
   String calendar_repeat_monthly_lunar(String day) {
-    return 'Monthly ($day lunar)';
+    return 'Hằng tháng (ngày $day âm lịch)';
   }
 
   @override
-  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+  String get calendar_repeat_yearly_lunar => 'Hằng năm (ngày âm lịch)';
 
   @override
-  String get calendar_delete_event => 'Delete event';
+  String get calendar_delete_event => 'Xóa sự kiện';
 
   @override
-  String get calendar_delete_event_title => 'Delete event?';
+  String get calendar_delete_event_title => 'Xóa sự kiện?';
 
   @override
   String calendar_delete_event_body(String title) {
-    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+    return '\"$title\" sẽ bị xóa khỏi lịch của bạn. Không thể hoàn tác.';
   }
 
   @override
-  String get calendar_delete_repeating_title => 'Delete repeating event?';
+  String get calendar_delete_repeating_title => 'Xóa sự kiện lặp lại?';
 
   @override
   String calendar_delete_repeating_body(String title, String repeat) {
-    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+    return 'Mọi ngày của \"$title\" ($repeat) sẽ bị xóa khỏi lịch của bạn. Không thể hoàn tác.';
   }
 
   @override
-  String get calendar_event_deleted => 'Event deleted';
+  String get calendar_event_deleted => 'Đã xóa sự kiện';
 
   @override
   String get calendar_upcoming_events => 'Sự kiện sắp tới';
@@ -1889,15 +2005,17 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get group_remove_member_title => 'Xóa khỏi nhóm?';
-
-  @override
-  String group_remove_member_message(String name) {
-    return '$name sẽ bị xóa khỏi nhóm này và không thể tham gia lại cho đến khi lệnh cấm được gỡ bỏ';
+  String group_remove_member_title(String name) {
+    return 'Xóa $name';
   }
 
   @override
-  String get group_remove_member_blocked_for => 'Chặn trong:';
+  String group_remove_member_message(String duration) {
+    return 'Họ sẽ bị xóa khỏi nhóm này và không thể tham gia lại trong $duration.';
+  }
+
+  @override
+  String get group_remove_member_blocked_for => 'Không thể tham gia lại trong';
 
   @override
   String get group_remove_member_duration_day => '1 ngày';
@@ -1914,10 +2032,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get group_remove_member_reason_label => 'Lý do (không bắt buộc)';
 
   @override
-  String get group_remove_member_reason_hint => 'Lý do khác...';
+  String get group_remove_member_reason_hint =>
+      'Tại sao bạn xóa thành viên này?';
 
   @override
-  String get group_remove_member_action => 'Xóa';
+  String get group_remove_member_action => 'Xóa thành viên';
 
   @override
   String group_remove_member_success(String name) {
@@ -2066,6 +2185,39 @@ class AppLocalizationsVi extends AppLocalizations {
   String get group_accumulator_finish_session => 'Kết thúc buổi tụng';
 
   @override
+  String get group_accumulator_completed_recitations =>
+      'You completed recitations';
+
+  @override
+  String get group_accumulator_recite_again => 'Recite again';
+
+  @override
+  String get group_accumulator_finish_and_count => 'Finish and count';
+
+  @override
+  String get group_accumulator_finish_without_counting =>
+      'Finish without counting';
+
+  @override
+  String group_accumulator_recitations_counted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recitations counted',
+      one: '1 recitation counted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String group_accumulator_recitation_count_badge(int count) {
+    return '×$count';
+  }
+
+  @override
+  String get undo => 'Undo';
+
+  @override
   String get group_accumulator_offline_recitation => 'Tụng ngoài ứng dụng';
 
   @override
@@ -2128,7 +2280,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Nguyện nhờ công đức này\nchúng sinh đều thoát khổ';
 
   @override
-  String get share_this_quote => 'Chia sẻ câu trích dẫn này';
+  String get share_this_verse => 'Chia sẻ câu kệ này';
 
   @override
   String get shared_from => 'Chia sẻ từ';
@@ -2750,7 +2902,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get group_post_updated => 'Đã lưu thay đổi của bạn';
 
   @override
-  String get practice_collection_already_added =>
+  String get chant_book_already_in_practices =>
       'Tuyển tập này đã có trong pháp tu của bạn';
 
   @override
@@ -4060,6 +4212,34 @@ class AppLocalizationsVi extends AppLocalizations {
   String get timer_duration_sec => 'giây';
 
   @override
+  String get timer_resume => 'Resume';
+
+  @override
+  String get timer_paused_caption => 'Paused · tap to resume';
+
+  @override
+  String get timer_discard_title => 'Discard this session?';
+
+  @override
+  String timer_discard_message(String elapsed) {
+    return 'Your $elapsed of practice won’t be saved';
+  }
+
+  @override
+  String get timer_save_session => 'Save session';
+
+  @override
+  String get timer_session_saved => 'Session saved';
+
+  @override
+  String get timer_session_complete => 'Session complete';
+
+  @override
+  String timer_saved_to_practice(String elapsed) {
+    return '$elapsed · saved to your practice';
+  }
+
+  @override
   String get reader_display_title => 'Display';
 
   @override
@@ -4171,7 +4351,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chants_filter_single_chants => 'Single chants';
 
   @override
-  String get chants_my_chant_books => 'My chantbooks';
+  String get chants_my_chant_books_title => 'My chant books';
 
   @override
   String get chants_text_only => 'Text-only chants';
@@ -4195,7 +4375,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chants_other_spaces => 'Other spaces';
 
   @override
-  String get chants_search_hint => 'Search chants and chantbooks';
+  String get chants_search_hint_chant_books => 'Search chants and chant books';
 
   @override
   String get chants_cant_find => 'Can\'t find the text you\'re looking for?';
@@ -4226,4 +4406,124 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get reader_no_resources_subtitle =>
       'Chúng tôi thường xuyên bổ sung kinh văn mới; hãy quay lại sau nhé';
+
+  @override
+  String get mala_section_practice => 'Thực hành';
+
+  @override
+  String get mala_section_appearance => 'Giao diện';
+
+  @override
+  String get mala_section_save_share => 'Lưu & chia sẻ';
+
+  @override
+  String get mala_mantra_animation => 'Hiệu ứng câu chú';
+
+  @override
+  String get mala_play_animation => 'Phát hiệu ứng';
+
+  @override
+  String get mala_speed => 'Tốc độ';
+
+  @override
+  String get mala_animation_off => 'Tắt';
+
+  @override
+  String get mala_bead_style => 'Kiểu hạt';
+
+  @override
+  String get mala_bead_default => 'Mặc định';
+
+  @override
+  String get mala_use_this_style => 'Dùng kiểu này';
+
+  @override
+  String get mala_bead_style_updated => 'Đã cập nhật kiểu hạt';
+
+  @override
+  String get mala_change_image => 'Đổi hình ảnh';
+
+  @override
+  String get mala_use_image => 'Dùng';
+
+  @override
+  String get mala_restore_default_image => 'Khôi phục mặc định';
+
+  @override
+  String get mala_image_updated => 'Đã cập nhật hình ảnh';
+
+  @override
+  String get mala_images_empty => 'Không có hình ảnh';
+
+  @override
+  String get mala_images_load_error => 'Không tải được hình ảnh';
+
+  @override
+  String get mala_bookmarked => 'Đã đánh dấu';
+
+  @override
+  String get mala_beads_load_error => 'Không tải được kiểu hạt';
+
+  @override
+  String get mala_appearance_save_failed => 'Không lưu được. Vui lòng thử lại';
+
+  @override
+  String get session_search_plans_hint => 'Tìm kiếm lộ trình';
+
+  @override
+  String get session_search_chants_hint => 'Tìm kiếm bài tụng';
+
+  @override
+  String get session_search_malas_hint => 'Tìm kiếm chuỗi hạt';
+
+  @override
+  String get session_search_timers_hint =>
+      'Tìm hẹn giờ theo tên hoặc thời lượng';
+
+  @override
+  String search_min_query_length(int count) {
+    return 'Nhập ít nhất $count ký tự để tìm kiếm';
+  }
+
+  @override
+  String get practice_next_session => 'Buổi tu tiếp theo';
+
+  @override
+  String practice_more_in_session(int count) {
+    return '+$count mục khác trong buổi này';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'Từ các nhóm của bạn';
+
+  @override
+  String get practice_discover_more => 'Khám phá thêm';
+
+  @override
+  String get practice_space_accumulations => 'Tích lũy của nhóm';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'Hiện chưa có tích lũy nào từ các nhóm khác';
+
+  @override
+  String get practice_search_hint => 'Tìm thực hành';
+
+  @override
+  String get practice_search_recent => 'Gần đây';
+
+  @override
+  String practice_search_no_results(String query) {
+    return 'Không có kết quả cho \"$query\"';
+  }
+
+  @override
+  String get practice_popular_practices => 'Thực hành phổ biến';
+
+  @override
+  String get practice_start_routine => 'Bắt đầu thời khóa';
+
+  @override
+  String get practice_start_routine_hint =>
+      'Hoặc chạm vào một pháp tu và chọn \"Thêm vào pháp tu của tôi\".';
 }

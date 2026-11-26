@@ -1,3 +1,5 @@
+import 'package:flutter_pecha/shared/domain/visible_name.dart';
+
 enum GroupReportKind {
   chatMessage('CHAT_MESSAGE'),
   post('POST'),
@@ -22,18 +24,24 @@ class GroupReportUser {
   final String firstname;
   final String lastname;
 
+  /// The name the user picked in Edit profile (`display_name`).
+  final String? userDisplayName;
+
   const GroupReportUser({
     required this.id,
     this.username = '',
     this.firstname = '',
     this.lastname = '',
+    this.userDisplayName,
   });
 
-  /// Full name, falling back to the username when neither name is set.
-  String get displayName {
-    final fullName = '${firstname.trim()} ${lastname.trim()}'.trim();
-    return fullName.isNotEmpty ? fullName : username.trim();
-  }
+  /// Name shown in the UI: the display name, then first and last name, then
+  /// the username.
+  String get displayName => visibleUserName(
+    displayName: userDisplayName,
+    fullname: '${firstname.trim()} ${lastname.trim()}',
+    username: username,
+  );
 }
 
 /// One member's report against a chat message, post, or comment.

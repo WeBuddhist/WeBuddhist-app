@@ -22,9 +22,14 @@ class CacheInterceptor extends Interceptor {
   static const defaultTTL = Duration(minutes: 5);
 
   /// User-specific responses must not be cached — keys are not scoped by token.
+  /// Newer-version paths (`/../v2/users/me/...`) count too.
   static bool isUserSpecificPath(String path) {
-    return path == '/users/info' || path.startsWith('/users/me');
+    final unversioned = path.replaceFirst(_versionPrefix, '');
+    return unversioned == '/users/info' || unversioned.startsWith('/users/me');
   }
+
+  /// `ApiConfig.v2Prefix` and later versions, which climb out of `/api/v1`.
+  static final _versionPrefix = RegExp(r'^/\.\./v\d+(?=/)');
 
   @override
   void onRequest(

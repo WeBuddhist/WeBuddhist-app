@@ -30,11 +30,8 @@ class GroupEventPinScreen extends ConsumerStatefulWidget {
     ).push<GroupEventVenueDraft>(
       MaterialPageRoute(
         settings: const RouteSettings(name: 'group-event-pin'),
-        builder:
-            (_) => GroupEventPinScreen(
-              initialPlace: initialPlace,
-              current: current,
-            ),
+        builder: (_) =>
+            GroupEventPinScreen(initialPlace: initialPlace, current: current),
       ),
     );
   }
@@ -129,8 +126,9 @@ class _GroupEventPinScreenState extends ConsumerState<GroupEventPinScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final hasPin = _center != null;
 
     return Scaffold(
@@ -226,10 +224,9 @@ class _GroupEventPinScreenState extends ConsumerState<GroupEventPinScreen> {
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.8,
-                        color:
-                            isDark
-                                ? AppColors.accentGold
-                                : AppColors.accentGoldDarkest,
+                        color: isDark
+                            ? AppColors.accentGold
+                            : AppColors.accentGoldDarkest,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -260,20 +257,18 @@ class _GroupEventPinScreenState extends ConsumerState<GroupEventPinScreen> {
                       child: ElevatedButton(
                         onPressed: hasPin && !_isLookingUp ? _confirm : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isDark
-                                  ? AppColors.surfaceWhite
-                                  : AppColors.textPrimary,
-                          foregroundColor:
-                              isDark
-                                  ? AppColors.textPrimary
-                                  : AppColors.surfaceWhite,
-                          disabledBackgroundColor:
-                              isDark
-                                  ? AppColors.surfaceVariantDark
-                                  : AppColors.grey100,
-                          disabledForegroundColor:
-                              isDark ? AppColors.grey500 : AppColors.grey600,
+                          backgroundColor: isDark
+                              ? AppColors.surfaceWhite
+                              : AppColors.textPrimary,
+                          foregroundColor: isDark
+                              ? AppColors.textPrimary
+                              : AppColors.surfaceWhite,
+                          disabledBackgroundColor: isDark
+                              ? AppColors.surfaceVariantDark
+                              : AppColors.grey100,
+                          disabledForegroundColor: isDark
+                              ? AppColors.grey500
+                              : AppColors.grey600,
                           shape: const StadiumBorder(),
                           elevation: 0,
                         ),

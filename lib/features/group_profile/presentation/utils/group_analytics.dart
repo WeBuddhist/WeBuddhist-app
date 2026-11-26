@@ -43,11 +43,39 @@ class GroupAnalytics {
     });
   }
 
-  /// The server confirmed the user now follows the group.
-  void groupFollowed({required String groupId, required GroupType groupType}) {
+  /// The server confirmed the user now follows the group. [via] is how:
+  /// `profile` or `discover` for the join button, or `event`, `series` or
+  /// `accumulation` when joining one of those joined the group too.
+  void groupFollowed({
+    required String groupId,
+    required GroupType groupType,
+    String? via,
+  }) {
     _analytics.trackInBackground(AnalyticsEvents.groupFollowed, {
       AnalyticsProperties.groupId: groupId,
       AnalyticsProperties.groupType: groupType.name,
+      if (via != null) AnalyticsProperties.via: via,
+    });
+  }
+
+  /// The server accepted a request to join a private group.
+  void groupJoinRequested({required String groupId}) {
+    _analytics.trackInBackground(AnalyticsEvents.groupJoinRequested, {
+      AnalyticsProperties.groupId: groupId,
+    });
+  }
+
+  /// The server confirmed the user joined a group accumulation. [source]
+  /// names the screen the join button was on.
+  void groupAccumulatorJoined({
+    required String accumulatorId,
+    required String groupId,
+    String? source,
+  }) {
+    _analytics.trackInBackground(AnalyticsEvents.groupAccumulatorJoined, {
+      AnalyticsProperties.accumulatorId: accumulatorId,
+      AnalyticsProperties.groupId: groupId,
+      if (source != null) AnalyticsProperties.source: source,
     });
   }
 

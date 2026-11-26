@@ -28,6 +28,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_event_settings_sheet.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_event_when_where_step.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_posting_to_row.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_event_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// What the composer pops with once an event exists.
@@ -76,14 +77,13 @@ class GroupEventComposerScreen extends ConsumerStatefulWidget {
       MaterialPageRoute(
         fullscreenDialog: true,
         settings: const RouteSettings(name: 'group-event-composer'),
-        builder:
-            (_) => ClarityMask(
-              child: GroupEventComposerScreen(
-                profile: profile,
-                existing: existing,
-                initialStep: initialStep,
-              ),
-            ),
+        builder: (_) => ClarityMask(
+          child: GroupEventComposerScreen(
+            profile: profile,
+            existing: existing,
+            initialStep: initialStep,
+          ),
+        ),
       ),
     );
   }
@@ -165,15 +165,13 @@ class _GroupEventComposerScreenState
     final contentLanguage = ref.read(contentLanguageProvider);
     final available = ref.read(resolvedContentLanguagesProvider);
     // A draft keeps the languages it was saved with.
-    final preselected =
-        _draft.metadata.isNotEmpty
-            ? _draft.languages.toSet()
-            : {AppConfig.englishLanguageCode, contentLanguage};
+    final preselected = _draft.metadata.isNotEmpty
+        ? _draft.languages.toSet()
+        : {AppConfig.englishLanguageCode, contentLanguage};
     _applyLanguages(_ordered(preselected, available));
-    _activeLanguage =
-        _draft.languages.contains(contentLanguage)
-            ? contentLanguage
-            : _draft.languages.first;
+    _activeLanguage = _draft.languages.contains(contentLanguage)
+        ? contentLanguage
+        : _draft.languages.first;
     _loadActiveLanguage();
   }
 
@@ -384,6 +382,7 @@ class _GroupEventComposerScreenState
   Future<GroupEvent?> _submit({required String status}) async {
     final l10n = context.l10n;
     final existing = widget.existing;
+    final analytics = ref.read(groupEventAnalyticsProvider);
     setState(() => _isPublishing = true);
 
     String? imageUrl;
@@ -441,29 +440,27 @@ class _GroupEventComposerScreenState
       now: now,
     );
     // Built the same way as [request], so only the user's changes differ.
-    final original =
-        existing == null
-            ? null
-            : GroupEventRequestBuilder.build(
-              _loadedDraft ?? existing.draft,
-              groupId: widget.profile.id,
-              status: existing.isPublished ? 'published' : 'draft',
-              locationId: existing.locationId,
-              now: now,
-            );
-    final result =
-        existing == null || original == null
-            ? await repository.createEvent(request)
-            : await repository.updateEvent(
-              existing.eventId,
-              // Keeps saved studio data the draft does not model.
-              GroupEventUpdateMerge.apply(
-                request,
-                original: original,
-                source: existing,
-              ),
+    final original = existing == null
+        ? null
+        : GroupEventRequestBuilder.build(
+            _loadedDraft ?? existing.draft,
+            groupId: widget.profile.id,
+            status: existing.isPublished ? 'published' : 'draft',
+            locationId: existing.locationId,
+            now: now,
+          );
+    final result = existing == null || original == null
+        ? await repository.createEvent(request)
+        : await repository.updateEvent(
+            existing.eventId,
+            // Keeps saved studio data the draft does not model.
+            GroupEventUpdateMerge.apply(
+              request,
               original: original,
-            );
+              source: existing,
+            ),
+            original: original,
+          );
     if (!mounted) return null;
     return result.fold((failure) {
       _publishFailed(
@@ -474,7 +471,14 @@ class _GroupEventComposerScreenState
             : l10n.group_event_publish_error,
       );
       return null;
-    }, (event) => event);
+    }, (event) {
+      analytics.eventSaved(
+        event: event,
+        isDraft: status == 'draft',
+        isEdit: existing != null,
+      );
+      return event;
+    });
   }
 
   static bool _sameVenue(GroupEventVenueDraft a, GroupEventVenueDraft b) =>
@@ -570,34 +574,30 @@ class _GroupEventComposerScreenState
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
-          child:
-              published != null
-                  ? GroupEventPublishedView(
-                    event: published,
-                    draft: _draft,
-                    groupTitle: widget.profile.title,
-                    onViewEvent: () => _finish(openEvent: true),
-                    onClose: () => _finish(openEvent: false),
-                  )
-                  : Column(
-                    children: [
-                      _buildTopBar(l10n, isDark),
-                      _StepProgress(
-                        step: _step,
-                        total: GroupEventComposerScreen.stepCount,
-                        isDark: isDark,
-                        label: _stepLabel(l10n),
-                      ),
-                      Divider(height: 1, thickness: 1, color: dividerColor),
-                      GroupPostingToRow(
-                        profile: widget.profile,
-                        isDark: isDark,
-                      ),
-                      Divider(height: 1, thickness: 1, color: dividerColor),
-                      Expanded(child: _buildStep(languages)),
-                      _buildBottomBar(l10n, isDark, dividerColor),
-                    ],
-                  ),
+          child: published != null
+              ? GroupEventPublishedView(
+                  event: published,
+                  draft: _draft,
+                  groupTitle: widget.profile.title,
+                  onViewEvent: () => _finish(openEvent: true),
+                  onClose: () => _finish(openEvent: false),
+                )
+              : Column(
+                  children: [
+                    _buildTopBar(l10n, isDark),
+                    _StepProgress(
+                      step: _step,
+                      total: GroupEventComposerScreen.stepCount,
+                      isDark: isDark,
+                      label: _stepLabel(l10n),
+                    ),
+                    Divider(height: 1, thickness: 1, color: dividerColor),
+                    GroupPostingToRow(profile: widget.profile, isDark: isDark),
+                    Divider(height: 1, thickness: 1, color: dividerColor),
+                    Expanded(child: _buildStep(languages)),
+                    _buildBottomBar(l10n, isDark, dividerColor),
+                  ],
+                ),
         ),
       ),
     );
@@ -608,16 +608,15 @@ class _GroupEventComposerScreenState
       _step + 1,
       GroupEventComposerScreen.stepCount,
     );
-    final name =
-        _isAboutStep
-            ? l10n.group_event_step_about
-            : _isWhenWhereStep
-            ? l10n.group_event_step_when_where
-            : _isPracticesStep
-            ? l10n.group_event_step_practices
-            : _isReviewStep
-            ? l10n.group_event_step_review
-            : null;
+    final name = _isAboutStep
+        ? l10n.group_event_step_about
+        : _isWhenWhereStep
+        ? l10n.group_event_step_when_where
+        : _isPracticesStep
+        ? l10n.group_event_step_practices
+        : _isReviewStep
+        ? l10n.group_event_step_review
+        : null;
     return name == null ? step : '$step · $name';
   }
 
@@ -641,34 +640,26 @@ class _GroupEventComposerScreenState
         profile: widget.profile,
         liveLinkController: _liveLinkController,
         dateRequired: _dateRequired,
-        onScheduleChanged:
-            (schedule) => setState(() {
-              _draft = _draft.copyWith(schedule: schedule);
-              if (schedule.startDate != null) _dateRequired = false;
-            }),
-        onFormatChanged:
-            (format) =>
-                setState(() => _draft = _draft.copyWith(format: format)),
-        onVenueChanged:
-            (venue) => setState(
-              () =>
-                  _draft = _draft.copyWith(
-                    venue: venue,
-                    clearVenue: venue == null,
-                  ),
-            ),
+        onScheduleChanged: (schedule) => setState(() {
+          _draft = _draft.copyWith(schedule: schedule);
+          if (schedule.startDate != null) _dateRequired = false;
+        }),
+        onFormatChanged: (format) =>
+            setState(() => _draft = _draft.copyWith(format: format)),
+        onVenueChanged: (venue) => setState(
+          () =>
+              _draft = _draft.copyWith(venue: venue, clearVenue: venue == null),
+        ),
       );
     }
     if (_isPracticesStep) {
       return GroupEventPracticesStep(
         draft: _draft,
         groupId: widget.profile.id,
-        onPracticesChanged:
-            (practices) =>
-                setState(() => _draft = _draft.copyWith(practices: practices)),
-        onVideosChanged:
-            (videos) =>
-                setState(() => _draft = _draft.copyWith(videos: videos)),
+        onPracticesChanged: (practices) =>
+            setState(() => _draft = _draft.copyWith(practices: practices)),
+        onVideosChanged: (videos) =>
+            setState(() => _draft = _draft.copyWith(videos: videos)),
       );
     }
     return GroupEventReviewStep(
@@ -679,8 +670,9 @@ class _GroupEventComposerScreenState
   }
 
   Widget _buildTopBar(AppLocalizations l10n, bool isDark) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return SizedBox(
       width: double.infinity,
       height: 52,
@@ -724,14 +716,14 @@ class _GroupEventComposerScreenState
     bool isDark,
     Color dividerColor,
   ) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final hint =
-        _isReviewStep
-            ? (_draft.notificationsEnabled
-                ? l10n.group_event_review_notify_hint
-                : null)
-            : _continueHint(l10n);
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final hint = _isReviewStep
+        ? (_draft.notificationsEnabled
+              ? l10n.group_event_review_notify_hint
+              : null)
+        : _continueHint(l10n);
 
     return Container(
       decoration: BoxDecoration(
@@ -750,10 +742,9 @@ class _GroupEventComposerScreenState
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                        _dateRequired && _isWhenWhereStep
-                            ? AppColors.danger
-                            : secondaryColor,
+                    color: _dateRequired && _isWhenWhereStep
+                        ? AppColors.danger
+                        : secondaryColor,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -766,10 +757,9 @@ class _GroupEventComposerScreenState
                   child: OutlinedButton(
                     onPressed: _continue,
                     style: OutlinedButton.styleFrom(
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                       side: BorderSide(
                         color: isDark ? AppColors.grey800 : AppColors.grey400,
                       ),
@@ -791,48 +781,44 @@ class _GroupEventComposerScreenState
                   child: ElevatedButton(
                     onPressed: _canContinue ? _continue : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark
-                              ? AppColors.surfaceWhite
-                              : AppColors.textPrimary,
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimary
-                              : AppColors.surfaceWhite,
-                      disabledBackgroundColor:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.grey100,
-                      disabledForegroundColor:
-                          isDark ? AppColors.grey500 : AppColors.grey600,
+                      backgroundColor: isDark
+                          ? AppColors.surfaceWhite
+                          : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimary
+                          : AppColors.surfaceWhite,
+                      disabledBackgroundColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.grey100,
+                      disabledForegroundColor: isDark
+                          ? AppColors.grey500
+                          : AppColors.grey600,
                       shape: const StadiumBorder(),
                       elevation: 0,
                     ),
-                    child:
-                        _isPublishing
-                            ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color:
-                                    isDark
-                                        ? AppColors.textPrimary
-                                        : AppColors.surfaceWhite,
-                              ),
-                            )
-                            : Text(
-                              _isReviewStep
-                                  ? (_isEditingPublished
+                    child: _isPublishing
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: isDark
+                                  ? AppColors.textPrimary
+                                  : AppColors.surfaceWhite,
+                            ),
+                          )
+                        : Text(
+                            _isReviewStep
+                                ? (_isEditingPublished
                                       ? l10n.group_event_save_changes
                                       : l10n.group_event_publish)
-                                  : l10n.group_event_continue,
-                              strutStyle: context.tibetanStrutStyle(16),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
+                                : l10n.group_event_continue,
+                            strutStyle: context.tibetanStrutStyle(16),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
+                          ),
                   ),
                 ),
             ],
@@ -860,8 +846,9 @@ class _StepProgress extends StatelessWidget {
   Widget build(BuildContext context) {
     final doneColor = isDark ? AppColors.surfaceWhite : AppColors.textPrimary;
     final todoColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),

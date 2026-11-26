@@ -9,7 +9,12 @@ library;
 
 // Domain - Entities
 export 'domain/entities/user.dart';
+export 'domain/entities/account_names.dart';
 export 'domain/entities/auth_credentials.dart';
+export 'domain/entities/phone_code_start.dart';
+
+// Domain - Failures
+export 'domain/failures/login_failure.dart';
 
 // Domain - Repositories
 export 'domain/repositories/auth_repository.dart';
@@ -25,8 +30,10 @@ export 'domain/usecases/has_valid_credentials_usecase.dart';
 export 'domain/usecases/initialize_auth_usecase.dart';
 export 'domain/usecases/is_guest_mode_usecase.dart';
 export 'domain/usecases/login_usecase.dart';
+export 'domain/usecases/login_with_phone_code_usecase.dart';
 export 'domain/usecases/logout_usecase.dart';
 export 'domain/usecases/force_refresh_access_token_usecase.dart';
+export 'domain/usecases/request_phone_code_usecase.dart';
 
 // Data - Models
 export 'data/models/user_model.dart';
@@ -36,10 +43,6 @@ export 'data/repositories/auth_repository_impl.dart';
 
 // Application - Auth Service
 export 'auth_service.dart';
-
-// Application - Config
-export 'application/config_service.dart';
-export 'application/auth0_config.dart';
 
 // Presentation - State
 export 'presentation/state/auth_state.dart';
@@ -56,6 +59,7 @@ export 'presentation/providers/user_notifier.dart';
 
 // Presentation - Screens
 export 'presentation/screens/login_page.dart';
+export 'presentation/screens/phone_login_screen.dart';
 export 'presentation/screens/profile_page.dart';
 
 // Presentation - Widgets

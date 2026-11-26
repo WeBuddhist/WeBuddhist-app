@@ -26,11 +26,10 @@ class GroupEventCountModeSheet extends StatelessWidget {
   }) {
     return GroupEventSheet.show<GroupEventCountMode>(
       context,
-      builder:
-          (_) => GroupEventCountModeSheet(
-            selected: selected,
-            attendeesTaken: attendeesTaken,
-          ),
+      builder: (_) => GroupEventCountModeSheet(
+        selected: selected,
+        attendeesTaken: attendeesTaken,
+      ),
     );
   }
 
@@ -39,8 +38,9 @@ class GroupEventCountModeSheet extends StatelessWidget {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final activeColor = isDark ? AppColors.surfaceWhite : AppColors.textPrimary;
 
     Widget option(

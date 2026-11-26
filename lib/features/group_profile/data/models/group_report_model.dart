@@ -42,6 +42,7 @@ class GroupReportModel {
       username: value['username'] as String? ?? '',
       firstname: value['firstname'] as String? ?? '',
       lastname: value['lastname'] as String? ?? '',
+      userDisplayName: value['display_name'] as String?,
     );
   }
 
@@ -80,11 +81,10 @@ class GroupReportsPageModel {
             ?.whereType<Map<String, dynamic>>()
             .toList() ??
         const <Map<String, dynamic>>[];
-    final reports =
-        raw
-            .map(GroupReportModel.fromJson)
-            .whereType<GroupReportModel>()
-            .toList();
+    final reports = raw
+        .map(GroupReportModel.fromJson)
+        .whereType<GroupReportModel>()
+        .toList();
 
     return GroupReportsPageModel(
       reports: reports,

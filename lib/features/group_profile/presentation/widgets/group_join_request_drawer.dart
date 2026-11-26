@@ -92,8 +92,9 @@ class _GroupJoinRequestDrawerState
     final l10n = context.l10n;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final labelColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final labelColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -152,10 +153,9 @@ class _GroupJoinRequestDrawerState
                     counterText:
                         '${_messageController.text.length}/${GroupJoinRequestDrawer.maxMessageLength}',
                     filled: true,
-                    fillColor:
-                        isDark
-                            ? AppColors.surfaceVariantDark
-                            : AppColors.grey100,
+                    fillColor: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.grey100,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide.none,
@@ -169,33 +169,30 @@ class _GroupJoinRequestDrawerState
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark
-                              ? AppColors.surfaceWhite
-                              : AppColors.textPrimary,
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimary
-                              : AppColors.surfaceWhite,
+                      backgroundColor: isDark
+                          ? AppColors.surfaceWhite
+                          : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimary
+                          : AppColors.surfaceWhite,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
                       ),
                       elevation: 0,
                     ),
-                    child:
-                        _isSubmitting
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                            : Text(
-                              l10n.group_join_request_send,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            l10n.group_join_request_send,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
+                          ),
                   ),
                 ),
               ],
@@ -242,10 +239,9 @@ Future<void> _showBanDialog(BuildContext context, DateTime? expiresAt) {
                 style: TextStyle(
                   fontSize: 16,
                   height: 1.4,
-                  color:
-                      isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),

@@ -7,3 +7,6 @@ BUNDLE_ID=org.pecha.app.dev
 APP_NAME=[Dev] WeBuddhist
 AUTH0_SCHEME=org.pecha.app.dev
 AIRBRIDGE_APP_NAME=webuddhist
+// REVERSED_CLIENT_ID of Runner/config/dev/GoogleService-Info.plist: the URL
+// scheme Google sign-in (and the phone sign-in reCAPTCHA fallback) returns on.
+GOOGLE_REVERSED_CLIENT_ID=com.googleusercontent.apps.551646315172-p964ifvv1hkqihuja1ndudcbioc3vatj

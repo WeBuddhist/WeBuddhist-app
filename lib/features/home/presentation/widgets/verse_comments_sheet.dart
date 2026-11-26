@@ -85,7 +85,7 @@ class _VerseCommentsSheetState extends ConsumerState<VerseCommentsSheet> {
   void _startReply(VerseOfDayComment comment) {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'verse_comment_reply');
       return;
     }
 
@@ -96,7 +96,7 @@ class _VerseCommentsSheetState extends ConsumerState<VerseCommentsSheet> {
   Future<void> _submit() async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'verse_comment');
       return;
     }
 
@@ -174,7 +174,7 @@ class _VerseCommentsSheetState extends ConsumerState<VerseCommentsSheet> {
   Future<void> _toggleLike(VerseOfDayComment comment) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'verse_comment_like');
       return;
     }
 

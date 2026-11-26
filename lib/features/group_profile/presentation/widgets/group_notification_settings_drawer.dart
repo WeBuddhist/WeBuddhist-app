@@ -96,12 +96,11 @@ class GroupNotificationSettingsDrawer extends ConsumerWidget {
       isDismissible: true,
       enableDrag: true,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder:
-          (_) => GroupNotificationSettingsDrawer(
-            profile: profile,
-            followKey: followKey,
-            showNotificationSettings: showNotificationSettings,
-          ),
+      builder: (_) => GroupNotificationSettingsDrawer(
+        profile: profile,
+        followKey: followKey,
+        showNotificationSettings: showNotificationSettings,
+      ),
     );
   }
 
@@ -198,10 +197,9 @@ class GroupNotificationSettingsDrawer extends ConsumerWidget {
       title: l10n.group_leave_space_confirm_title,
       message: l10n.group_leave_confirm_message,
       confirmLabel: l10n.group_leave_space,
-      onConfirmed:
-          () => ref
-              .read(groupFollowProvider(followKey).notifier)
-              .unfollow(connectGroup: profile),
+      onConfirmed: () => ref
+          .read(groupFollowProvider(followKey).notifier)
+          .unfollow(connectGroup: profile),
     );
     if (!context.mounted) return;
 
@@ -283,10 +281,9 @@ class _ToggleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final contentColor =
-        enabled
-            ? theme.colorScheme.onSurface
-            : theme.colorScheme.onSurface.withValues(alpha: 0.38);
+    final contentColor = enabled
+        ? theme.colorScheme.onSurface
+        : theme.colorScheme.onSurface.withValues(alpha: 0.38);
 
     return MergeSemantics(
       child: InkWell(
@@ -350,10 +347,9 @@ class _MasterOffNotice extends StatelessWidget {
           ),
           TextButton(
             // The profile page navigates once the sheet has closed.
-            onPressed:
-                () => Navigator.of(
-                  context,
-                ).pop(GroupNotificationSheetResult.openNotificationSettings),
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(GroupNotificationSheetResult.openNotificationSettings),
             child: Text(l10n.group_notifications_open_settings),
           ),
         ],

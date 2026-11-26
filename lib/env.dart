@@ -40,15 +40,6 @@ class Env {
     return value == null || value.isEmpty ? null : value;
   }
 
-  /// Auth0 domain (fetched from backend /props endpoint)
-  static String? get auth0Domain => dotenv.env['AUTH0_DOMAIN'];
-
-  /// Auth0 client ID (fetched from backend /props endpoint)
-  static String? get auth0ClientId => dotenv.env['AUTH0_CLIENT_ID'];
-
-  /// Auth0 audience (fetched from backend /props endpoint)
-  static String? get auth0Audience => dotenv.env['AUTH0_AUDIENCE'];
-
   /// Whether the app is running in debug mode
   static bool get isDebug => dotenv.env['ENVIRONMENT'] != 'production';
 

@@ -72,6 +72,18 @@ library/
   comma-separated, `tag_id_match` defaults to `all`); several traditions are
   filtered client-side on `tag_ids` since the API cannot express
   "chants AND any of". User collections still come from the main API.
+- Chant audio (not plan audio, which stays on the main API):
+  `getChantRecordings(editionId)` = `/v2/editions/{id}/recordings` (these
+  follow the edition, so only they can highlight its verses later), then the
+  text's other performances (`LibraryText.audioIds` → `/v2/audios/{id}/recordings`),
+  memoized and LRU-capped at `recordingCacheSize`. `hasChantRecordings` reads
+  only `LibraryText.audioIds` so the Chants page can split audio / text
+  chants cheaply. `getRecordingAudioUrl` calls
+  `/v2/recordings/{id}/audio-url` every time with `no_cache`: the presigned
+  link expires. `/v2/texts/{id}/audios` is `getTextAudios` (titles,
+  performers). The reader passes `getRecordingAudioUrl` to
+  `PlanSegmentAudioController.resolveUrl`, which fetches a new link after a
+  player error and resumes from the same position.
 
 ## Cross-feature dependencies
 

@@ -11,11 +11,13 @@ import 'package:flutter_pecha/features/home/domain/entities/today_event.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/streak_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/today_events_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/utils/home_live_event_navigation.dart';
+import 'package:flutter_pecha/features/home/presentation/widgets/home_chat_button.dart';
 import 'package:flutter_pecha/features/home/presentation/widgets/today_event_badge.dart';
 import 'package:flutter_pecha/features/more/presentation/providers/user_stats_provider.dart';
 import 'package:flutter_pecha/features/more/presentation/widgets/streak_share_sheet.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_pecha/shared/widgets/main_tab_app_bar.dart';
+import 'package:flutter_pecha/features/home/presentation/utils/home_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -33,7 +35,8 @@ class HomeTabAppBar extends ConsumerWidget implements PreferredSizeWidget {
   static const double tibetanGreetingTopPadding = 6;
   // Shorter than the default bar so the event badge sits closer to the greeting.
   static const double _toolbarHeight = 44;
-  static const double _actionsReserveWidth = 148;
+  // Streak, calendar and chat, plus the trailing gap.
+  static const double _actionsReserveWidth = 196;
   static const double _tibetanNameLineSpacing = 2;
   // A very long name wraps onto this many lines, as in the home header design.
   static const int _maxGreetingLines = 3;
@@ -167,6 +170,7 @@ class HomeTabAppBar extends ConsumerWidget implements PreferredSizeWidget {
         maxWidth: _greetingMaxWidth(context),
       ),
       actions: [
+        _pinToFirstLine(context, _StreakBadge(count: streakCount)),
         _pinToFirstLine(
           context,
           IconButton(
@@ -178,7 +182,7 @@ class HomeTabAppBar extends ConsumerWidget implements PreferredSizeWidget {
             ),
           ),
         ),
-        _pinToFirstLine(context, _StreakBadge(count: streakCount)),
+        _pinToFirstLine(context, const HomeChatButton()),
         const SizedBox(width: 8),
       ],
     );
@@ -249,7 +253,16 @@ class _HomeEventBannerState extends ConsumerState<HomeEventBanner> {
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
       child: TodayEventBadge(
         events: liveFirst,
-        onSelect: (eventId) => openHomeLiveEvent(context, eventId),
+        onSelect: (eventId) {
+          ref
+              .read(homeAnalyticsProvider)
+              .cardTapped(
+                section: HomeSection.eventBanner,
+                targetId: eventId,
+                position: liveFirst.indexWhere((item) => item.id == eventId),
+              );
+          openHomeLiveEvent(context, eventId);
+        },
       ),
     );
   }

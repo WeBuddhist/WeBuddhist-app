@@ -90,8 +90,9 @@ class GroupAccumulatorSessionCompleteContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bodyColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final bodyColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -189,12 +190,10 @@ class _SessionRecitationSummary extends StatelessWidget {
           if (parts.isNotEmpty) TextSpan(text: parts.first),
           TextSpan(
             text: countText,
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: accentColor,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w700, color: accentColor),
           ),
-          if (parts.length > 1) TextSpan(text: parts.sublist(1).join(countText)),
+          if (parts.length > 1)
+            TextSpan(text: parts.sublist(1).join(countText)),
         ],
       ),
     );
@@ -213,17 +212,16 @@ Future<void> shareGroupAccumulatorSession(
 }) async {
   File? tempFile;
   try {
-    final Uint8List? imageBytes =
-        screenshotController != null
-            ? await screenshotController.capture(
-              delay: const Duration(milliseconds: 100),
-              pixelRatio: 3.0,
-            )
-            : await _captureSessionShareImage(
-              context,
-              sessionCount: sessionCount,
-              accumulationTitle: accumulationTitle,
-            );
+    final Uint8List? imageBytes = screenshotController != null
+        ? await screenshotController.capture(
+            delay: const Duration(milliseconds: 100),
+            pixelRatio: 3.0,
+          )
+        : await _captureSessionShareImage(
+            context,
+            sessionCount: sessionCount,
+            accumulationTitle: accumulationTitle,
+          );
 
     if (imageBytes == null || !context.mounted) return;
 
@@ -298,23 +296,21 @@ Future<String> _sessionShareText(
   String? groupName,
 }) async {
   final l10n = AppLocalizations.of(context)!;
-  final longUrl =
-      DeepLinkUrlBuilder.groupAccumulatorLink(
-        accumulatorId: accumulatorId,
-        groupId: groupId,
-      ).toString();
+  final longUrl = DeepLinkUrlBuilder.groupAccumulatorLink(
+    accumulatorId: accumulatorId,
+    groupId: groupId,
+  ).toString();
   final shareUrl = await resolveShareUrl(context, longUrl);
-  final message =
-      groupName == null
-          ? l10n.group_accumulator_session_share_message_no_group(
-            sessionCount,
-            accumulationTitle,
-          )
-          : l10n.group_accumulator_session_share_message(
-            sessionCount,
-            accumulationTitle,
-            groupName,
-          );
+  final message = groupName == null
+      ? l10n.group_accumulator_session_share_message_no_group(
+          sessionCount,
+          accumulationTitle,
+        )
+      : l10n.group_accumulator_session_share_message(
+          sessionCount,
+          accumulationTitle,
+          groupName,
+        );
   return '$message\n\n$shareUrl';
 }
 
@@ -411,8 +407,7 @@ class _GroupAccumulatorSessionCompleteSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final accentColor =
-        isDark ? AppColors.primaryLight : AppColors.primary;
+    final accentColor = isDark ? AppColors.primaryLight : AppColors.primary;
 
     return Container(
       decoration: BoxDecoration(
@@ -452,41 +447,37 @@ class _GroupAccumulatorSessionCompleteSheetState
                   key: _shareButtonKey,
                   onPressed: _isSharing ? null : _shareSession,
                   style: FilledButton.styleFrom(
-                    backgroundColor:
-                        isDark
-                            ? AppColors.cardBorderDark
-                            : AppColors.textPrimary,
-                    foregroundColor:
-                        isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.surfaceWhite,
-                    disabledBackgroundColor:
-                        AppColors.textPrimary.withValues(alpha: 0.5),
+                    backgroundColor: isDark
+                        ? AppColors.cardBorderDark
+                        : AppColors.textPrimary,
+                    foregroundColor: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.surfaceWhite,
+                    disabledBackgroundColor: AppColors.textPrimary.withValues(
+                      alpha: 0.5,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
-                  icon:
-                      _isSharing
-                          ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color:
-                                  isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.surfaceWhite,
-                            ),
-                          )
-                          : Icon(
-                            AppAssets.readerShare,
-                            size: 22,
-                            color:
-                                isDark
-                                    ? AppColors.textPrimaryDark
-                                    : AppColors.surfaceWhite,
+                  icon: _isSharing
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: isDark
+                                ? AppColors.textPrimaryDark
+                                : AppColors.surfaceWhite,
                           ),
+                        )
+                      : Icon(
+                          AppAssets.readerShare,
+                          size: 22,
+                          color: isDark
+                              ? AppColors.textPrimaryDark
+                              : AppColors.surfaceWhite,
+                        ),
                   label: Text(
                     l10n.share,
                     style: const TextStyle(
@@ -523,13 +514,12 @@ void showGroupAccumulatorSessionCompleteSheet(
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     useRootNavigator: true,
-    builder:
-        (_) => GroupAccumulatorSessionCompleteSheet(
-          sessionCount: sessionCount,
-          accumulationTitle: accumulationTitle,
-          accumulatorId: accumulatorId,
-          groupId: groupId,
-          groupName: groupName,
-        ),
+    builder: (_) => GroupAccumulatorSessionCompleteSheet(
+      sessionCount: sessionCount,
+      accumulationTitle: accumulationTitle,
+      accumulatorId: accumulatorId,
+      groupId: groupId,
+      groupName: groupName,
+    ),
   ).whenComplete(() => _isSessionCompleteSheetVisible = false);
 }

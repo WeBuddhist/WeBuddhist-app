@@ -93,7 +93,7 @@ class ChatRoomTile extends StatelessWidget {
                       Expanded(child: _preview(context, subtitleColor)),
                       if (chatRoomIsUnread(room)) ...[
                         const SizedBox(width: 8),
-                        _UnreadBadge(count: room.unreadCount),
+                        _UnreadBadge(count: room.unreadChat),
                       ],
                     ],
                   ),

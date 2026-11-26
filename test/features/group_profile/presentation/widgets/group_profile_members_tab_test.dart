@@ -24,6 +24,12 @@ const _members = [
   GroupMember(userId: 'u1', username: 'pema', fullname: 'Pema', role: 'OWNER'),
   GroupMember(userId: 'u2', username: 'dawa', fullname: 'Dawa', role: 'ADMIN'),
   GroupMember(userId: 'u3', username: 'karma', fullname: 'Karma'),
+  GroupMember(
+    userId: 'u4',
+    username: 'tenzin',
+    fullname: 'Tenzin Dorje',
+    userDisplayName: 'tenz',
+  ),
 ];
 
 class _FakeRepository extends Fake implements GroupProfileRepositoryInterface {
@@ -146,5 +152,15 @@ void main() {
     expect(_inRow('Dawa', find.byIcon(Icons.close)), findsNothing);
     expect(_inRow('Pema', find.text('Owner')), findsOneWidget);
     expect(_inRow('Dawa', find.text('Admin')), findsOneWidget);
+  });
+
+  testWidgets('a member row shows the display name, not the full name', (
+    tester,
+  ) async {
+    await _pump(tester, viewerRole: 'ADMIN');
+
+    expect(find.text('tenz'), findsOneWidget);
+    expect(find.text('Tenzin Dorje'), findsNothing);
+    expect(find.byTooltip('Remove tenz'), findsOneWidget);
   });
 }

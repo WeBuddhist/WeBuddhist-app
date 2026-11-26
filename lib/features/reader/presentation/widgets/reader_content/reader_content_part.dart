@@ -71,6 +71,9 @@ class ReaderContentPart extends ConsumerStatefulWidget {
   final void Function(VoidCallback scrollToTop)? onScrollToTopReady;
   final Widget? chantSessionFooter;
 
+  /// Recitations counted so far in a group chant, for the sections pill.
+  final int chantRecitationCount;
+
   /// Gets how far through the page the reader is, 0 to 1, for the progress
   /// line under the header.
   final ValueNotifier<double>? progress;
@@ -88,6 +91,7 @@ class ReaderContentPart extends ConsumerStatefulWidget {
     this.onScrollControllerReady,
     this.onScrollToTopReady,
     this.chantSessionFooter,
+    this.chantRecitationCount = 0,
     this.onSourceSelected,
     this.progress,
   }) : assert(sources.length > 0, 'at least one source is required');
@@ -3186,6 +3190,7 @@ class _ReaderContentPartState extends ConsumerState<ReaderContentPart> {
                   numeralLanguage: _numeralLanguage(views[section.source]),
                   position: index + 1,
                   total: sectionCount,
+                  recitationCount: widget.chantRecitationCount,
                   onTap: _openSectionsSheet,
                 );
               },

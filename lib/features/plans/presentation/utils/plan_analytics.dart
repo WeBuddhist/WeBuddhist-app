@@ -124,6 +124,21 @@ class PlanAnalytics {
     });
   }
 
+  /// [count] subtasks were marked done because the user read through them
+  /// in the plan reader.
+  void subtasksCompletedByReading({
+    required String planId,
+    required int dayNumber,
+    required int count,
+  }) {
+    _analytics.trackInBackground(AnalyticsEvents.planSubtaskCompleted, {
+      AnalyticsProperties.planId: planId,
+      AnalyticsProperties.dayNumber: dayNumber,
+      AnalyticsProperties.via: 'reading',
+      AnalyticsProperties.itemCount: count,
+    });
+  }
+
   /// A day's last task was completed; [isOnTime] on its scheduled date.
   void planDayCompleted({
     required String planId,
@@ -168,15 +183,6 @@ class PlanAnalytics {
       AnalyticsProperties.planName: planName,
       AnalyticsProperties.daysCompleted: daysCompleted,
       AnalyticsProperties.daysSinceEnrolled: daysSinceEnrolled,
-    });
-  }
-
-  /// A debounced catalog search returned its first page. Only the length of
-  /// the query is sent: the text itself could be personal.
-  void planSearched({required int queryLength, required int resultCount}) {
-    _analytics.trackInBackground(AnalyticsEvents.planSearched, {
-      AnalyticsProperties.queryLength: queryLength,
-      AnalyticsProperties.resultCount: resultCount,
     });
   }
 }

@@ -59,4 +59,48 @@ void main() {
 
     expect(member.canBeRemovedByAdmin, isTrue);
   });
+
+  group('displayName', () {
+    test('prefers display_name over fullname', () {
+      final member =
+          GroupMemberModel.fromJson({
+            'username': 'tenzin',
+            'fullname': 'Tenzin Dorje',
+            'display_name': '  tenz  ',
+          }).toEntity();
+
+      expect(member.userDisplayName, 'tenz');
+      expect(member.displayName, 'tenz');
+    });
+
+    test('falls back to fullname when display_name is missing or blank', () {
+      final missing =
+          GroupMemberModel.fromJson({
+            'username': 'tenzin',
+            'fullname': 'Tenzin Dorje',
+          }).toEntity();
+      final blank =
+          GroupMemberModel.fromJson({
+            'username': 'tenzin',
+            'fullname': 'Tenzin Dorje',
+            'display_name': '   ',
+          }).toEntity();
+
+      expect(missing.userDisplayName, isNull);
+      expect(missing.displayName, 'Tenzin Dorje');
+      expect(blank.userDisplayName, isNull);
+      expect(blank.displayName, 'Tenzin Dorje');
+    });
+
+    test('falls back to username when both names are empty', () {
+      final member =
+          GroupMemberModel.fromJson({
+            'username': 'tenzin',
+            'fullname': '',
+            'display_name': null,
+          }).toEntity();
+
+      expect(member.displayName, 'tenzin');
+    });
+  });
 }

@@ -4,6 +4,7 @@ import 'package:flutter_pecha/features/more/presentation/me_screen.dart';
 import 'package:flutter_pecha/features/plans/data/models/user/user_plans_model.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
+import 'package:flutter_pecha/features/connect/presentation/providers/connect_space_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/screens/connect_tab_screen.dart';
 import 'package:flutter_pecha/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter_pecha/features/practice/presentation/screens/practice_explore_screen.dart';
@@ -29,9 +30,12 @@ final pendingOnboardingPlanProvider = StateProvider<UserPlansModel?>(
   (ref) => null,
 );
 
+/// [connectHasUnread] dots the Connect tab: a joined space has unread chat or
+/// prayer requests.
 List<AppBottomBarItemModel<int>> mainNavigationItems(
   BuildContext context, {
   String? meAvatarUrl,
+  bool connectHasUnread = false,
 }) {
   final localizations = AppLocalizations.of(context)!;
   return [
@@ -55,6 +59,7 @@ List<AppBottomBarItemModel<int>> mainNavigationItems(
       selectedWidget: const ConnectTabScreen(),
       selectedIconData: AppAssets.connectSelected,
       unSelectedIconData: AppAssets.connectUnselected,
+      hasBadge: connectHasUnread,
     ),
     AppBottomBarItemModel(
       type: 3,
@@ -94,7 +99,16 @@ class MainNavigationBottomBar extends ConsumerWidget {
         authState.isLoggedIn && !authState.isGuest
             ? user?.avatarUrl
             : null;
-    final items = mainNavigationItems(context, meAvatarUrl: meAvatarUrl);
+    // Any joined space with unread messages, the one Connect shows included:
+    // from another tab, this is the first dot on the way to them.
+    final connectHasUnread = ref.watch(
+      unreadSpacesProvider.select((spaces) => spaces.isNotEmpty),
+    );
+    final items = mainNavigationItems(
+      context,
+      meAvatarUrl: meAvatarUrl,
+      connectHasUnread: connectHasUnread,
+    );
     final selectedIndex = ref.watch(mainNavigationIndexProvider);
 
     return AppBottomNavBar(

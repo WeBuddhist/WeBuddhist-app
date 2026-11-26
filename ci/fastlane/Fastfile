@@ -1,0 +1,49 @@
+# Used by .github/workflows/release-prod.yml (job "app_store_review") on a
+# release tag. The iOS build job has already uploaded the build; this waits for
+# Apple to finish processing it, sets the "What's New" text and sends it for
+# App Store review, to be released automatically once approved.
+#
+# Everything comes from the environment; nothing here is secret. fastlane
+# treats the API key as sensitive and does not print it.
+#   ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY  App Store Connect API key (role: App Manager or Admin)
+#   VERSION_NAME, BUILD_NUMBER          the build to submit, e.g. 2.48.0 / 153
+#   RELEASE_NOTES                       the release tag's message
+
+require "fileutils"
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Submit an uploaded build for App Store review; release it once approved"
+  lane :submit_for_review do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY"),
+      in_house: false
+    )
+
+    # An empty folder, so only the release notes below are changed; the rest
+    # of the store listing stays as it is in App Store Connect.
+    metadata_path = File.join(ENV.fetch("RUNNER_TEMP", "/tmp"), "asc-metadata")
+    FileUtils.mkdir_p(metadata_path)
+
+    deliver(
+      api_key: api_key,
+      app_identifier: "org.pecha.app",
+      app_version: ENV.fetch("VERSION_NAME"),
+      build_number: ENV.fetch("BUILD_NUMBER"),
+      # "default" fills every language the listing has.
+      release_notes: { "default" => ENV.fetch("RELEASE_NOTES") },
+      metadata_path: metadata_path,
+      ignore_language_directory_validation: true,
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      run_precheck_before_submit: false,
+      precheck_include_in_app_purchases: false,
+      submit_for_review: true,
+      automatic_release: true,
+      force: true # no interactive preview on CI
+    )
+  end
+end

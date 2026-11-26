@@ -13,17 +13,21 @@ import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/accumulator_groups_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/group_accumulation_counts_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_accumulation_selection_provider.dart';
+import 'package:flutter_pecha/features/mala/presentation/providers/mala_appearance_provider.dart';
+import 'package:flutter_pecha/features/mala/presentation/providers/mala_last_used_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_settings_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_manager.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/space_mantra_providers.dart';
+import 'package:flutter_pecha/features/mala/presentation/screens/mala_settings_screen.dart';
 import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_carousel_order.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/add_mala_rounds_button.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/group_accumulations_bar.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/mala_beads.dart';
+import 'package:flutter_pecha/features/mala/presentation/widgets/mala_sheet_frame.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/mala_skeleton.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/mantra_switcher.dart';
-import 'package:flutter_pecha/features/mala/presentation/widgets/mala_settings_sheet.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/bookmark_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -55,7 +59,7 @@ class MalaScreen extends ConsumerStatefulWidget {
   final GroupAccumulator? singleAccumulation;
 
   /// Where the screen was opened from, carried on `mala_screen_opened`.
-  final String? source;
+  final MalaOpenSource? source;
 
   @override
   ConsumerState<MalaScreen> createState() => _MalaScreenState();
@@ -97,7 +101,17 @@ class _MalaPractice {
 
 class _MalaScreenState extends ConsumerState<MalaScreen> {
   int _index = 0;
+
+  /// The item on screen, by `presetId` (a space mantra's is its counts key).
+  /// A refreshed catalogue or space list can add or drop items before it, so
+  /// [_index] is found again from this rather than kept as a number.
+  String? _selectedId;
   bool _initialisedIndex = false;
+
+  /// Preset ids in carousel order, fixed on the first non-empty catalogue so
+  /// a refresh never moves the page under the user's thumb. A new order
+  /// shows the next time the screen opens.
+  List<String>? _pinnedOrder;
   bool _appliedInitialGroupSelection = false;
   bool _trackedOpened = false;
   late final MalaSessionTracker _session;
@@ -108,6 +122,12 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
     super.initState();
     _session = MalaSessionTracker(ref.read(malaAnalyticsProvider))..start();
     _sync = ref.read(malaSyncManagerProvider);
+    // The catalogue provider is kept alive, so without this a reopen would
+    // order by usage times from whenever it first loaded. This screen's order
+    // is pinned from what's loaded now; the fresh times order the next visit.
+    if (widget.singleAccumulation == null) {
+      unawaited(ref.read(malaCatalogueRefreshProvider)());
+    }
   }
 
   @override
@@ -176,7 +196,10 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
             via: MalaSwitchVia.carousel,
           );
     }
-    setState(() => _index = next);
+    setState(() {
+      _index = next;
+      _selectedId = items[next].presetId;
+    });
   }
 
   @override
@@ -193,7 +216,9 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
 
     final catalogue = ref.watch(malaCatalogueProvider);
     // _buildLoaded calls ref.listen, so it must run in this build method.
-    final presets = ScreenCacheBuilder.loadedOf(catalogue);
+    final loadedPresets = ScreenCacheBuilder.loadedOf(catalogue);
+    final presets =
+        loadedPresets == null ? null : _carouselOrder(loadedPresets);
     final loaded =
         presets == null
             ? null
@@ -227,6 +252,19 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
         ),
       ),
     );
+  }
+
+  /// Latest-used first, worked out once and then pinned. Only this screen
+  /// reorders: the catalogue's other readers keep the server's order.
+  List<Mantra> _carouselOrder(List<Mantra> presets) {
+    final pinned = _pinnedOrder;
+    if (pinned != null) return inPinnedOrder(presets, pinned);
+    final local = ref.read(malaLastUsedStoreProvider).read(malaUserIdSync());
+    final ordered = latestUsedFirst(presets, local: local);
+    if (ordered.isNotEmpty) {
+      _pinnedOrder = [for (final m in ordered) m.presetId];
+    }
+    return ordered;
   }
 
   /// Joined space accumulations whose mantra is not shown through a preset,
@@ -267,12 +305,34 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
         );
         if (i >= 0) _index = i;
       }
+    } else if (_selectedId case final selected?) {
+      // Stay on the same mantra when items before it come or go. If it was
+      // removed, the clamp below keeps the nearest position.
+      final i = items.indexWhere((m) => m.presetId == selected);
+      if (i >= 0) _index = i;
     }
     _index = _index.clamp(0, items.length - 1);
+    _selectedId = items[_index].presetId;
     final isSpace = _index >= presets.length;
+    // Each mantra's artwork. The user's own pick is looked up only for the
+    // mantra on screen and its neighbours (one request each), which are all
+    // a swipe can show. The carousel wraps, so the first and last mantras
+    // are neighbours too.
+    bool isNeighbour(int i) {
+      final distance = (i - _index).abs();
+      return distance <= 1 || distance == items.length - 1;
+    }
+
+    final images = {
+      for (final (i, mantra) in items.indexed)
+        mantra.presetId:
+            isNeighbour(i)
+                ? watchMalaMantraImage(ref, mantra)
+                : mantra.deityImage,
+    };
     // Sized for artwork when any mantra has some, so swiping between mantras
     // with and without an image never resizes the layout mid-carousel.
-    final hasDeityImage = items.any((m) => m.deityImage != null);
+    final hasDeityImage = images.values.any((image) => image != null);
 
     final language = Localizations.localeOf(context).languageCode;
     final settings = ref.watch(malaSettingsProvider);
@@ -281,6 +341,12 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
         isSpace
             ? _spacePractice(context, spaces[_index - presets.length], settings)
             : _presetPractice(context, presets[_index], settings, language);
+    // The user's bead skin for this mantra, else the accumulation's own.
+    final beadBytes = watchMalaBeadBytes(
+      ref,
+      items[_index].mantraId,
+      practice.beadImageBytes,
+    );
 
     return Column(
       children: [
@@ -309,6 +375,8 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
                     tibetanFontFamily: AppConfig.tibetanContentFont,
                     index: _index,
                     speedFactor: settings.mantraSpeed,
+                    animate: settings.playAnimation,
+                    imageFor: (mantra) => images[mantra.presetId],
                     onIndexChanged:
                         (next) => _switch(items, presets.length, next),
                   ),
@@ -350,8 +418,8 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
                                     beadsPerRound: practice.beadsPerRound,
                                     enabled: practice.countingEnabled,
                                     mirrored: leftHanded,
-                                    beadImageBytes: practice.beadImageBytes,
-                                    beadColor: const Color(0xFF8D6E63),
+                                    beadImageBytes: beadBytes,
+                                    beadColor: kMalaDefaultBeadColor,
                                     threadColor: const Color(0xFFC62828),
                                     onTap: () => practice.onBead(MalaInput.tap),
                                     onSwipe:
@@ -461,6 +529,8 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
       }
       // Null means the tap was ignored, so no bead was counted.
       if (total == null) return;
+      // Personal and group counts both move the preset to the front.
+      recordMalaPresetUsed(ref, mantra.presetId);
       _session.onBead(
         presetId: mantra.presetId,
         mantraName: mantra.localizedName('en'),
@@ -474,7 +544,7 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
 
     return _MalaPractice(
       title: mantra.displayTitle(language),
-      onMorePressed: () => MalaSettingsSheet.show(context, mantra: mantra),
+      onMorePressed: () => _openSettings(context, mantra: mantra),
       showCountSkeleton: showCountSkeleton,
       displayTotal: displayTotal,
       beadsPerRound: beadsPerRound,
@@ -548,7 +618,8 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
 
     return _MalaPractice(
       title: item.title,
-      onMorePressed: () => MalaPracticeSettingsSheet.show(context),
+      onMorePressed:
+          () => _openSettings(context, mantra: item.displayMantra, space: item),
       showCountSkeleton: !ready,
       displayTotal: displayTotal,
       beadsPerRound: beadsPerRound,
@@ -562,6 +633,25 @@ class _MalaScreenState extends ConsumerState<MalaScreen> {
                   ref.invalidate(groupMantraCountSeedProvider(accumulatorId))
               : null,
     );
+  }
+
+  /// Opens Mala settings and confirms a bead or image change on return.
+  Future<void> _openSettings(
+    BuildContext context, {
+    required Mantra mantra,
+    SpaceMantraItem? space,
+  }) async {
+    final outcome = await MalaSettingsScreen.show(
+      context,
+      mantra: mantra,
+      space: space,
+    );
+    if (!context.mounted || outcome == null) return;
+    final l10n = context.l10n;
+    showMalaToast(context, switch (outcome) {
+      MalaSettingsOutcome.beadStyleUpdated => l10n.mala_bead_style_updated,
+      MalaSettingsOutcome.imageUpdated => l10n.mala_image_updated,
+    });
   }
 
   void _applyInitialGroupSelectionIfNeeded(String presetId) {

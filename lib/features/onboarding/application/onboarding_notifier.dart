@@ -2,7 +2,6 @@ import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/onboarding/application/onboarding_state.dart';
 import 'package:flutter_pecha/features/onboarding/domain/usecases/onboarding_usecases.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/utils/onboarding_analytics.dart';
-import 'package:flutter_pecha/features/plans/data/models/user/user_plans_model.dart';
 import 'package:flutter_pecha/shared/domain/base_classes/usecase.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -134,9 +133,7 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
       );
 
       if (completed) {
-        _analytics.onboardingCompleted(
-          eventPlanSelected: state.preferences.enrolledEventPlanIds.isNotEmpty,
-        );
+        _analytics.onboardingCompleted();
         _onCompleted?.call();
       }
 
@@ -146,18 +143,6 @@ class OnboardingNotifier extends StateNotifier<OnboardingState> {
       _logger.error('Error submitting preferences', e);
       state = state.copyWithLoading(false);
       return false;
-    }
-  }
-
-  /// Records plans enrolled from the onboarding event page.
-  /// Persists plan IDs to preferences and stores the full models for post-onboarding navigation.
-  Future<void> setEnrolledPlans(List<UserPlansModel> plans) async {
-    final planIds = plans.map((p) => p.id).toList();
-    final updatedPrefs = state.preferences.copyWith(enrolledEventPlanIds: planIds);
-    state = state.copyWith(preferences: updatedPrefs, enrolledPlans: plans);
-    await _savePreferences();
-    for (final plan in plans) {
-      _analytics.eventPlanSelected(planId: plan.id, planName: plan.title);
     }
   }
 

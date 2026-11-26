@@ -17,13 +17,21 @@ class ChantsPageRepositoryImpl implements ChantsPageRepository {
     required MyRecitationCollectionsRemoteDatasource collections,
     required SpaceChantBooksRemoteDatasource spaces,
     required TextRequestsRemoteDatasource textRequests,
+    Future<bool> Function(String textId)? hasRecordings,
   }) : _collections = collections,
        _spaces = spaces,
-       _textRequests = textRequests;
+       _textRequests = textRequests,
+       _hasRecordings = hasRecordings ?? _noRecordings;
 
   final MyRecitationCollectionsRemoteDatasource _collections;
   final SpaceChantBooksRemoteDatasource _spaces;
   final TextRequestsRemoteDatasource _textRequests;
+
+  /// Whether the library has a recording of a chant's text (edition id).
+  /// Sorts space chants into "Audio chants" and "Text chants".
+  final Future<bool> Function(String textId) _hasRecordings;
+
+  static Future<bool> _noRecordings(String _) async => false;
 
   /// Largest page the practices feed serves.
   static const int feedPageSize = 100;
@@ -99,11 +107,10 @@ class ChantsPageRepositoryImpl implements ChantsPageRepository {
   Future<Either<Failure, SpaceChants>> getSpaceChants(
     SpaceChantBooks books,
   ) async {
-    final wanted =
-        [
-          ...books.yours,
-          ...books.others,
-        ].where((book) => book.chantCount > 0).toList();
+    final wanted = [
+      ...books.yours,
+      ...books.others,
+    ].where((book) => book.chantCount > 0).toList();
     if (wanted.isEmpty) return const Right(SpaceChants.empty);
 
     final details = List<GroupRecitationCollection?>.filled(
@@ -136,7 +143,50 @@ class ChantsPageRepositoryImpl implements ChantsPageRepository {
         ),
       );
     }
-    return Right(splitSpaceChants(wanted, details));
+    return Right(
+      splitSpaceChants(
+        wanted,
+        details,
+        recordedTextIds: await _recordedTextIds(details),
+      ),
+    );
+  }
+
+  /// Library lookups in flight at once while sorting chants by audio. Each
+  /// uncached one reads an edition and then its text.
+  static const int recordingLookupConcurrency = 10;
+
+  /// Texts in [details] that the library has a recording of, looked up by a
+  /// pool of [recordingLookupConcurrency] workers, each taking the next text
+  /// as soon as its last one lands. A lookup that fails counts as no
+  /// recording.
+  Future<Set<String>> _recordedTextIds(
+    List<GroupRecitationCollection?> details,
+  ) async {
+    final textIds = [
+      ...{
+        for (final detail in details)
+          for (final item
+              in detail?.items ?? const <GroupRecitationCollectionItem>[])
+            if (_nonBlank(item.textId) case final id?) id,
+      },
+    ];
+    final recorded = <String>{};
+    var next = 0;
+    Future<void> worker() async {
+      while (next < textIds.length) {
+        final id = textIds[next++];
+        try {
+          if (await _hasRecordings(id)) recorded.add(id);
+        } catch (_) {}
+      }
+    }
+
+    await Future.wait([
+      for (var w = 0; w < min(recordingLookupConcurrency, textIds.length); w++)
+        worker(),
+    ]);
+    return recorded;
   }
 
   @override
@@ -206,17 +256,17 @@ SpaceChantBooks splitSpaceChantBooks(
 }
 
 /// Flattens loaded book [details] (null where a book failed, same order as
-/// [books]) into chant rows, in book order then the book's own order.
+/// [books]) into chant rows, each list in alphabetical order by title.
 ///
-/// A text in more than one book is not listed twice. Each distinct
-/// recording of it is kept (the same recording in two books once). A copy
-/// without audio is listed only when no book has a recording of that text,
-/// and then once. The first copy wins, so a joined space wins when [books]
-/// lists those first.
+/// A text in more than one book is listed once, the first copy winning, so
+/// a joined space wins when [books] lists those first. Recordings belong to
+/// the text in the library, so a chant whose text is in [recordedTextIds]
+/// goes under audio, every other one under text.
 SpaceChants splitSpaceChants(
   List<ChantBook> books,
-  List<GroupRecitationCollection?> details,
-) {
+  List<GroupRecitationCollection?> details, {
+  Set<String> recordedTextIds = const {},
+}) {
   final yoursAudio = <SpaceChant>[];
   final yoursText = <SpaceChant>[];
   final othersAudio = <SpaceChant>[];
@@ -226,16 +276,6 @@ SpaceChants splitSpaceChants(
   String? textKey(GroupRecitationCollectionItem item) =>
       _nonBlank(item.textId) ?? _nonBlank(item.id);
 
-  // Texts with a recording in any book, so a text-only copy elsewhere
-  // does not hide in "Text chants" what "Audio chants" already plays.
-  final recordedTexts = <String>{};
-  for (var i = 0; i < count; i++) {
-    for (final item in details[i]?.items ?? const []) {
-      final key = textKey(item);
-      if (key != null && item.audio.isNotEmpty) recordedTexts.add(key);
-    }
-  }
-
   final seen = <String>{};
   for (var i = 0; i < count; i++) {
     final book = books[i];
@@ -243,15 +283,10 @@ SpaceChants splitSpaceChants(
     if (detail == null) continue;
     for (final item in detail.items) {
       final key = textKey(item);
-      if (key == null) continue;
-      if (item.audio.isEmpty) {
-        if (recordedTexts.contains(key) || !seen.add(key)) continue;
-      } else {
-        final recordings = item.audio.map((a) => a.assetUrl).toList()..sort();
-        if (!seen.add('$key\u0000${recordings.join('\u0000')}')) continue;
-      }
+      if (key == null || !seen.add(key)) continue;
       final chant = SpaceChant(
         item: item,
+        hasAudio: recordedTextIds.contains(_nonBlank(item.textId)),
         collection: detail,
         spaceName: book.subtitle,
         groupAvatarUrl: book.groupAvatarUrl,
@@ -265,12 +300,26 @@ SpaceChants splitSpaceChants(
     }
   }
   return SpaceChants(
-    yoursAudio: yoursAudio,
-    yoursText: yoursText,
-    othersAudio: othersAudio,
-    othersText: othersText,
+    yoursAudio: sortChantsByTitle(yoursAudio),
+    yoursText: sortChantsByTitle(yoursText),
+    othersAudio: sortChantsByTitle(othersAudio),
+    othersText: sortChantsByTitle(othersText),
     failedBookCount: details.take(count).where((d) => d == null).length,
   );
+}
+
+/// [chants] in alphabetical order by title, ignoring case and surrounding
+/// spaces, so a recitation is easy to find. Same titles keep their order.
+List<SpaceChant> sortChantsByTitle(List<SpaceChant> chants) {
+  final keyed =
+      [
+        for (var i = 0; i < chants.length; i++)
+          (key: chants[i].item.title.trim().toLowerCase(), index: i),
+      ]..sort((a, b) {
+        final byTitle = a.key.compareTo(b.key);
+        return byTitle != 0 ? byTitle : a.index.compareTo(b.index);
+      });
+  return [for (final k in keyed) chants[k.index]];
 }
 
 String? _nonBlank(String? value) {

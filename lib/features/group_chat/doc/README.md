@@ -69,7 +69,8 @@ group_chat/
 - **group_profile** — `groupProfileProvider`, `groupFollowProvider` (membership gate), notification preferences, event detail
 - **push_notifications** — foreground pushes refresh the thread / rooms; `foregroundPushFilterProvider` suppresses banners for the open room
 - **feedback** — Help & contact context line parsing in direct chat
-- **connect** — hosts the Chats action / unread dot
+- **connect** — hosts the Chats action / unread dots; every mark-read (`GroupChatScreen`, `DirectChatNotifier`, `PrayerRequestsSheet`, `prayerRoomLiveProvider`) calls `ChatRoomsNotifier.markReadLocally` so the dots clear without a refetch
+- **Unread (v2)** — the rooms inbox comes from `/api/v2/chat/rooms`, where each room has `unread: {TEXT, PRAYER}` (v1 `unread_count` still parses, as chat). Mark-read is per type: the chat marks `TEXT`, prayer boards mark `PRAYER`, a direct chat marks both. The Chats list counts chat only
 
 ## Notable patterns
 
@@ -80,6 +81,7 @@ group_chat/
 - **Delete**: no optimistic removal; confirmed rows get `deleted_at` and render as tombstones; quotes of a deleted original are stamped too
 - **Container reads**: screens capture `ProviderScope.containerOf` in `initState` so push callbacks never `ref.read` through a deactivated element
 - **Prayers**: taps batched per message and paced (server limit 10/s); a closed sheet drains what it still owes; a refetch never lowers a count a pending batch already shows
+- **Prayer mantra** (the text that floats up on Pray): the backend resolves it and sends it as the room's `mantra`, in this order: the event's own mantra → its space's (group's) mantra → the space tradition's default mantra (`room_mantra_service.py` in the backend). Only when the room has no mantra does the app fall back to `prayerMantraForLocale` (`widgets/floating_prayer_text.dart`): Om Mani Padme Hum in the app language (bo, zh, hi, ne, mn scripts; English romanization for every other language). The fallback ignores tradition; tradition defaults belong on the backend, not in the app
 
 ---
 
@@ -113,6 +115,7 @@ group_chat/
 | New signal field | `signal_paths.dart` → `chatRoomLiveProvider` / `prayerRoomLiveProvider` |
 | Chats list change | `chat_rooms_providers.dart`, `utils/chat_rooms_list.dart`, `chat_room_tile.dart` |
 | Prayer request change | `prayer_requests_providers.dart`, `prayer_request_tile.dart` |
+| Prayer mantra | Event/space/tradition mantra: backend (Studio). App fallback only: `floating_prayer_text.dart` |
 
 ### Testing
 

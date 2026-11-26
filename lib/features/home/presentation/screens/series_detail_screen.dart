@@ -232,7 +232,7 @@ class SeriesDetailScreen extends ConsumerWidget {
   /// object avoids a redundant `GET /series/{id}`.
   void _onAddToPractices(BuildContext context, WidgetRef ref, Series series) {
     if (ref.read(authProvider).isGuest) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'series_add_to_practices');
       return;
     }
     ref

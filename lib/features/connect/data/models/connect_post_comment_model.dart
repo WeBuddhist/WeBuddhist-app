@@ -3,12 +3,14 @@ import 'package:flutter_pecha/features/connect/domain/entities/connect_post_comm
 class ConnectPostCommentUserModel {
   final String? firstName;
   final String? lastName;
+  final String? displayName;
   final String email;
   final String? avatarUrl;
 
   const ConnectPostCommentUserModel({
     this.firstName,
     this.lastName,
+    this.displayName,
     required this.email,
     this.avatarUrl,
   });
@@ -17,6 +19,7 @@ class ConnectPostCommentUserModel {
     return ConnectPostCommentUserModel(
       firstName: json['first_name'] as String?,
       lastName: json['last_name'] as String?,
+      displayName: json['display_name'] as String?,
       email: json['email'] as String? ?? '',
       avatarUrl: json['avatar_url'] as String?,
     );
@@ -26,6 +29,7 @@ class ConnectPostCommentUserModel {
     return ConnectPostCommentUser(
       firstName: firstName,
       lastName: lastName,
+      userDisplayName: displayName,
       email: email,
       avatarUrl: avatarUrl,
     );

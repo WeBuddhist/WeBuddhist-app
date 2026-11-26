@@ -101,6 +101,39 @@ class ConnectAnalytics {
     });
   }
 
+  /// The server accepted a like or unlike. [surface] is where the button
+  /// was: `card`, `detail` or `media_viewer`.
+  void postLikeChanged({
+    required String postId,
+    required String groupId,
+    required bool liked,
+    required String surface,
+  }) {
+    _analytics.trackInBackground(
+      liked ? AnalyticsEvents.postLiked : AnalyticsEvents.postUnliked,
+      {
+        AnalyticsProperties.postId: postId,
+        AnalyticsProperties.groupId: groupId,
+        AnalyticsProperties.surface: surface,
+      },
+    );
+  }
+
+  /// The server accepted a comment on a post. The text is never sent.
+  void postCommentCreated({required String postId, required bool isReply}) {
+    _analytics.trackInBackground(AnalyticsEvents.postCommentCreated, {
+      AnalyticsProperties.postId: postId,
+      AnalyticsProperties.isReply: isReply,
+    });
+  }
+
+  /// The server deleted a comment on a post.
+  void postCommentDeleted({required String postId}) {
+    _analytics.trackInBackground(AnalyticsEvents.postCommentDeleted, {
+      AnalyticsProperties.postId: postId,
+    });
+  }
+
   Map<String, Object?> _placedPostProperties(
     ConnectPost post,
     ConnectPostPlacement placement,

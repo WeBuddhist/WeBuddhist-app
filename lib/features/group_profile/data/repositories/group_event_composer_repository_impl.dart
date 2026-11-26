@@ -33,11 +33,10 @@ class GroupEventComposerRepositoryImpl
         params: [groupId],
       ),
       fetchJson: () => remote.fetchCmsEventsJson(groupId),
-      fromJson:
-          (json) => GroupEventComposerRemoteDatasource.parseCmsEvents(
-            (json as List).cast<Map<String, dynamic>>(),
-            language: language,
-          ),
+      fromJson: (json) => GroupEventComposerRemoteDatasource.parseCmsEvents(
+        (json as List).cast<Map<String, dynamic>>(),
+        language: language,
+      ),
       failureMessage: 'Failed to load events',
     );
   }
@@ -102,13 +101,12 @@ class GroupEventComposerRepositoryImpl
     int limit = 20,
   }) {
     return _guard(
-      () async =>
-          (await remote.fetchInPersonCounts(
-            eventId,
-            eventAccumulationId: eventAccumulationId,
-            skip: skip,
-            limit: limit,
-          )).toEntity(),
+      () async => (await remote.fetchInPersonCounts(
+        eventId,
+        eventAccumulationId: eventAccumulationId,
+        skip: skip,
+        limit: limit,
+      )).toEntity(),
       'Failed to load in-person counts',
     );
   }
@@ -121,13 +119,12 @@ class GroupEventComposerRepositoryImpl
     required int count,
   }) {
     return _guard(
-      () async =>
-          (await remote.createInPersonCount(
-            eventId,
-            eventAccumulationId: eventAccumulationId,
-            day: day,
-            count: count,
-          )).toEntity(),
+      () async => (await remote.createInPersonCount(
+        eventId,
+        eventAccumulationId: eventAccumulationId,
+        day: day,
+        count: count,
+      )).toEntity(),
       'Failed to add in-person count',
     );
   }
@@ -141,14 +138,13 @@ class GroupEventComposerRepositoryImpl
     required int count,
   }) {
     return _guard(
-      () async =>
-          (await remote.updateInPersonCount(
-            eventId,
-            countId,
-            eventAccumulationId: eventAccumulationId,
-            day: day,
-            count: count,
-          )).toEntity(),
+      () async => (await remote.updateInPersonCount(
+        eventId,
+        countId,
+        eventAccumulationId: eventAccumulationId,
+        day: day,
+        count: count,
+      )).toEntity(),
       'Failed to update in-person count',
     );
   }
@@ -187,12 +183,11 @@ class GroupEventComposerRepositoryImpl
     CreateGroupEventRequest? original,
   }) {
     return _guard(
-      () async =>
-          (await remote.updateEvent(
-            eventId,
-            request,
-            original: original,
-          )).toEntity(),
+      () async => (await remote.updateEvent(
+        eventId,
+        request,
+        original: original,
+      )).toEntity(),
       'Failed to update event',
     );
   }

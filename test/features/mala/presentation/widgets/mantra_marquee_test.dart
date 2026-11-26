@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/mantra_marquee.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Widget _host(String text, {bool reduceMotion = false}) {
+Widget _host(String text, {bool reduceMotion = false, bool animate = true}) {
   return MaterialApp(
     home: Builder(
       builder:
@@ -17,6 +17,7 @@ Widget _host(String text, {bool reduceMotion = false}) {
                   child: MantraMarquee(
                     text: text,
                     style: const TextStyle(fontSize: 20),
+                    animate: animate,
                   ),
                 ),
               ),
@@ -51,5 +52,23 @@ void main() {
     await tester.pump();
 
     expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
+  testWidgets('play animation off holds the text still', (tester) async {
+    await tester.pumpWidget(_host(_long, animate: false));
+    await tester.pump();
+
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
+  testWidgets('turning play animation back on resumes scrolling', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(_long, animate: false));
+    await tester.pump();
+    await tester.pumpWidget(_host(_long));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(tester.binding.hasScheduledFrame, isTrue);
   });
 }

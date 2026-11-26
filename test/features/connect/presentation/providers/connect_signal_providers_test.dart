@@ -21,9 +21,7 @@ import 'package:flutter_pecha/features/group_profile/data/models/group_event_mod
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_events_page.dart';
 import 'package:flutter_pecha/features/group_profile/domain/repositories/group_profile_repository.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
-import 'package:flutter_pecha/features/home/data/datasource/home_events_remote_datasource.dart';
 import 'package:flutter_pecha/features/home/domain/repositories/home_repository.dart';
-import 'package:flutter_pecha/features/home/presentation/providers/home_group_events_preview_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/use_case_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -199,21 +197,6 @@ class _FakeGroupProfile extends Fake
   }
 }
 
-class _FakeHomeEvents extends HomeEventsRemoteDatasource {
-  _FakeHomeEvents() : super(dio: Dio());
-
-  int previews = 0;
-
-  @override
-  Future<Map<String, dynamic>> fetchPreviewJson({
-    required String language,
-    required int limit,
-  }) async {
-    previews++;
-    return {'events': <Object>[], 'total': 0, 'skip': 0, 'limit': limit};
-  }
-}
-
 class _FakeTodayEvents extends Fake implements TodayEventsRepositoryInterface {
   int refreshes = 0;
 
@@ -230,7 +213,6 @@ void main() {
   late FakeRealtimeSignals signals;
   late _FakeRemote remote;
   late _FakeTodayEvents today;
-  late _FakeHomeEvents home;
   late ProviderContainer container;
 
   ProviderContainer build({bool guest = false}) {
@@ -245,7 +227,6 @@ void main() {
         groupProfileRepositoryProvider.overrideWithValue(
           _FakeGroupProfile(remote),
         ),
-        homeEventsRemoteDatasourceProvider.overrideWithValue(home),
         screenCacheStoreProvider.overrideWithValue(FakeScreenCacheStore()),
         realtimeSignalsProvider.overrideWithValue(signals),
         firebaseSignedInProvider.overrideWith((ref) => true),
@@ -257,7 +238,6 @@ void main() {
     signals = FakeRealtimeSignals();
     remote = _FakeRemote();
     today = _FakeTodayEvents();
-    home = _FakeHomeEvents();
     container = build();
     addTearDown(container.dispose);
   });
@@ -564,7 +544,6 @@ void main() {
       signals.emit(path, {'events_changed_at': DateTime.utc(2026, 1, 3)});
       await settle();
       expect(today.refreshes, 1);
-      expect(home.previews, 1);
     });
   });
 

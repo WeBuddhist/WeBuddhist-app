@@ -54,4 +54,17 @@ void main() {
       {'is_guest': 'true', 'count': '3'},
     );
   });
+
+  test('tagEntries leaves out PostHog person properties', () {
+    final List<MapEntry<String, String>> entries =
+        ClarityAnalyticsService.tagEntries({
+          'method': 'sms',
+          r'$set_once': {'signup_method': 'sms'},
+        });
+
+    expect(
+      {for (final entry in entries) entry.key: entry.value},
+      {'method': 'sms'},
+    );
+  });
 }

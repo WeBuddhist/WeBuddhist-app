@@ -25,7 +25,7 @@ class PracticeScreen extends ConsumerWidget {
   void _onBuildRoutine(BuildContext context, WidgetRef ref) {
     final isGuest = ref.read(authProvider).isGuest;
     if (isGuest) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'routine_build');
       return;
     }
     context.pushNamed('edit-routine');

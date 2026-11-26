@@ -77,8 +77,9 @@ class GroupEventPracticesStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
     return SingleChildScrollView(
@@ -99,10 +100,9 @@ class GroupEventPracticesStep extends StatelessWidget {
               pick: pick,
               isDark: isDark,
               onRemove: () => _removePractice(pick),
-              onCountMode:
-                  pick.kind == GroupEventPracticeKind.accumulator
-                      ? () => _pickCountMode(context, pick)
-                      : null,
+              onCountMode: pick.kind == GroupEventPracticeKind.accumulator
+                  ? () => _pickCountMode(context, pick)
+                  : null,
             ),
           _AddRow(
             label: l10n.group_event_add_practice,
@@ -211,8 +211,9 @@ class _PracticeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
@@ -318,8 +319,9 @@ class _VideoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final title = video.title?.trim();
 

@@ -11,7 +11,6 @@ import 'package:flutter_pecha/features/connect/presentation/providers/connect_po
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_unified_feed_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/utils/connect_event_filter_utils.dart';
-import 'package:flutter_pecha/features/home/presentation/providers/home_group_events_preview_provider.dart';
 import 'package:flutter_pecha/features/home/presentation/providers/use_case_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -78,7 +77,7 @@ final myFeedSignalsProvider = Provider.autoDispose<void>((ref) {
 });
 
 /// Refreshes every event list on screen when an event is featured or
-/// unfeatured. Watched by Home's events section and the events screen.
+/// unfeatured. Watched by the events screen.
 final featuredEventsSignalProvider = Provider.autoDispose<void>((ref) {
   listenSignal(
     ref,
@@ -89,11 +88,10 @@ final featuredEventsSignalProvider = Provider.autoDispose<void>((ref) {
   );
 });
 
-/// Home's preview and today's events revalidate through their sources; the
-/// paged lists re-read their loaded rows only while they are alive.
+/// Today's events revalidate through their source; the paged lists re-read
+/// their loaded rows only while they are alive.
 void refreshEventListsIfShown(Ref ref) {
   final language = ref.read(contentLanguageProvider);
-  ref.read(homeGroupEventsPreviewSourceProvider)?.refresh();
   ref
       .read(todayEventsDomainRepositoryProvider)
       .refreshTodayEvents(language: language);

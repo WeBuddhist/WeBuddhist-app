@@ -51,7 +51,8 @@ class _NoopAnalytics implements AnalyticsService {
   dynamic noSuchMethod(Invocation invocation) => Future<void>.value();
 }
 
-class _FakePostRepository extends Fake implements GroupPostRepositoryInterface {}
+class _FakePostRepository extends Fake
+    implements GroupPostRepositoryInterface {}
 
 class _FakeRemote extends GroupProfileRemoteDatasource {
   _FakeRemote() : super(dio: Dio());
@@ -156,7 +157,12 @@ void main() {
           (ref, groupId) => GroupPostsNotifier(
             repository: _FakePostRepository(),
             groupId: groupId,
-            stored: ConnectPostsPage(posts: const [], skip: 0, limit: 20, total: 0),
+            stored: ConnectPostsPage(
+              posts: const [],
+              skip: 0,
+              limit: 20,
+              total: 0,
+            ),
           ),
         ),
       ],

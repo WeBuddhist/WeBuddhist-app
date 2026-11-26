@@ -23,11 +23,30 @@ typedef ProviderListen =
 /// Returns false when the target ignored it (personal counter still seeding,
 /// group count not yet loaded, or no signed-in user), so the caller does not
 /// tally it.
-bool countChantIntoSelection(ProviderReader read, Mantra mantra) {
+bool countChantIntoSelection(ProviderReader read, Mantra mantra) =>
+    countChantInto(
+      read,
+      mantra,
+      groupAccumulatorId: chantTargetOf(read, mantra),
+    );
+
+/// Where chants for [mantra] go right now: a joined accumulation's id, or
+/// null for personal practice.
+String? chantTargetOf(ProviderReader read, Mantra mantra) =>
+    read(malaAccumulationSelectionProvider(mantra.presetId)).groupAccumulatorId;
+
+/// Counts one chant for [mantra] into [groupAccumulatorId], or into personal
+/// practice when null, whatever the accumulation sheet has selected now. For
+/// a chant made earlier whose target has to stay the one picked back then.
+///
+/// Returns false when the target ignored it, as [countChantIntoSelection].
+bool countChantInto(
+  ProviderReader read,
+  Mantra mantra, {
+  required String? groupAccumulatorId,
+}) {
   final presetId = mantra.presetId;
-  final selection = read(malaAccumulationSelectionProvider(presetId));
   final settings = read(malaSettingsProvider);
-  final groupAccumulatorId = selection.groupAccumulatorId;
 
   final int? total;
   if (groupAccumulatorId == null) {

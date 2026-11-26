@@ -1,5 +1,6 @@
 package org.pecha.app
 
+import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -14,6 +15,7 @@ class MainActivity : FlutterActivity() {
 
     companion object {
         private const val NOTIFICATIONS_CHANNEL = "org.pecha.app/notifications"
+        private const val APP_THEME_CHANNEL = "org.pecha.app/app_theme"
     }
 
     override fun provideFlutterEngine(context: Context): FlutterEngine? {
@@ -50,6 +52,40 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            APP_THEME_CHANNEL
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setNightMode" -> {
+                    val mode = call.argument<String>("mode")
+                    if (mode == null) {
+                        result.error("ARG", "mode required", null)
+                        return@setMethodCallHandler
+                    }
+                    setAppNightMode(mode)
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    /**
+     * Saves the in-app theme with the system (Android 12+), so the system
+     * launch screen draws in the app's theme rather than the phone's on the
+     * next cold start. "system" hands the choice back to the phone.
+     */
+    private fun setAppNightMode(mode: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val uiModeManager = getSystemService(UiModeManager::class.java) ?: return
+        val nightMode = when (mode) {
+            "light" -> UiModeManager.MODE_NIGHT_NO
+            "dark" -> UiModeManager.MODE_NIGHT_YES
+            else -> UiModeManager.MODE_NIGHT_AUTO
+        }
+        uiModeManager.setApplicationNightMode(nightMode)
     }
 
     /**

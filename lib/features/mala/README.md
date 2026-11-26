@@ -13,6 +13,7 @@ data/
   datasources/
     mala_remote_datasource.dart   REST calls (dio)
     mala_local_datasource.dart    Hive store (LocalMalaState), namespaced by user
+    mala_appearance_remote_datasource.dart  v2 deity images, bead skins, user appearance
   models/
     accumulator_model.dart        JSON DTOs + toEntity()/toMalaCount()
     accumulator_group_model.dart  Group accumulator DTOs (ImageUrlModel → ResponsiveImage)
@@ -24,7 +25,11 @@ domain/
     mala_count.dart               MalaCount (total, totalCounted, accumulatorId, beadImageUrl)
     accumulator_group.dart        Joined group accumulator summary for a preset
     mala_accumulation_selection.dart  personal vs group selection value
+    mala_image_option.dart        one Change image choice (id, image, isDefault)
+    mala_skin.dart                one bead skin from GET /mala-skins
+    mantra_appearance.dart        the user's deity image + bead skin for a mantra
   repositories/mala_repository.dart
+  repositories/mala_appearance_repository.dart  appearance calls (deity images, skins, GET/PATCH)
   usecases/mala_usecases.dart     GetCatalogue / GetAccumulatorDetail / Create / Update /
                                   Delete (personal reset) / SubmitGroupCount / DeleteGroup
 presentation/
@@ -32,7 +37,9 @@ presentation/
     mala_providers.dart           all DI providers + user-id resolution
     mala_counter_notifier.dart    per-mantra counter (seed + increment)
     mala_sync_manager.dart        app-scoped background sync
-    mala_settings_provider.dart   sound / vibration / left-handed / mantra speed (persisted)
+    mala_settings_provider.dart   sound / vibration / left-handed / play animation /
+                                  mantra speed (persisted)
+    mala_appearance_provider.dart per-mantra deity image + bead skin (server)
     accumulator_groups_provider.dart  joined groups + session seed fetch (autoDispose family)
     group_accumulation_counts_provider.dart  per-group session counts (Hive + sync)
     mala_accumulation_selection_provider.dart  personal vs group selection (SharedPreferences)
@@ -44,17 +51,19 @@ presentation/
     mala_analytics.dart           MalaAnalytics + MalaSessionTracker
     accumulation_sheet_display.dart  sheet section/total rules (events vs groups)
   screens/mala_screen.dart        screen layout (mantra card → counter → beads → group bar)
+  screens/mala_settings_screen.dart  full-page Mala settings (⋮)
   widgets/
     mala_beads.dart               the tappable bead-arc CustomPainter
     mantra_switcher.dart          infinite looping carousel (swipe + ‹ › chevrons)
     mantra_marquee.dart           scrolling script / transliteration band
-    mantra_speed_sheet.dart       marquee speed picker (nested in settings)
+    mantra_animation_sheet.dart   play animation toggle + speed chips
+    bead_style_sheet.dart         bead skin grid ("Use this style")
+    change_image_sheet.dart       deity image grid ("Use", "Restore default")
+    mala_sheet_frame.dart         shared sheet chrome, primary button, toast
     add_mala_rounds_button.dart   "+" beside the rounds count
     add_mala_rounds_dialog.dart   wheel picker for offline rounds
     group_accumulations_bar.dart  joined-group pill with overlapping avatars
     group_accumulations_sheet.dart  group accumulations bottom sheet
-    mala_settings_sheet.dart      sound/vibration, mantra speed, add to practice,
-                                  bookmark, share, reset
     mala_skeleton.dart            loading placeholder
 ```
 
@@ -68,7 +77,7 @@ fetched by authenticated users, so the catch-all is safe.
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `GET` | `/accumulators/presets` | Catalogue of preset mantras (paged, `language`). Sent with `no_cache` so it skips the 5-min HTTP cache and always returns the latest titles/images. |
+| `GET` | `/api/v2/accumulations?owner_type=platform` | Catalogue of preset mantras (paged, `language`). Same body as v1 `/accumulators/presets` plus each row's `last_used_at` (orders the carousel, see *Carousel order*). Sent with `no_cache` so it skips the 5-min HTTP cache and always returns the latest titles/images. Called as `ApiConfig.accumulationsV2Path` and listed in `ProtectedRoutes` on its own, since the `/accumulators/` catch-all doesn't cover it. |
 | `GET` | `/accumulators/{parent_id}` | The user's detail for one preset. **404 ⇒ no accumulator yet ⇒ seed at 0.** |
 | `GET` | `/accumulators/{accumulator_id}/groups` | Groups using this preset. Query `joined_only=true` returns only groups the user has joined. `{accumulator_id}` is the preset id (`Mantra.presetId`). Each row includes `user_total_count` — the user's **lifetime** total for that group (shown in the accumulations sheet). Sent with `no_cache`. |
 | `POST` | `/accumulators/user` | Lazily create the user's accumulator (`{parent_id}`, starts at 0). |
@@ -203,12 +212,109 @@ Providers:
   `mergeFromServerCounts()` reconciles with detail API, `resetCount()` for
   group reset.
 
+### Carousel order (latest used first)
+
+Each catalogue row has `last_used_at`: when the user last counted on that
+preset, personal or in a space accumulation built on it (`null` if never or
+without a token). A reset keeps it; changing images doesn't move it. It is
+cached in Hive with the rest of the row and carried onto `Mantra.lastUsedAt`.
+The list's `last_used_id` is parsed but not used: it can name a preset that
+isn't in the list.
+
+Only `MalaScreen` reorders (`latestUsedFirst` in
+`presentation/utils/mala_carousel_order.dart`): used presets newest first,
+then never-used ones in server order, then joined space mantras. The carousel
+opens on index 0, so it opens on the latest-used mantra; `initialPresetId`
+still wins. The select-session screen and the group hero card keep the
+server order.
+
+- **Pinned for the life of the screen.** The order is worked out on the first
+  non-empty catalogue and kept as preset ids (`_pinnedOrder`). A refresh
+  updates each mantra's content but not its position (`inPinnedOrder`); new
+  presets go at the end. A new order shows the next time the screen opens.
+  Otherwise a refresh (e.g. after counting on another device) would move the
+  page under the user's thumb.
+- **The shown mantra is kept by id.** A refresh can still add or drop items
+  before the one on screen: a new preset lands before the joined space
+  mantras, and a removed preset or a changed space list shifts the rest.
+  `MalaScreen` keeps the shown item's `presetId` (`_selectedId`) and finds
+  its index again on every build, so the next tap counts into the same
+  mantra. If that item itself is gone, the nearest position is shown.
+- **Local override.** The server only knows synced counts. Each counted bead
+  or added rounds on a preset (personal or group) writes `{preset_id, at}` to
+  SharedPreferences under `mala_last_used_preset_{userId}`
+  (`MalaLastUsedStore`, at most every 30 s per preset). When ordering, that
+  preset's time is the later of the server's and the local one.
+- `lastUsedAt` is not in `Mantra.props`: a `Mantra` keys `malaCounterProvider`,
+  and a refresh that only moves it must not restart the counter.
+- **Refreshed on entry.** `malaCatalogueProvider` is kept alive, so each
+  `MalaScreen` open calls `malaCatalogueRefreshProvider`, which fetches the
+  catalogue and writes it to Hive (failures are ignored). One fetch per
+  account and language runs at a time: a first load with no cache joins the
+  entry refresh instead of downloading every page again. The screen's own order is already pinned from
+  what was loaded, so counts made on another device order the next visit,
+  not this one.
+- **Per account.** Rows carry the user's own `last_used_at`, so the Hive
+  catalogue is keyed `catalogue:v3:{userId}:{language}` and
+  `malaCatalogueProvider` watches the signed-in state, rebuilding on logout
+  and login. Older shared keys (`catalogue:v2:{language}`,
+  `catalogue:{language}`) are only an offline fallback, served without usage
+  times, and deleted once a v3 catalogue is written.
+- The first open after updating from a build without this has no v3 cache,
+  so it loads from the network (or a legacy cache offline, in server order).
+
+### Preset catalogue request and tradition filtering
+
+`MalaRemoteDataSource.fetchPresets` sends:
+
+```
+GET /api/v2/accumulations?owner_type=platform&skip=0&limit=100&language=<content language>
+Authorization: Bearer <token>    (AuthInterceptor)
+X-Timezone: <IANA zone>          (TimezoneInterceptor)
+```
+
+It pages by 100 until `total` is reached. `search` is added only by the
+accumulation search screen. `no_cache` is a client-side Dio extra, not sent.
+
+Backend parameters the app does **not** send, and their defaults:
+
+| Param | Default | Effect |
+| --- | --- | --- |
+| `tradition` | none | The backend uses the caller's **saved traditions** (see below). |
+| `show_recitations` | `false` | Text-linked (recitation) presets are excluded. |
+| `include_spaces` | `false` | No `space_accumulators`; joined space mantras load via `joinedSpaceMantrasProvider`. |
+
+**Tradition filter (backend `pecha_api/traditions/tradition_filter.py`).**
+Because the request carries a valid token and no `tradition`, the backend
+returns only presets of the user's saved traditions (`GET /users/me/traditions`)
+plus presets with no tradition. Anonymous callers, invalid tokens, and users
+with no saved tradition get every preset. So `curl` without a token does
+**not** reproduce what the app sees — test with the user's token.
+
+If the saved traditions match no preset, the API returns
+`{accumulators: [], total: 0}` with 200 and the app caches that `[]` under
+`catalogue:v3:{userId}:{language}`. `mala_screen.dart` merges presets with eligible
+joined space mantras before its empty check, so the screen shows
+`mala_no_mantras` ("No mantras available") only when **both** lists are
+empty; a user with a joined space mantra still sees that one. It is the empty
+state, not an error view, so it has no retry button.
+
+Changing the saved tradition in Edit Profile does **not** refresh the Mala
+screen right away: `malaCatalogueProvider` is not auto-disposed and only
+rebuilds on content-language or sign-in changes, and saving traditions
+invalidates only `traditionTagFilterProvider`. The next Mala open does: the
+cached list shows first, then the entry refresh replaces it (new presets go
+after the pinned ones, removed ones drop out).
+
+Seen on prod 2026-11-16: presets were tagged tibetan 8, pali 1, chinese (Mahayana) 0,
+untagged 0, so Mahayana-only users got an empty Mala screen.
+
 ## Local store (`MalaLocalDataSource`)
 
 Hive box `mala_counts`, keys `userId:presetId`, value = JSON `LocalMalaState`
 (`total`, `syncedTotal`, `totalCounted`, `accumulatorId`, `beadImageUrl`,
-`beadImageBase64`). The same box also caches the preset catalogue under
-`catalogue:v2:{language}`. `isDirty =
+`beadImageBase64`). The same box also caches the preset catalogue per
+account under `catalogue:v3:{userId}:{language}`. `isDirty =
 total > syncedTotal`. `pruneSynced` removes fully-synced entries (keeps dirty
 tails); it currently has no caller.
 
@@ -375,10 +481,68 @@ and reads the user's personal **lifetime** count for the current preset
   `StorageKeys.malaAccumulationSelectionPrefix` + preset id. Invalid group ids
   fall back to personal when the groups list reloads.
 
-Settings (the ⋮ in the mala app bar) toggle sound / vibration, set the mantra
-marquee speed, add the preset to a practice routine, bookmark or share it, and
-reset the active session (personal or group). Offline mala rounds are added from
-the "+" button beside the rounds count.
+Offline mala rounds are added from the "+" button beside the rounds count.
+
+## Mala settings (`MalaSettingsScreen`)
+
+The ⋮ in the mala app bar pushes a full page (root navigator):
+
+- **Add to my practices** (top; personal preset only).
+- **Practice:** Mantra animation (shows the speed, or "Off"), Sound, Vibration,
+  Reset count (presets only; personal or the selected group session).
+- **Appearance:** Bead style (shows "Default" or the skin name), Change image.
+  Hidden when the mantra has no id.
+- **Save & share:** Bookmark / Bookmarked (personal preset only), Share.
+
+A group accumulation's own mantra (space mantra) gets Practice without reset,
+and Appearance.
+
+**Mantra animation** (`MantraAnimationSheet`): a Play animation toggle and
+speed chips 0.5x / 0.75x / 1x / 1.25x / 1.5x (`kMalaMantraSpeedPresets`).
+Changes apply at once. With play off the marquees stand still (`animate:
+false`) and the chips are disabled. A speed saved by an older build (the old
+slider allowed up to 2x) is snapped to the nearest chip on load.
+
+**Bead style** (`BeadStyleSheet`) and **Change image** (`ChangeImageSheet`)
+are saved per mantra on the server (API v2), keyed by `mantra_id`, so a pick
+shows on every accumulation of that mantra (presets, own and space
+accumulations) and on every device. It never changes what others see.
+
+| Call | Used for |
+| --- | --- |
+| `GET /api/v2/mantras/{mantra_id}/images` | `deity_images`: the Change image grid, in `display_order` |
+| `GET /api/v2/mala-skins` | `mala_skins`: the Bead style grid |
+| `GET /api/v2/users/me/mantras/{mantra_id}/appearance` | the user's picks (`null` = default) |
+| `PATCH` the same path | save `deity_image_id` and/or `mala_skin_id`; `null` restores the default |
+
+These paths are in `ApiConfig` (`mantrasV2Path`, `malaSkinsV2Path`,
+`userMantrasV2Path`) and in `ProtectedRoutes`, so the token is always sent.
+The older mala calls stay on v1.
+
+- **`malaAppearanceProvider(mantraId)`** (autoDispose) loads the picks while a
+  screen shows the mantra. `setDeityImage` / `setMalaSkin` PATCH and, on
+  success, take the response as the new state, so the mala screen changes at
+  once; they also refresh `mantraCountsProvider` and
+  `joinedSpaceMantrasProvider`, which carry the pick too. On failure they
+  return false and nothing changes; the sheet stays open with a "Couldn't
+  save" toast (shown inside the sheet through `MalaSheetToastHost`).
+- **The mala screen** (`watchMalaMantraImage`, `watchMalaBeadBytes`) draws
+  the resolved `deity_image` / `mala_skin_url` (the pick, else the mantra's
+  default). What the accumulation already holds only stands in while the
+  appearance loads or fails, since it can still be an earlier pick. The image
+  is looked up for the mantra on screen and its two neighbours only; the
+  carousel wraps, so the first and last mantras count as neighbours.
+- **Not cached:** `CacheInterceptor.isUserSpecificPath` also matches
+  `/../v2/users/me/...`, so the appearance is read fresh each time.
+- **Bead style:** the first tile, Default, is the bead the accumulation shows
+  without a pick and saves `mala_skin_id: null`. The other tiles are the skins
+  from `/mala-skins`, labelled by `MalaSkin.displayName` (`bodhi_seed` →
+  "Bodhi seed").
+- **Change image:** the default image is ticked until the user has a pick.
+  Picking it again, or "Restore default" (enabled only while there is a pick),
+  saves `deity_image_id: null`, so the user keeps following the default.
+- Image URLs are presigned and expire, so none are stored; the lists are
+  fetched each time a sheet opens.
 
 ## Analytics
 
@@ -388,6 +552,10 @@ the "+" button beside the rounds count.
 `mala_session_started`, `mala_round_completed` and `mala_session_ended`, which
 `MalaSessionTracker` groups from the first counted bead until the screen
 closes, the app backgrounds, or five minutes pass without a bead.
+
+`mala_screen_opened` carries `source` (`MalaOpenSource`): whoever pushes
+`/mala` puts it in the route's extra under `'source'`, and the route hands it
+to `MalaScreen`.
 
 ## Tests (`test/features/mala/`)
 

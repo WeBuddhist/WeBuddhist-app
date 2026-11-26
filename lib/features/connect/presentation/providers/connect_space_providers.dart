@@ -2,7 +2,6 @@ import 'package:flutter_pecha/core/config/locale/locale_notifier.dart';
 import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_providers.dart';
-import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/chat_rooms_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
@@ -44,8 +43,9 @@ Future<void> refreshJoinedSpaces(
 ) async {
   final auth = read(authProvider);
   if (!auth.isLoggedIn || auth.isGuest) return;
-  await read(connectRepositoryProvider)
-      .refreshMyGroups(language: read(contentLanguageProvider));
+  await read(
+    connectRepositoryProvider,
+  ).refreshMyGroups(language: read(contentLanguageProvider));
 }
 
 /// The remembered space if it is still joined, otherwise the first joined
@@ -99,18 +99,67 @@ final connectLastSpaceProvider =
       (ref) => ConnectLastSpaceNotifier(),
     );
 
-/// Group ids whose chat has unread messages. Only rooms the chats list has
-/// loaded count, so a space past that page shows no dot.
-Set<String> unreadSpaceIds(List<ChatRoomDTO> rooms) {
-  return {
-    for (final room in chatListRooms(rooms))
-      if (chatRoomIsUnread(room) && (room.groupId ?? '').isNotEmpty)
-        room.groupId!,
-  };
+/// The spaces the Connect tab has already opened, kept across launches.
+///
+/// Drives the landing rule: the first visit to a space opens on its info
+/// (header expanded), every later visit opens on its feed with the header
+/// scrolled away.
+class ConnectOpenedSpaces {
+  const ConnectOpenedSpaces({this.ids = const {}, this.loaded = false});
+
+  final Set<String> ids;
+
+  /// False until the stored ids have been read, so a returning visit is not
+  /// mistaken for a first one.
+  final bool loaded;
 }
 
-/// Unread spaces for a member; empty for guests, who never load the rooms.
-final unreadSpaceIdsProvider = Provider.autoDispose<Set<String>>((ref) {
+class ConnectOpenedSpacesNotifier extends StateNotifier<ConnectOpenedSpaces> {
+  ConnectOpenedSpacesNotifier() : super(const ConnectOpenedSpaces()) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted || state.loaded) return;
+    state = ConnectOpenedSpaces(
+      ids: {
+        ...?prefs.getStringList(StorageKeys.connectOpenedSpaceIds),
+        // A space marked before the read finished.
+        ...state.ids,
+      },
+      loaded: true,
+    );
+  }
+
+  Future<void> markOpened(String spaceId) async {
+    if (spaceId.isEmpty || state.ids.contains(spaceId)) return;
+    final ids = {...state.ids, spaceId};
+    state = ConnectOpenedSpaces(ids: ids, loaded: state.loaded);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      StorageKeys.connectOpenedSpaceIds,
+      {
+        ...?prefs.getStringList(StorageKeys.connectOpenedSpaceIds),
+        ...ids,
+      }.toList(),
+    );
+  }
+}
+
+final connectOpenedSpacesProvider =
+    StateNotifierProvider<ConnectOpenedSpacesNotifier, ConnectOpenedSpaces>(
+      (ref) => ConnectOpenedSpacesNotifier(),
+    );
+
+/// Spaces with unread messages in their room, by group id, and whether the
+/// space page should send the member to its chat or its prayer requests
+/// ([unreadSpaces]). Drives every Connect dot: ☰, "Your spaces", and the
+/// space page's chat or prayer button. Empty for guests, who never load the
+/// rooms.
+final unreadSpacesProvider = Provider.autoDispose<Map<String, SpaceUnread>>((
+  ref,
+) {
   final isMember = ref.watch(
     authProvider.select((auth) => auth.isLoggedIn && !auth.isGuest),
   );
@@ -119,5 +168,5 @@ final unreadSpaceIdsProvider = Provider.autoDispose<Set<String>>((ref) {
   // Keep the list current while a dot is on screen.
   ref.watch(chatRoomsPushRefreshProvider);
   ref.watch(chatRoomsSignalsProvider);
-  return unreadSpaceIds(ref.watch(chatRoomsProvider).rooms);
+  return unreadSpaces(ref.watch(chatRoomsProvider).rooms);
 });

@@ -177,9 +177,28 @@ void main() {
       final first = ChatRoomDTO.fromJson(json);
       final encoded = first.toJson();
       expect(encoded['img_url'], 'https://cdn.example/g.png');
-      expect(encoded['unread_count'], 4);
+      expect(encoded['unread'], {'TEXT': 4, 'PRAYER': 0});
+      expect(first.unreadChat, 4);
       expect(encoded['group_id'], 'g1');
       expect(ChatRoomDTO.fromJson(encoded), first);
+    });
+
+    test('ChatRoomDTO reads v2 per-type unread and space_id', () {
+      final first = ChatRoomDTO.fromJson({
+        'id': 'r1',
+        'created_by': 'u9',
+        'space_id': 'g1',
+        'kind': 'GROUP',
+        'name': 'Sangha',
+        'updated_at': '2026-11-19T00:00:00Z',
+        'unread': {'TEXT': 3, 'PRAYER': 1},
+      });
+
+      expect(first.groupId, 'g1');
+      expect(first.unreadChat, 3);
+      expect(first.unreadPrayer, 1);
+      expect(first.unreadCount, 4);
+      expect(ChatRoomDTO.fromJson(first.toJson()), first);
     });
 
     test('ChatRoomDTO private other_user fields', () {

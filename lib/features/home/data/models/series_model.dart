@@ -103,13 +103,19 @@ class SeriesModel {
       metadataList = const [];
     }
 
-    final plansList =
-        (json['plans'] as List<dynamic>? ?? [])
-            .map((p) => PlansModel.fromJson(p as Map<String, dynamic>))
-            .toList();
+    final plansList = <PlansModel>[];
+    for (final raw in json['plans'] as List<dynamic>? ?? []) {
+      final planJson = _asStringMap(raw);
+      if (planJson == null) continue;
+      try {
+        plansList.add(PlansModel.fromJson(planJson));
+      } catch (_) {
+        // List/search payloads can include partial plan rows; skip them.
+      }
+    }
 
     return SeriesModel(
-      id: json['id'] as String,
+      id: json['id']?.toString() ?? '',
       metadataList: metadataList,
       image: ImageModel.fromJsonMap(json),
       authorId: json['author_id'] as String? ?? '',
@@ -117,14 +123,11 @@ class SeriesModel {
       status: json['status'] as String?,
       planCount: (json['plan_count'] as num?)?.toInt(),
       enrolledCount: (json['enrolled_count'] as num?)?.toInt(),
-      startDate: PlanUtils.parseCalendarDate(json['start_date'] as String?),
-      endDate: PlanUtils.parseCalendarDate(json['end_date'] as String?),
+      startDate: PlanUtils.parseCalendarDate(json['start_date']?.toString()),
+      endDate: PlanUtils.parseCalendarDate(json['end_date']?.toString()),
       plans: plansList,
       totalDays: (json['total_days'] as num?)?.toInt() ?? 0,
-      groupJson:
-          json['group'] is Map<String, dynamic>
-              ? json['group'] as Map<String, dynamic>
-              : null,
+      groupJson: _asStringMap(json['group']) ?? _asStringMap(json['space']),
       progressJson:
           json['progress'] is Map<String, dynamic>
               ? json['progress'] as Map<String, dynamic>
@@ -230,4 +233,12 @@ class SeriesModel {
       bannerUrl: g['banner_url'] as String?,
     );
   }
+}
+
+Map<String, dynamic>? _asStringMap(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return value.map((key, val) => MapEntry(key.toString(), val));
+  }
+  return null;
 }

@@ -133,7 +133,7 @@ class _MyPlansTabState extends ConsumerState<MyPlansTab> {
     if (authState.isGuest) {
       return _GuestLoginPrompt(
         onLogin: () {
-          LoginDrawer.show(context, ref);
+          LoginDrawer.show(context, ref, feature: 'my_plans');
         },
       );
     }

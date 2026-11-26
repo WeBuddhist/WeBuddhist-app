@@ -186,7 +186,7 @@ class _AddChantsToCollectionScreenState
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Text(
-                    context.l10n.my_recitation_collection_add_to_collection,
+                    context.l10n.chant_book_add_to,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: buttonFg,

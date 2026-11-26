@@ -32,6 +32,18 @@ void main() {
     analytics = PlanAnalytics(service);
   });
 
+  test('subtasks finished by reading are counted with via reading', () {
+    analytics.subtasksCompletedByReading(planId: 'p1', dayNumber: 3, count: 2);
+
+    expect(service.eventNames, [AnalyticsEvents.planSubtaskCompleted]);
+    expect(service.events.single.properties, {
+      'plan_id': 'p1',
+      'day_number': 3,
+      'via': 'reading',
+      'item_count': 2,
+    });
+  });
+
   test('planPreviewed carries the plan and where it was opened from', () {
     analytics.planPreviewed(
       planId: 'p1',
@@ -207,15 +219,6 @@ void main() {
       'plan_name': 'Plan',
       'days_completed': 2,
       'days_since_enrolled': 5,
-    });
-  });
-
-  test('planSearched carries the query length, never its text', () {
-    analytics.planSearched(queryLength: 4, resultCount: 4);
-
-    expect(service.events.single.properties, {
-      'query_length': 4,
-      'result_count': 4,
     });
   });
 }

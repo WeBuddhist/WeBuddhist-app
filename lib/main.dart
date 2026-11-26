@@ -5,9 +5,13 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_pecha/core/analytics/install_attribution_analytics.dart';
+import 'package:flutter_pecha/core/analytics/app_open_analytics.dart';
+import 'package:flutter_pecha/core/analytics/analytics_providers.dart';
 import 'package:flutter_pecha/core/analytics/clarity_analytics_service.dart';
 import 'package:flutter_pecha/core/analytics/entry_analytics.dart';
 import 'package:flutter_pecha/core/analytics/posthog_analytics_service.dart';
+import 'package:flutter_pecha/core/cache/cache_config.dart';
 import 'package:flutter_pecha/core/cache/cache_service.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_store.dart';
 import 'package:flutter_pecha/core/config/app_feature_flags.dart';
@@ -20,7 +24,9 @@ import 'package:flutter_pecha/core/l10n/l10n.dart';
 import 'package:flutter_pecha/core/services/airbridge_deep_link_service.dart';
 import 'package:flutter_pecha/core/services/service_providers.dart';
 import 'package:flutter_pecha/core/theme/theme_notifier.dart';
+import 'package:flutter_pecha/core/storage/server_switch_cleanup.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
+import 'package:flutter_pecha/env.dart';
 import 'package:flutter_pecha/features/notifications/data/models/notification_nav.dart';
 import 'package:flutter_pecha/features/practice/data/models/routine_model.dart';
 import 'package:flutter_pecha/features/notifications/application/notification_sync_bootstrap.dart';
@@ -65,6 +71,31 @@ import 'package:airbridge_flutter_sdk/airbridge_flutter_sdk.dart';
 
 final _logger = AppLogger('Main');
 
+/// Hive boxes filled from the server or holding work queued for it, removed
+/// when the app starts against another server (see [ServerSwitchCleanup]).
+/// A new box of server data opened below belongs here too.
+/// `NotificationLocalDataSource`'s box is left out: it holds the device's
+/// notification switches.
+const serverDataBoxes = <String>[
+  CacheConfig.collectionListBox,
+  CacheConfig.workListBox,
+  CacheConfig.textVersionListBox,
+  CacheConfig.textCommentListBox,
+  CacheConfig.textContentBox,
+  CacheConfig.recitationContentBox,
+  CacheConfig.recitationListBox,
+  CacheConfig.savedRecitationsBox,
+  CacheConfig.cacheMetadataBox,
+  ScreenCacheStore.boxName,
+  HomeLocalDatasource.boxName,
+  PlansLocalDatasource.boxName,
+  MalaLocalDataSource.boxName,
+  MalaLocalDataSource.groupBoxName,
+  TimersLocalDatasource.boxName,
+  UserStatsLocalDatasource.boxName,
+  RoutineLocalStorage.boxName,
+];
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Covers from every tab share this budget; the 100 MB default evicts them
@@ -108,6 +139,13 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = true;
 
   // Note: .env files are loaded by flavor-specific entry points (main_dev.dart, main_staging.dart, main_prod.dart)
+
+  // Before any local store opens: data saved for another server (a build
+  // from another entry file on this phone) is removed. Never throws.
+  await ServerSwitchCleanupImpl(
+    server: Env.environment,
+    serverBoxes: serverDataBoxes,
+  ).run();
 
   // Initialize cache service for offline-first data
   try {
@@ -211,6 +249,18 @@ void main() async {
     overrides: [routineLocalStorageProvider.overrideWithValue(routineStorage)],
   );
 
+  // The launch splash is the first screen drawn, so read the saved theme and
+  // language before it: otherwise its first frames follow the phone's theme
+  // and the default language. The native launch screen covers the wait.
+  try {
+    await Future.wait([
+      container.read(themeModeProvider.notifier).ensureInitialized(),
+      container.read(localeProvider.notifier).ensureInitialized(),
+    ]);
+  } catch (e) {
+    _logger.warning('Error preloading theme and language: $e');
+  }
+
   // Set container reference for notification navigation
   NotificationService.setContainer(container);
 
@@ -219,6 +269,14 @@ void main() async {
     Airbridge.setOnDeeplinkReceived((url) {
       _logger.info('Airbridge deep link received: $url');
       AirbridgeDeepLinkService.storePendingDeepLink(url);
+    });
+    // Which campaign or link brought this install; sent to PostHog once.
+    final installAttribution = InstallAttributionAnalytics(
+      container.read(analyticsServiceProvider),
+      SharedPreferencesAppOpenStore(),
+    );
+    Airbridge.setOnAttributionReceived((attribution) {
+      unawaited(installAttribution.attributionReceived(attribution));
     });
     _logger.info('Airbridge deep link handler initialized');
   } catch (e) {
@@ -362,13 +420,14 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
       unawaited(ref.read(readerLayoutLanguageGuardProvider).sync(next));
     });
 
-    // Bottom tabs are not routes, so Clarity's screen name for the home
-    // shell has to follow the selected tab from here, and PostHog's
-    // route-based screen events never see a tab change.
+    // Bottom tabs are not routes, so the screen name Clarity and PostHog give
+    // the home shell has to follow the selected tab from here. Both are told
+    // before tab_viewed is sent, so that event carries the new tab's name.
     ref.listen<int>(mainNavigationIndexProvider, (previous, next) {
       if (previous == next) return;
       final tab = MainTab.values[next].name;
       ClarityAnalyticsService.instance.setTab(tab);
+      PostHogAnalyticsService.instance.setTab(tab);
       ref.read(homeAnalyticsProvider).tabViewed(tab: tab);
     });
 

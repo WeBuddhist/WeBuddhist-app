@@ -21,8 +21,8 @@ final _logger = AppLogger('NotificationSyncBootstrap');
 /// mirror it used to run.
 ///
 /// The auth listener is only acted on **after** auth has settled: mounting
-/// work earlier triggers a 403 (plus a `LateInitializationError` for the Auth0
-/// field) on every cold start. `_hydrateRoutineFromServer` waits for
+/// work earlier sends requests without a bearer, which the backend answers
+/// with a 403 on every cold start. `_hydrateRoutineFromServer` waits for
 /// [RoutineNotifier.whenLoaded] before touching `routineProvider`.
 final notificationSyncBootstrapProvider = Provider<void>((ref) {
   bool? lastSeenLoggedIn;

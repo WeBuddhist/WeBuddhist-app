@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
-import 'package:flutter_pecha/features/home/domain/entities/series.dart';
-import 'package:flutter_pecha/features/practice/presentation/providers/practice_explore_providers.dart';
 import 'package:flutter_pecha/features/practice/presentation/screens/all_plans_screen.dart';
 import 'package:flutter_pecha/features/practice/presentation/screens/all_recitations_screen.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class HomeShortcutsRow extends ConsumerWidget {
   const HomeShortcutsRow({super.key, this.onMalaTap, this.onTimerTap});
@@ -26,30 +23,13 @@ class HomeShortcutsRow extends ConsumerWidget {
   static const _labelFontSize = 14.0;
   static const _labelLineHeight = 1.2;
 
-  void _navigateToSeries(BuildContext context, Series series) {
-    context.pushNamed(
-      'home-series-detail',
-      pathParameters: {'id': series.id},
+  void _onPlansTap(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'all-plans'),
+        builder: (_) => const AllPlansScreen(),
+      ),
     );
-  }
-
-  void _onPlansTap(BuildContext context, WidgetRef ref) {
-    final seriesAsync = ref.read(practiceExploreSeriesProvider);
-    seriesAsync.whenData((either) {
-      either.fold((_) {}, (seriesList) {
-        if (seriesList.isEmpty) return;
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            settings: const RouteSettings(name: 'all-plans'),
-            builder:
-                (_) => AllPlansScreen(
-                  seriesList: seriesList,
-                  onTap: (series) => _navigateToSeries(context, series),
-                ),
-          ),
-        );
-      });
-    });
   }
 
   void _onChantsTap(BuildContext context, WidgetRef ref) {
@@ -73,7 +53,7 @@ class HomeShortcutsRow extends ConsumerWidget {
       _HomeShortcutItem(
         icon: AppAssets.homeList,
         label: l10n.home_shortcut_plans,
-        onTap: () => _onPlansTap(context, ref),
+        onTap: () => _onPlansTap(context),
       ),
       _HomeShortcutItem(
         icon: AppAssets.homeChants,

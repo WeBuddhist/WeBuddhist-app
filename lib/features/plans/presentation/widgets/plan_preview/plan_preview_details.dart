@@ -151,7 +151,7 @@ class _PlanPreviewDetailsState extends ConsumerState<PlanPreviewDetails> {
   void _handleAddToRoutine() {
     final isGuest = ref.read(authProvider).isGuest;
     if (isGuest) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'plan_add_to_routine');
       return;
     }
     ref

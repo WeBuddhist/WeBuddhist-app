@@ -43,19 +43,16 @@ void main() {
   test('enrolment carries the group it went through', () {
     analytics.seriesEnrolled(seriesId: 's1', groupId: 'g1');
     analytics.seriesEnrolled(seriesId: 's2');
-    analytics.seriesUnenrolled(seriesId: 's1');
 
     expect(service.eventNames, [
       AnalyticsEvents.seriesEnrolled,
       AnalyticsEvents.seriesEnrolled,
-      AnalyticsEvents.seriesUnenrolled,
     ]);
     expect(service.events.first.properties, {
       'series_id': 's1',
       'group_id': 'g1',
     });
-    expect(service.events[1].properties, {'series_id': 's2', 'group_id': null});
-    expect(service.events.last.properties, {'series_id': 's1'});
+    expect(service.events.last.properties, {'series_id': 's2', 'group_id': null});
   });
 
   test('routine intent and search fire their own events', () {

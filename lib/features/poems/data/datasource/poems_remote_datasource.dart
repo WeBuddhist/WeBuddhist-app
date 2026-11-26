@@ -14,8 +14,10 @@ class PoemsPageResult {
 
 /// Remote source for the public Poems API (`/poems`, `/poems/{poem_id}`).
 ///
-/// Fully public — no auth header is sent (the path isn't listed in
-/// [ProtectedRoutes]).
+/// `/poems` is optional-auth (see [ProtectedRoutes.optionalPaths]): guests
+/// get All traditions poems, a signed-in caller also gets poems for their
+/// saved traditions. That makes the feed per user, so it never goes through
+/// the shared HTTP cache, whose keys aren't scoped by user.
 class PoemsRemoteDatasource {
   PoemsRemoteDatasource({required this.dio});
 
@@ -46,7 +48,6 @@ class PoemsRemoteDatasource {
     int limit = 20,
     String? chapterName,
     String? authorName,
-    bool noCache = false,
   }) async {
     try {
       final response = await dio.get(
@@ -60,7 +61,7 @@ class PoemsRemoteDatasource {
           if (authorName != null && authorName.isNotEmpty)
             'author_name': authorName,
         },
-        options: noCache ? Options(extra: {'no_cache': true}) : null,
+        options: Options(extra: {'no_cache': true}),
       );
 
       if (response.statusCode == 200) {
@@ -76,9 +77,7 @@ class PoemsRemoteDatasource {
 
   Future<PoemModel> fetchPoem(String poemId) async {
     try {
-      final response = await dio.get(
-        '/poems/${Uri.encodeComponent(poemId)}',
-      );
+      final response = await dio.get('/poems/${Uri.encodeComponent(poemId)}');
 
       if (response.statusCode == 200) {
         return PoemModel.fromJson(response.data as Map<String, dynamic>);
@@ -119,10 +118,7 @@ class PoemsRemoteDatasource {
     }
 
     final poems =
-        list
-            .whereType<Map<String, dynamic>>()
-            .map(PoemModel.fromJson)
-            .toList();
+        list.whereType<Map<String, dynamic>>().map(PoemModel.fromJson).toList();
 
     final loadedThrough = skip + poems.length;
     final hasMore =

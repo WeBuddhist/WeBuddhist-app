@@ -8,6 +8,7 @@ import 'package:flutter_pecha/core/cache/screen_cache/cached_first_page.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_source.dart';
 import 'package:flutter_pecha/features/connect/presentation/utils/connect_comment_utils.dart';
 import 'package:flutter_pecha/features/connect/presentation/utils/connect_like_utils.dart';
+import 'package:flutter_pecha/features/connect/presentation/utils/connect_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ConnectPostCommentsState {
@@ -279,6 +280,8 @@ class ConnectPostCommentsNotifier
 
     state = state.copyWith(isSubmitting: true, clearError: true);
 
+    // Read now: this provider's ref can't be used once it is disposed.
+    final analytics = ref.read(connectAnalyticsProvider);
     final result = await ref
         .read(connectRepositoryProvider)
         .createPostComment(
@@ -286,6 +289,12 @@ class ConnectPostCommentsNotifier
           text: trimmed,
           parentCommentId: parentCommentId,
         );
+    if (result.isRight()) {
+      analytics.postCommentCreated(
+        postId: postId,
+        isReply: parentCommentId != null,
+      );
+    }
 
     if (!mounted) return false;
 
@@ -309,9 +318,11 @@ class ConnectPostCommentsNotifier
   }
 
   Future<bool> deleteComment(String commentId) async {
+    final analytics = ref.read(connectAnalyticsProvider);
     final result = await ref
         .read(connectRepositoryProvider)
         .deletePostComment(commentId);
+    if (result.isRight()) analytics.postCommentDeleted(postId: postId);
 
     if (!mounted) return false;
 

@@ -10,6 +10,7 @@ import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_manager.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/plans/presentation/widgets/plan_navigation/plan_navigator.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,6 +85,7 @@ Future<bool> pushGroupAccumulatorMala(
           'presetId': detail.presetAccumulatorId,
           'groupAccumulatorId': detail.id,
           'groupAccumulatorEnded': ended,
+          'source': MalaOpenSource.groupAccumulation,
         },
       );
       return true;
@@ -94,6 +96,7 @@ Future<bool> pushGroupAccumulatorMala(
           'groupAccumulator': detail,
           'groupAccumulatorId': detail.id,
           'groupAccumulatorEnded': ended,
+          'source': MalaOpenSource.groupAccumulation,
         },
       );
       return true;
@@ -125,7 +128,7 @@ Future<bool> openGroupAccumulatorPractice(
 }) async {
   final authState = ref.read(authProvider);
   if (authState.isGuest || !authState.isLoggedIn) {
-    LoginDrawer.show(context, ref);
+    LoginDrawer.show(context, ref, feature: 'group_accumulator_practice');
     return false;
   }
   // Work after the practice screen closes runs through the app container,
@@ -143,6 +146,7 @@ Future<bool> openGroupAccumulatorPractice(
       container: container,
       accumulatorId: detail.id,
       groupId: detail.groupId,
+      source: 'practice_launcher',
     );
     if (!context.mounted) return false;
     if (!joined) {

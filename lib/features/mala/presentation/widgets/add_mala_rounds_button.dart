@@ -6,6 +6,7 @@ import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/accumulator_groups_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/group_accumulation_counts_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_accumulation_selection_provider.dart';
+import 'package:flutter_pecha/features/mala/presentation/providers/mala_last_used_provider.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
 import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/mala/presentation/widgets/add_mala_rounds_dialog.dart';
@@ -106,6 +107,7 @@ class AddMalaRoundsButton extends ConsumerWidget {
   }
 
   void _trackAdded(WidgetRef ref, int rounds) {
+    recordMalaPresetUsed(ref, mantra.presetId);
     ref
         .read(malaAnalyticsProvider)
         .offlineRoundsAdded(presetId: mantra.presetId, rounds: rounds);

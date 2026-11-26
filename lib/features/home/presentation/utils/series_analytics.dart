@@ -35,12 +35,6 @@ class SeriesAnalytics {
     });
   }
 
-  void seriesUnenrolled({required String seriesId}) {
-    _analytics.trackInBackground(AnalyticsEvents.seriesUnenrolled, {
-      AnalyticsProperties.seriesId: seriesId,
-    });
-  }
-
   /// [bookmarked] is the state after the toggle.
   void seriesBookmarked({required String seriesId, required bool bookmarked}) {
     _analytics.trackInBackground(AnalyticsEvents.seriesBookmarked, {

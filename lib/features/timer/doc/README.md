@@ -13,11 +13,15 @@ Preset meditation timers with countdown, pause/resume, lock-screen display, sess
 - Your timers are separate cards; presets sit in one grouped card. Every row has ⋮ + play
 - Edit or delete your own timers from the card's ⋮ menu
 - 3-second countdown (Cancel leaves immediately) → running phase
-- Pause/resume with **wall-clock** remaining time (survives backgrounding)
+- Pause/resume with **wall-clock** remaining time (survives backgrounding).
+  The Pause button and tapping the ring while paused both toggle it
+- Finish → "Discard this session?" dialog with **Discard session** / **Save
+  session**; tapping outside or back closes it and the session carries on
+- Finished screen ("Session complete" / "Session saved") with a **Done** button
 - Completion bell (in-app + scheduled local notification)
 - Android ongoing lock-screen notification
 - iOS Live Activity
-- Report elapsed duration to backend
+- Report elapsed duration to backend (once per session, see [Session reporting](#session-reporting))
 - Offline stop queue flushed on reconnect
 - Bookmarks on preset screen (via practice)
 
@@ -42,6 +46,7 @@ timer/
 | Duration / Ambient sound sheets | `presentation/widgets/{duration_picker_sheet,ambient_sound_sheet}.dart` |
 | Ambient sound playback (preview + session) | `presentation/services/ambient_sound_player.dart` |
 | Active session | `presentation/screens/active_timer_screen.dart` |
+| Finish (discard / save) dialog | `presentation/widgets/timer_session_discard_dialog.dart` |
 | Providers | `presentation/providers/timers_providers.dart` |
 | Offline queue | `data/datasource/timers_local_datasource.dart` |
 | Android notif | `data/services/timer_session_notifier.dart` |
@@ -148,8 +153,14 @@ never sent to the API (no volume field exists on `CreateTimerRequest`).
 
 `ActiveTimerScreen` uses the same player for the session track: it resolves
 `ambientSoundId` against `ambientSoundsFutureProvider` when the running phase
-starts, loops it, pauses/resumes it with the session, and stops it on
-completion. The provider is kept alive with `ref.listenManual` for the
+starts, loops it, pauses/resumes it with the session (and with the Finish
+dialog hold), and stops it on completion.
+
+`AmbientSoundPlayer` owns the pause state, not the screen: a `pause()` that
+arrives while `play()` is still loading the track is remembered, and the track
+loads without starting until `resume()`. `stop()` clears it. `play()` never
+awaits just_audio's `play()`, which for a looping track only completes when
+playback stops, so a caller awaiting it would never get control back. The provider is kept alive with `ref.listenManual` for the
 session because the urls expire. Ambient playback is best-effort — a missing
 or unplayable track leaves the session running silently, and the whole start
 path sits behind one `try` because resolving the id touches the repository,
@@ -161,6 +172,38 @@ rebuild one from their own payload (id, name, duration) with no
 cannot be resolved to a playable track. `_resolveAmbientSoundId` therefore
 falls back to looking the timer up by id through the (cache-first) repository,
 so a custom timer started from a bookmark or a routine still plays its sound.
+
+### Session reporting
+
+`POST /timers/user/timer_stop` is sent **exactly once per session**, guarded
+by `_stopReported`:
+
+| How the session ends | Reported? |
+|---|---|
+| Runs to zero (bell) | Yes, full duration |
+| Finish → **Save session** | Yes, elapsed time when Finish was opened |
+| Finish → **Discard session** | No |
+| Countdown **Cancel** / system back | No |
+| **Pause** | No: pausing never reports, so Discard after a pause can keep its "won't be saved" promise. The trade-off: a session killed while paused is lost |
+| Bare-duration routine timer (empty `id`) | Never: no saved timer behind it, and the API would answer "Timer not found". The finished screen says "Session complete", never "saved" |
+
+`timer_discarded` analytics fires for both Save (`action: finish`) and Discard
+(`action: discard`). It means "ended before the bell", not "thrown away".
+
+### Finish dialog hold
+
+Opening Finish over a running session sets `_heldForFinishDialog`. That
+freezes the clock (`_endsAt = null`), pauses the ambient track, releases the
+keep-alive and cancels the completion bell, so the deadline cannot complete
+and save the session behind the dialog. It is **not** a user pause: no
+`pause_count`, no report. Closing the dialog without a choice restarts the
+clock from the frozen remaining time. A session the user had already paused
+stays paused. Every tick, completion, background and resume path checks the
+hold.
+
+Done, Discard and countdown Cancel all leave through the `_hasLeft` guard, so
+a second leave in the same frame (for example, system back plus a tap) cannot
+pop the screen underneath.
 
 ### Paging
 
@@ -248,5 +291,6 @@ notifications are always armed when backgrounded.
 ### Testing
 
 - Test pause/resume after backgrounding
+- Test that only completion and Save report a stop (not pause, Discard, or a dismissed Finish)
 - Test pending stop flush on reconnect
 - Test guest cannot load presets

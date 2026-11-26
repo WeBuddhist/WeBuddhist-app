@@ -3,6 +3,7 @@ import 'package:flutter_pecha/features/plans/domain/usecases/user_plans_usecases
 import 'package:flutter_pecha/features/plans/presentation/providers/plan_days_providers.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/use_case_providers.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/user_plans_provider.dart';
+import 'package:flutter_pecha/features/plans/presentation/utils/plan_analytics.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -63,7 +64,9 @@ class PlanSubtaskCompletionService {
     _completedSubtaskIds.addAll(pending);
 
     final results = await Future.wait(pending.map(_complete));
-    if (results.any((ok) => ok)) {
+    final completedCount = results.where((ok) => ok).length;
+    if (completedCount > 0) {
+      _trackCompleted(navContext.planId, navContext.dayNumber, completedCount);
       _refreshPlanDay(navContext.planId, navContext.dayNumber);
     }
   }
@@ -90,6 +93,19 @@ class PlanSubtaskCompletionService {
       _completedSubtaskIds.remove(subtaskId); // allow a later retry
       return false;
     }
+  }
+
+  /// Subtasks finished by reading through them, unlike the checkbox toggles
+  /// `plan_task_completed` records.
+  void _trackCompleted(String? planId, int? dayNumber, int count) {
+    if (planId == null || dayNumber == null) return;
+    _ref
+        .read(planAnalyticsProvider)
+        .subtasksCompletedByReading(
+          planId: planId,
+          dayNumber: dayNumber,
+          count: count,
+        );
   }
 
   /// Invalidates the plan-day providers so the plan detail UI re-fetches.

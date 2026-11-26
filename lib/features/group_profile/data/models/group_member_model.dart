@@ -5,6 +5,7 @@ class GroupMemberModel {
   final String userId;
   final String username;
   final String fullname;
+  final String? displayName;
   final String? avatarUrl;
   final String? role;
 
@@ -12,6 +13,7 @@ class GroupMemberModel {
     this.userId = '',
     required this.username,
     required this.fullname,
+    this.displayName,
     this.avatarUrl,
     this.role,
   });
@@ -19,10 +21,14 @@ class GroupMemberModel {
   factory GroupMemberModel.fromJson(Map<String, dynamic> json) {
     final avatar = json['avatar_url'] as String?;
     final role = json['role'] as String?;
+    final displayName = json['display_name'] as String?;
     return GroupMemberModel(
       userId: json['user_id'] as String? ?? '',
       username: json['username'] as String? ?? '',
       fullname: json['fullname'] as String? ?? '',
+      displayName: displayName != null && displayName.trim().isNotEmpty
+          ? displayName.trim()
+          : null,
       avatarUrl: avatar != null && avatar.trim().isNotEmpty ? avatar : null,
       role: role != null && role.trim().isNotEmpty ? role.trim() : null,
     );
@@ -33,6 +39,7 @@ class GroupMemberModel {
       userId: userId,
       username: username,
       fullname: fullname,
+      userDisplayName: displayName,
       avatarUrl: avatarUrl,
       role: role,
     );

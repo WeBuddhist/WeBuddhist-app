@@ -96,7 +96,12 @@ abstract class GroupChatRepository {
     int limit = 100,
   });
 
-  Future<Either<Failure, Unit>> markRoomRead(String roomId);
+  /// Marks [messageType] read (`ChatMessageDTO.typeText` for the chat,
+  /// `typePrayer` for prayer requests), or every type when null.
+  Future<Either<Failure, Unit>> markRoomRead(
+    String roomId, {
+    String? messageType,
+  });
 
   /// Right with the server's copy, or null when it answered without one.
   Future<Either<Failure, ChatMessageDTO?>> updateMessage(

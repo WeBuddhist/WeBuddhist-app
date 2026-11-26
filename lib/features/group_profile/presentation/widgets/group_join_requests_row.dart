@@ -30,6 +30,7 @@ class GroupJoinRequestsRow extends ConsumerWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute<void>(
+            settings: const RouteSettings(name: 'group-join-requests'),
             builder: (_) => GroupJoinRequestsScreen(groupId: groupId),
           ),
         );

@@ -3,18 +3,23 @@ import 'dart:io';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/auth_credentials.dart';
+import 'package:flutter_pecha/features/auth/domain/entities/phone_code_start.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/user.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/username_update_result.dart';
 
 /// Auth repository interface (Domain Layer)
 ///
 /// Defines all authentication operations.
-/// This abstraction allows easy swapping of auth providers (Auth0, Firebase, etc.)
+///
+/// Sign-in failures are [LoginFailure]s, whose reason the screen words.
 abstract class AuthRepository {
   // ========== Initialization ==========
 
-  /// Initialize auth (load config, setup provider)
+  /// Prepare auth. Removes a session left by an earlier Auth0 build.
   Future<Either<Failure, void>> initialize();
+
+  /// Whether [initialize] signed out such a session. Reads true once.
+  bool takeLegacySessionRemoved();
 
   // ========== Authentication Operations ==========
 
@@ -24,8 +29,21 @@ abstract class AuthRepository {
   /// Login with Apple
   Future<Either<Failure, AuthCredentials>> loginWithApple();
 
-  /// Login with a phone number (Auth0 passwordless SMS)
-  Future<Either<Failure, AuthCredentials>> loginWithPhone();
+  /// Send an SMS sign-in code to [phoneNumber] (E.164).
+  Future<Either<Failure, PhoneCodeStart>> requestPhoneCode(
+    String phoneNumber, {
+    int? resendToken,
+  });
+
+  /// Drop a pending automatic phone sign-in: the person left the code
+  /// screen or went back to change the number.
+  void cancelPhoneSignIn();
+
+  /// Finish a phone sign-in with the code from the SMS.
+  Future<Either<Failure, AuthCredentials>> loginWithPhoneCode({
+    required String verificationId,
+    required String smsCode,
+  });
 
   /// Logout (local - clears credentials from device)
   Future<Either<Failure, void>> localLogout();
@@ -35,9 +53,6 @@ abstract class AuthRepository {
 
   /// Get current auth credentials
   Future<Either<Failure, AuthCredentials>> getCredentials();
-
-  /// Check if a JWT (ID token, for identity) is expired
-  bool isIdTokenExpired(String idToken);
 
   /// Get a valid access token (the API bearer); refreshes proactively if near
   /// expiry.

@@ -51,6 +51,25 @@ enum ReaderLayout { single, interlinear, split }
 ReaderLayout readerLayoutFor(ReaderDualLayoutSettings settings) =>
     settings.secondaryEnabled ? ReaderLayout.interlinear : ReaderLayout.single;
 
+/// A reader setting, carried as `setting` on `reader_setting_changed`.
+enum ReaderSetting {
+  originalSize,
+  translationSize,
+  spacing,
+  verseNumbers,
+  background,
+  font,
+  translation,
+  original;
+
+  String get key => switch (this) {
+    ReaderSetting.originalSize => 'original_size',
+    ReaderSetting.translationSize => 'translation_size',
+    ReaderSetting.verseNumbers => 'verse_numbers',
+    _ => name,
+  };
+}
+
 /// A segment action bar button, carried on `reader_action_tapped`.
 enum ReaderAction { copy, bookmark, share, commentary, version, video }
 
@@ -188,6 +207,32 @@ class ReaderAnalytics {
                 segmentsTotal)
             .round()
             .clamp(0, 100),
+    });
+  }
+
+  /// A reader setting the user changed. [value] is left out when it has no
+  /// simple form (a font choice).
+  void settingChanged({required ReaderSetting setting, Object? value}) {
+    _analytics.trackInBackground(AnalyticsEvents.readerSettingChanged, {
+      AnalyticsProperties.setting: setting.key,
+      if (value != null) AnalyticsProperties.value: value,
+    });
+  }
+
+  /// One live-recitation visit, sent when its socket closes: how long the
+  /// reader followed the operator, and how often following paused and
+  /// resumed.
+  void recitationLiveFollowed({
+    required String eventId,
+    required Duration following,
+    required int pausedCount,
+    required int resumedCount,
+  }) {
+    _analytics.trackInBackground(AnalyticsEvents.recitationLiveFollowed, {
+      AnalyticsProperties.eventId: eventId,
+      AnalyticsProperties.followingS: following.inSeconds,
+      AnalyticsProperties.pausedCount: pausedCount,
+      AnalyticsProperties.resumedCount: resumedCount,
     });
   }
 

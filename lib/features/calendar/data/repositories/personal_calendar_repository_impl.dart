@@ -2,14 +2,21 @@ import 'package:flutter_pecha/core/error/exception_mapper.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/calendar/data/datasource/personal_calendar_remote_datasource.dart';
 import 'package:flutter_pecha/features/calendar/domain/models/calendar_event.dart';
+import 'package:flutter_pecha/features/calendar/domain/models/calendar_type.dart';
 import 'package:flutter_pecha/features/calendar/domain/models/personal_calendar_event.dart';
 import 'package:flutter_pecha/features/calendar/domain/repositories/personal_calendar_repository.dart';
 import 'package:fpdart/fpdart.dart';
 
 class PersonalCalendarRepositoryImpl implements PersonalCalendarRepository {
-  PersonalCalendarRepositoryImpl(this._remote);
+  PersonalCalendarRepositoryImpl(
+    this._remote, {
+    this.calendarType = defaultCalendarType,
+  });
 
   final PersonalCalendarRemoteDatasource _remote;
+
+  /// Lunar dates in the feed and the lunar repeat choices follow this calendar.
+  final String calendarType;
 
   Future<Either<Failure, T>> _guard<T>(Future<T> Function() call) async {
     try {
@@ -33,6 +40,7 @@ class PersonalCalendarRepositoryImpl implements PersonalCalendarRepository {
       language: language,
       skip: skip,
       limit: limit,
+      calendarType: calendarType,
     ),
   );
 
@@ -46,8 +54,12 @@ class PersonalCalendarRepositoryImpl implements PersonalCalendarRepository {
     required DateTime startDate,
     required PersonalRepeat repeat,
   }) => _guard(
-    () =>
-        _remote.createEvent(title: title, startDate: startDate, repeat: repeat),
+    () => _remote.createEvent(
+      title: title,
+      startDate: startDate,
+      repeat: repeat,
+      calendarType: calendarType,
+    ),
   );
 
   @override
@@ -55,7 +67,14 @@ class PersonalCalendarRepositoryImpl implements PersonalCalendarRepository {
     String id, {
     required String title,
     required PersonalRepeat repeat,
-  }) => _guard(() => _remote.updateEvent(id, title: title, repeat: repeat));
+  }) => _guard(
+    () => _remote.updateEvent(
+      id,
+      title: title,
+      repeat: repeat,
+      calendarType: calendarType,
+    ),
+  );
 
   @override
   Future<Either<Failure, void>> deleteEvent(String id) =>
@@ -64,5 +83,7 @@ class PersonalCalendarRepositoryImpl implements PersonalCalendarRepository {
   @override
   Future<Either<Failure, List<PersonalRepeatOption>>> getRepeatOptions(
     DateTime date,
-  ) => _guard(() => _remote.fetchRepeatOptions(date));
+  ) => _guard(
+    () => _remote.fetchRepeatOptions(date, calendarType: calendarType),
+  );
 }

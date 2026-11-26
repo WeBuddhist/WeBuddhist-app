@@ -18,7 +18,10 @@ import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart'
 /// chevrons, centred vertically in whatever height the parent gives.
 ///
 /// The band shows the mantra's script and transliteration as marquees that
-/// scroll at [speedFactor] when the text is too wide to fit.
+/// scroll at [speedFactor], or stand still when [animate] is false.
+///
+/// [imageFor] picks each page's artwork (e.g. the user's custom image); by
+/// default it is the mantra's own [Mantra.deityImage].
 ///
 /// Tapping either line opens that text in full over the carousel; the close
 /// button brings it back. The carousel stays mounted (hidden, tickers muted)
@@ -33,6 +36,8 @@ class MantraSwitcher extends StatefulWidget {
     required this.onIndexChanged,
     this.tibetanFontFamily,
     this.speedFactor = 1.0,
+    this.animate = true,
+    this.imageFor,
   });
 
   final List<Mantra> mantras;
@@ -50,6 +55,12 @@ class MantraSwitcher extends StatefulWidget {
 
   /// Marquee speed multiplier from the mala settings.
   final double speedFactor;
+
+  /// Play animation from the mala settings; false holds the marquees still.
+  final bool animate;
+
+  /// Artwork for a mantra's page; null shows the page without artwork.
+  final ResponsiveImage? Function(Mantra mantra)? imageFor;
 
   @override
   State<MantraSwitcher> createState() => _MantraSwitcherState();
@@ -159,15 +170,17 @@ class _MantraSwitcherState extends State<MantraSwitcher> {
       itemCount: _canLoop ? null : widget.mantras.length,
       itemBuilder: (context, page) {
         final mantra = widget.mantras[_logical(page)];
+        final imageFor = widget.imageFor;
         return _MantraPage(
           key: ValueKey<int>(page),
-          image: mantra.deityImage,
+          image: imageFor == null ? mantra.deityImage : imageFor(mantra),
           band: _MantraBand(
             script: mantra.tibetan,
             scriptStyle: scriptStyle,
             transliteration: _transliteration(mantra),
             transliterationStyle: transliterationStyle,
             speedFactor: widget.speedFactor,
+            animate: widget.animate,
             onScriptTap: () => setState(() => _expanded = _MantraLine.script),
             onTransliterationTap:
                 () => setState(() => _expanded = _MantraLine.transliteration),
@@ -285,6 +298,7 @@ class _MantraBand extends StatelessWidget {
     required this.transliteration,
     required this.transliterationStyle,
     required this.speedFactor,
+    required this.animate,
     required this.onScriptTap,
     required this.onTransliterationTap,
   });
@@ -294,6 +308,7 @@ class _MantraBand extends StatelessWidget {
   final String transliteration;
   final TextStyle? transliterationStyle;
   final double speedFactor;
+  final bool animate;
   final VoidCallback onScriptTap;
   final VoidCallback onTransliterationTap;
 
@@ -324,6 +339,7 @@ class _MantraBand extends StatelessWidget {
                     text: script!,
                     style: scriptStyle ?? const TextStyle(),
                     speedFactor: speedFactor,
+                    animate: animate,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -335,6 +351,7 @@ class _MantraBand extends StatelessWidget {
                   text: transliteration,
                   style: transliterationStyle ?? const TextStyle(),
                   speedFactor: speedFactor,
+                  animate: animate,
                 ),
               ),
             ],

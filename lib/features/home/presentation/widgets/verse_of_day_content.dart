@@ -140,6 +140,7 @@ class VerseOfDayContent extends StatelessWidget {
     this.brandingBottomPadding = 0,
     this.textAlign = TextAlign.center,
     this.attributionSpacing = 16,
+    this.verseLineHeight,
     this.footer,
   });
 
@@ -154,6 +155,10 @@ class VerseOfDayContent extends StatelessWidget {
   final double brandingBottomPadding;
   final TextAlign textAlign;
   final double attributionSpacing;
+
+  /// Line height of the verse; Tibetan keeps its own. The font's default when
+  /// null.
+  final double? verseLineHeight;
 
   /// Row rendered under the verse (likes, comments, share).
   final Widget? footer;
@@ -189,7 +194,12 @@ class VerseOfDayContent extends StatelessWidget {
                 verseText,
                 textAlign: textAlign,
                 strutStyle: verseStrutStyle,
-                style: typography.verseTextStyle(color: verseColor),
+                style:
+                    verseLineHeight == null || typography.useGoogleJomolhari
+                        ? typography.verseTextStyle(color: verseColor)
+                        : typography
+                            .verseTextStyle(color: verseColor)
+                            .copyWith(height: verseLineHeight),
               ),
               if (hasSource) ...[
                 SizedBox(height: attributionSpacing),
@@ -250,6 +260,7 @@ class VerseShareBranding extends StatelessWidget {
     this.appTitleFontSize = 13,
     this.sharedFromColor = Colors.black45,
     this.appTitleColor = Colors.black87,
+    this.showSharedFrom = true,
   });
 
   final double logoSize;
@@ -257,6 +268,9 @@ class VerseShareBranding extends StatelessWidget {
   final double appTitleFontSize;
   final Color sharedFromColor;
   final Color appTitleColor;
+
+  /// False leaves just the logo and the app name (the verse share sheet).
+  final bool showSharedFrom;
 
   @override
   Widget build(BuildContext context) {
@@ -274,13 +288,14 @@ class VerseShareBranding extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              localizations.shared_from,
-              style: TextStyle(
-                fontSize: sharedFromFontSize,
-                color: sharedFromColor,
+            if (showSharedFrom)
+              Text(
+                localizations.shared_from,
+                style: TextStyle(
+                  fontSize: sharedFromFontSize,
+                  color: sharedFromColor,
+                ),
               ),
-            ),
             Text(
               localizations.appTitle,
               style: TextStyle(

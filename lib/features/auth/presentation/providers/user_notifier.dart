@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/core/utils/local_storage_service.dart';
 import 'package:flutter_pecha/features/auth/data/models/user_model.dart';
+import 'package:flutter_pecha/features/auth/domain/entities/account_names.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/user.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/username_update_result.dart';
 import 'package:flutter_pecha/features/auth/domain/usecases/get_current_user_usecase.dart';
@@ -115,6 +116,12 @@ class UserNotifier extends StateNotifier<UserState> {
   /// name are sent back unchanged: the backend requires both fields, and chat,
   /// member lists and comments still show other users by first and last name.
   /// Returns an error message on failure, or null on success.
+  ///
+  /// One exception: an account still carrying the placeholder name it was
+  /// created with ([AccountNames.placeholder] — a phone sign-up, or a provider
+  /// that shared no name) takes its first and last name from the
+  /// [displayName] its owner has now typed, so those lists stop showing the
+  /// placeholder.
   Future<String?> saveProfile({
     required String displayName,
     String? aboutMe,
@@ -125,10 +132,19 @@ class UserNotifier extends StateNotifier<UserState> {
     List<String>? educations,
     List<Map<String, String>>? socialProfiles,
   }) async {
+    var firstName = state.user?.firstName ?? '';
+    var lastName = state.user?.lastName ?? '';
+    if (AccountNames.isPlaceholder(firstName, lastName)) {
+      final names = AccountNames.fromDisplayName(displayName);
+      if (names != null) {
+        firstName = names.first;
+        lastName = names.last;
+      }
+    }
     final result = await _updateUserInfoUseCase(
       UpdateUserInfoParams(
-        firstName: state.user?.firstName ?? '',
-        lastName: state.user?.lastName ?? '',
+        firstName: firstName,
+        lastName: lastName,
         displayName: displayName,
         aboutMe: aboutMe,
         avatarUrl: avatarUrl,
@@ -145,8 +161,16 @@ class UserNotifier extends StateNotifier<UserState> {
         _logger.error('Failed to update user info: ${failure.message}');
         return failure.message;
       },
-      (updatedUser) {
-        _logger.info('Profile saved: ${updatedUser.fullName}');
+      (savedUser) {
+        _logger.info('Profile saved: ${savedUser.fullName}');
+        // The POST response's avatar_url is not a loadable URL (it can be the
+        // bare storage key, or missing). Keep the presigned URL we just sent
+        // so the avatar stays on screen; the follow-up refreshUser() brings a
+        // freshly signed one under the same image cache key.
+        final updatedUser =
+            _isNetworkUrl(savedUser.avatarUrl) || avatarUrl == null
+                ? savedUser
+                : savedUser.copyWith(avatarUrl: avatarUrl);
         state = UserState.loaded(updatedUser);
         _cacheUserLocally(updatedUser);
         return null;
@@ -247,5 +271,10 @@ class UserNotifier extends StateNotifier<UserState> {
     } catch (e) {
       _logger.error('Error caching user data', e);
     }
+  }
+
+  static bool _isNetworkUrl(String? url) {
+    final uri = url == null ? null : Uri.tryParse(url.trim());
+    return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   }
 }

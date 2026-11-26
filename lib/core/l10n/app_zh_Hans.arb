@@ -33,6 +33,14 @@
       }
     }
   },
+  "home_practices_sessions": "{count, plural,\nother {{count} 次}\n}",
+  "@home_practices_sessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "home_shortcut_plans": "计划",
   "home_chants": "持诵",
   "home_mala": "念珠",
@@ -64,8 +72,6 @@
   },
   "mala_hand_layout_tooltip": "切换左右手布局",
   "mala_settings_section": "念珠设置",
-  "mala_others_section": "其他",
-  "mala_mantra_speed": "咒语速度",
   "mala_speed_normal": "正常",
   "mala_show_full_mantra": "显示完整咒语",
   "mala_counter_semantics": "计数 {bead}/{total}，{rounds}",
@@ -172,20 +178,19 @@
   "recitations_search_for": "寻找持诵内容",
   "recitations_no_found": "尚无相关持诵内容",
   "recitations_no_content": "没有可用的持诵",
-  "my_recitation_collection_new_title": "新持诵集",
+  "chant_book_new_title": "新持诵集",
   "my_recitation_collection_next": "下一步",
   "my_recitation_collection_create": "创建",
-  "my_recitation_collection_create_button": "创建持诵集",
   "my_recitation_collection_change_title": "变更标题",
   "my_recitation_collection_change": "变更",
   "my_recitation_collection_add_chants": "添加持诵",
   "my_recitation_collection_search_chants": "搜索持诵",
-  "my_recitation_collection_add_to_collection": "加入持诵集",
-  "my_recitation_collection_edit": "编辑持诵集",
-  "my_recitation_collection_delete": "删除持诵集",
-  "my_recitation_collection_delete_title": "要删除持诵集吗？",
-  "my_recitation_collection_delete_message": "此持诵集将被永久删除",
-  "my_recitation_collection_fallback_title": "持诵集",
+  "chant_book_add_to": "加入持诵集",
+  "chant_book_edit": "编辑持诵集",
+  "chant_book_delete": "删除持诵集",
+  "chant_book_delete_title": "要删除持诵集吗？",
+  "chant_book_delete_message": "此持诵集将被永久删除",
+  "chant_book_fallback_title": "持诵集",
   "my_recitation_collection_unavailable": "已无法使用",
   "my_recitation_collection_chant_count": "{count, plural,\n=0 {0 段持诵}\n=1 {1 段持诵}\nother {{count} 段持诵}\n}",
   "@my_recitation_collection_chant_count": {
@@ -203,8 +208,8 @@
       }
     }
   },
-  "bookmarks_empty_chant_collections_title": "尚无加入书签的法本",
-  "bookmarks_empty_chant_collections_subtitle": "将法本加入书签，即可收藏于此",
+  "chant_book_bookmarks_empty_title": "尚无加入书签的持诵集",
+  "chant_book_bookmarks_empty_subtitle": "将持诵集加入书签，即可收藏于此",
   "notification_allow_title": "允许通知",
   "notification_allow_subtitle_disabled": "需要权限。请点此前往「设置」授权",
   "notification_snack_permission_denied": "通知已被封锁。请在「设置」中打开",
@@ -495,6 +500,26 @@
   "continueWithGoogle": "使用 Google 继续",
   "continueWithApple": "使用 Apple 继续",
   "continueWithPhone": "使用电话继续",
+  "login_last_used": "上次使用",
+  "phone_login_title": "输入您的电话号码",
+  "phone_login_subtitle": "我们会通过短信向您发送验证码，以确认您的身份。",
+  "phone_login_number_hint": "电话号码",
+  "phone_login_country_search": "搜索国家或地区",
+  "phone_login_send_code": "发送验证码",
+  "phone_login_code_title": "输入验证码",
+  "phone_login_code_subtitle": "我们已将 6 位验证码发送至 {phoneNumber}。",
+  "phone_login_code_hint": "6 位验证码",
+  "phone_login_verify": "验证",
+  "phone_login_resend": "重新发送验证码",
+  "phone_login_resend_in": "{seconds} 秒后可重新发送验证码",
+  "phone_login_change_number": "更换号码",
+  "login_error_invalid_phone": "请输入有效的电话号码。",
+  "login_error_invalid_code": "验证码不正确，请检查后重试。",
+  "login_error_code_expired": "验证码已过期，请重新获取验证码。",
+  "login_error_too_many_requests": "尝试次数过多，请稍后再试。",
+  "login_error_network": "请检查网络连接后重试。",
+  "login_error_email_not_verified": "此账号的电子邮件地址尚未验证。请先在您的服务提供商处完成验证，然后重试。",
+  "login_error_generic": "无法登录，请重试。",
   "exploreAsGuest": "以访客身份探索",
   "signIn": "登录",
   "profileError": "加载个人资料时出错",
@@ -695,6 +720,64 @@
       }
     }
   },
+  "calendar_choose_calendar": "选择日历",
+  "calendar_tradition_vajrayana": "金刚乘",
+  "calendar_tradition_theravada": "上座部",
+  "calendar_tradition_mahayana": "大乘",
+  "calendar_type_phugpa": "藏历（浦派）",
+  "calendar_type_tsurphu": "藏历（楚布派）",
+  "calendar_type_nyingmapa": "宁玛派",
+  "calendar_type_sinhalese": "僧伽罗历",
+  "calendar_type_thai": "泰历",
+  "calendar_type_burmese": "缅甸历",
+  "calendar_type_lao": "老挝历",
+  "calendar_type_chinese": "农历",
+  "calendar_type_vietnamese": "越南历",
+  "calendar_type_korean": "韩国历",
+  "calendar_type_japanese": "日本历",
+  "calendar_today": "今天",
+  "calendar_no_events": "没有活动",
+  "calendar_source_lunar": "阴历",
+  "calendar_add_event": "添加活动",
+  "calendar_event_name": "活动名称",
+  "calendar_event_name_hint": "在日历中添加活动",
+  "calendar_repeat": "重复",
+  "calendar_does_not_repeat": "不重复",
+  "calendar_repeat_weekly": "每周",
+  "calendar_repeat_monthly": "每月",
+  "calendar_repeat_yearly": "每年",
+  "calendar_repeat_monthly_lunar": "每月（阴历{day}日）",
+  "@calendar_repeat_monthly_lunar": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_repeat_yearly_lunar": "每年（阴历日期）",
+  "calendar_delete_event": "删除活动",
+  "calendar_delete_event_title": "删除活动？",
+  "calendar_delete_event_body": "“{title}”将从你的日历中移除。此操作无法撤销。",
+  "@calendar_delete_event_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_delete_repeating_title": "删除重复活动？",
+  "calendar_delete_repeating_body": "“{title}”（{repeat}）的所有日期都将从你的日历中移除。此操作无法撤销。",
+  "@calendar_delete_repeating_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "repeat": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_event_deleted": "活动已删除",
   "moon_phase_new_moon": "新月",
   "moon_phase_first_quarter": "上弦月",
   "moon_phase_full_moon": "满月",
@@ -784,22 +867,22 @@
   "group_member_admin": "管理员",
   "group_member_owner": "拥有者",
   "group_remove_member": "移除 {name}",
-  "group_remove_member_title": "要从社群中移除吗？",
-  "group_remove_member_message": "{name} 将被移出此社群，且在禁令解除前无法重新加入",
-  "group_remove_member_blocked_for": "封锁期间：",
+  "group_remove_member_title": "移除 {name}",
+  "group_remove_member_message": "对方将被移出此社群，并在 {duration} 内无法重新加入。",
+  "group_remove_member_blocked_for": "无法重新加入的期限",
   "group_remove_member_duration_day": "1 天",
   "group_remove_member_duration_days": "{count} 天",
   "group_remove_member_duration_year": "1 年",
   "group_remove_member_reason_label": "原因（选填）",
-  "group_remove_member_reason_hint": "其他...",
-  "group_remove_member_action": "移除",
+  "group_remove_member_reason_hint": "您为什么要移除这位成员？",
+  "group_remove_member_action": "移除成员",
   "group_remove_member_success": "已将 {name} 移出社群",
   "group_remove_member_error": "无法移除此成员，请再试一次",
   "group_join_banned_until": "您已被移出此社群，在 {date} 之前无法重新加入",
-  "group_join_banned": "您已被移出此社群，在禁令解除前无法重新加入",
+  "group_join_banned": "您已被移出此社群，暂时无法重新加入",
   "group_removed_title": "您已被移出此社群",
   "group_removed_message": "{group} 的管理员已将您移出此社群。您将无法查看其中的贴文、活动和修持，也无法在 {duration} 内要求重新加入。",
-  "group_removed_message_no_date": "{group} 的管理员已将您移出此社群。您将无法查看其中的贴文、活动和修持，也无法要求重新加入",
+  "group_removed_message_no_date": "{group} 的管理员已将您移出此社群。在管理员允许之前，您将无法重新加入",
   "group_removed_rejoin_label": "您可以在以下日期申请加入此社群",
   "group_removed_rejoin_value": "{date} · {remaining}",
   "group_removed_day_left": "剩 1 天",
@@ -859,7 +942,7 @@
   },
   "group_recitation_collection_completed_title": "已完成「{collection}」",
   "group_recitation_collection_dedication": "愿以此功德，令一切众生\n远离痛苦",
-  "share_this_quote": "分享这句话",
+  "share_this_verse": "分享这段偈颂",
   "shared_from": "分享自",
   "verse_share_error": "无法分享引文，请再试一次",
   "verse_comments_title": "评论 · {count}",
@@ -1059,7 +1142,7 @@
   "group_post_edit_title": "编辑贴文",
   "group_post_update_error": "无法保存您的变更，请再试一次",
   "group_post_updated": "您的变更已保存",
-  "practice_collection_already_added": "此持诵集已在您的修持中",
+  "chant_book_already_in_practices": "此持诵集已在您的修持中",
   "practice_group_accumulator_already_added": "此共修计数已在您的修持中",
   "event_live_badge": "直播中",
   "event_live_video_mode": "视频",
@@ -1454,7 +1537,7 @@
   "chants_filter_all": "全部",
   "chants_chant_books": "持诵集",
   "chants_filter_single_chants": "单篇持诵",
-  "chants_my_chant_books": "我的持诵集",
+  "chants_my_chant_books_title": "我的持诵集",
   "chants_text_only": "纯文字持诵",
   "chants_from_your_spaces": "来自你的社群",
   "chants_explore_more": "探索更多",
@@ -1462,7 +1545,7 @@
   "chants_open_chant": "打开持诵",
   "chants_your_spaces": "你的社群",
   "chants_other_spaces": "其他社群",
-  "chants_search_hint": "搜索持诵与持诵集",
+  "chants_search_hint_chant_books": "搜索持诵与持诵集",
   "chants_cant_find": "找不到你要的经文吗？",
   "chants_request_text": "申请经文",
   "chants_request_done": "已申请",
@@ -1471,5 +1554,56 @@
   "chants_with_audio": "有音频的持诵",
   "chants_audio_chants": "音频持诵",
   "reader_no_resources_title": "此段落尚无注释或版本",
-  "reader_no_resources_subtitle": "我们会定期新增文本，请稍后再来查看"
+  "reader_no_resources_subtitle": "我们会定期新增文本，请稍后再来查看",
+  "mala_section_practice": "修持",
+  "mala_section_appearance": "外观",
+  "mala_section_save_share": "保存与分享",
+  "mala_mantra_animation": "咒语动画",
+  "mala_play_animation": "播放动画",
+  "mala_speed": "速度",
+  "mala_animation_off": "关闭",
+  "mala_bead_style": "念珠款式",
+  "mala_bead_default": "默认",
+  "mala_use_this_style": "使用此款式",
+  "mala_bead_style_updated": "念珠款式已更新",
+  "mala_change_image": "更换图片",
+  "mala_use_image": "使用",
+  "mala_restore_default_image": "恢复默认",
+  "mala_image_updated": "图片已更新",
+  "mala_images_empty": "没有可用的图片",
+  "mala_images_load_error": "无法加载图片",
+  "mala_bookmarked": "已加入书签",
+  "mala_beads_load_error": "无法加载念珠款式",
+  "mala_appearance_save_failed": "无法保存。请再试一次",
+  "session_search_plans_hint": "搜索计划",
+  "session_search_chants_hint": "搜索持诵",
+  "session_search_malas_hint": "搜索念珠",
+  "session_search_timers_hint": "按名称或时长搜索计时",
+  "search_min_query_length": "请至少输入 {count} 个字符以搜索",
+  "practice_next_session": "下一堂课程",
+  "practice_more_in_session": "此课程还有 {count} 项",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "来自你的社群",
+  "practice_discover_more": "探索更多",
+  "practice_space_accumulations": "社群持诵计数",
+  "practice_no_space_accumulations": "目前没有其他社群的持诵计数",
+  "practice_search_hint": "搜索修持",
+  "practice_search_recent": "最近",
+  "practice_search_no_results": "找不到“{query}”的结果",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "热门修持",
+  "practice_start_routine": "开始日常修持",
+  "practice_start_routine_hint": "或点选一项修持，选择“加入我的修持”。"
 }

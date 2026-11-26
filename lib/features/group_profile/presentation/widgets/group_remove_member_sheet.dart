@@ -59,12 +59,6 @@ class _GroupRemoveMemberSheetState
     super.dispose();
   }
 
-  String _displayName(GroupMember member) {
-    final fullname = member.fullname.trim();
-    if (fullname.isNotEmpty) return fullname;
-    return member.username;
-  }
-
   String _durationLabel(BuildContext context, int days) {
     final l10n = context.l10n;
     if (days == 1) return l10n.group_remove_member_duration_day;
@@ -111,9 +105,10 @@ class _GroupRemoveMemberSheetState
     final l10n = context.l10n;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final labelColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final name = _displayName(widget.member);
+    final labelColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final name = widget.member.displayName;
 
     return PopScope(
       canPop: !_isSubmitting,
@@ -138,7 +133,7 @@ class _GroupRemoveMemberSheetState
                       children: [
                         Expanded(
                           child: Text(
-                            l10n.group_remove_member_title,
+                            l10n.group_remove_member_title(name),
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -146,17 +141,18 @@ class _GroupRemoveMemberSheetState
                           ),
                         ),
                         IconButton(
-                          onPressed:
-                              _isSubmitting
-                                  ? null
-                                  : () => Navigator.of(context).pop(),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () => Navigator.of(context).pop(),
                           icon: const Icon(Icons.close),
                           tooltip: l10n.close,
                         ),
                       ],
                     ),
                     Text(
-                      l10n.group_remove_member_message(name),
+                      l10n.group_remove_member_message(
+                        _durationLabel(context, _banDays),
+                      ),
                       style: TextStyle(
                         fontSize: 15,
                         height: 1.35,
@@ -177,8 +173,8 @@ class _GroupRemoveMemberSheetState
                       isOpen: _durationOpen,
                       enabled: !_isSubmitting,
                       isDark: isDark,
-                      onTap:
-                          () => setState(() => _durationOpen = !_durationOpen),
+                      onTap: () =>
+                          setState(() => _durationOpen = !_durationOpen),
                     ),
                     if (_durationOpen) ...[
                       const SizedBox(height: 4),
@@ -220,24 +216,23 @@ class _GroupRemoveMemberSheetState
                         counterText:
                             '${_reasonController.text.characters.length}/${GroupRemoveMemberSheet.maxReasonLength}',
                         filled: true,
-                        fillColor:
-                            isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.surfaceWhite,
+                        fillColor: isDark
+                            ? AppColors.surfaceVariantDark
+                            : AppColors.surfaceWhite,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color:
-                                isDark
-                                    ? AppColors.cardBorderDark
-                                    : AppColors.grey300,
+                            color: isDark
+                                ? AppColors.cardBorderDark
+                                : AppColors.grey300,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color:
-                                isDark ? AppColors.grey500 : AppColors.grey800,
+                            color: isDark
+                                ? AppColors.grey500
+                                : AppColors.grey800,
                           ),
                         ),
                         contentPadding: const EdgeInsets.all(16),
@@ -249,43 +244,38 @@ class _GroupRemoveMemberSheetState
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              isDark
-                                  ? AppColors.surfaceWhite
-                                  : AppColors.textPrimary,
-                          foregroundColor:
-                              isDark
-                                  ? AppColors.textPrimary
-                                  : AppColors.surfaceWhite,
-                          disabledBackgroundColor:
-                              isDark
-                                  ? AppColors.surfaceWhite
-                                  : AppColors.textPrimary,
+                          backgroundColor: isDark
+                              ? AppColors.surfaceWhite
+                              : AppColors.textPrimary,
+                          foregroundColor: isDark
+                              ? AppColors.textPrimary
+                              : AppColors.surfaceWhite,
+                          disabledBackgroundColor: isDark
+                              ? AppColors.surfaceWhite
+                              : AppColors.textPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(28),
                           ),
                           elevation: 0,
                         ),
-                        child:
-                            _isSubmitting
-                                ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color:
-                                        isDark
-                                            ? AppColors.textPrimary
-                                            : AppColors.surfaceWhite,
-                                  ),
-                                )
-                                : Text(
-                                  l10n.group_remove_member_action,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                        child: _isSubmitting
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: isDark
+                                      ? AppColors.textPrimary
+                                      : AppColors.surfaceWhite,
                                 ),
+                              )
+                            : Text(
+                                l10n.group_remove_member_action,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -336,10 +326,9 @@ class _DurationField extends StatelessWidget {
               ),
               Icon(
                 isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                color:
-                    isDark
-                        ? AppColors.textTertiaryDark
-                        : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textTertiaryDark
+                    : AppColors.textSecondary,
               ),
             ],
           ),
@@ -391,16 +380,14 @@ class _DurationMenu extends StatelessWidget {
                         labelFor(days),
                         style: TextStyle(
                           fontSize: 16,
-                          color:
-                              days == selectedDays
-                                  ? AppColors.primary
-                                  : (isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimary),
-                          fontWeight:
-                              days == selectedDays
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
+                          color: days == selectedDays
+                              ? AppColors.primary
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary),
+                          fontWeight: days == selectedDays
+                              ? FontWeight.w600
+                              : FontWeight.w400,
                         ),
                       ),
                     ),

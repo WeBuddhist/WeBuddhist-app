@@ -125,10 +125,9 @@ class _GroupAccumulatorScreenState
               child: ScreenCacheBuilder<GroupAccumulatorDetail>(
                 value: detailAsync,
                 skeleton: const Center(child: CircularProgressIndicator()),
-                onRetry:
-                    () => ref.invalidate(
-                      groupAccumulatorDetailProvider(widget.accumulatorId),
-                    ),
+                onRetry: () => ref.invalidate(
+                  groupAccumulatorDetailProvider(widget.accumulatorId),
+                ),
                 data: (detail) => _buildContent(context, detail, isDark),
               ),
             ),
@@ -148,8 +147,8 @@ class _GroupAccumulatorScreenState
     final groupName = ref
         .watch(groupProfileProvider(detail.groupId))
         .whenOrNull(
-          data:
-              (either) => either.fold((_) => null, (profile) => profile.title),
+          data: (either) =>
+              either.fold((_) => null, (profile) => profile.title),
         );
     return groupName ?? detail.title;
   }
@@ -198,7 +197,11 @@ class _GroupAccumulatorScreenState
   void _onAddToPractices(GroupAccumulatorDetail detail) {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(
+        context,
+        ref,
+        feature: 'group_accumulator_add_to_practices',
+      );
       return;
     }
 
@@ -253,11 +256,9 @@ class _GroupAccumulatorScreenState
             isJoining: _isJoining,
             onJoinTap: () => _onJoinTap(detail),
             onReciteTap: () => _onReciteTap(context, detail),
-            onTextTap:
-                detail.hasTextContent
-                    ? () =>
-                        _openTextReader(context, detail, hasJoined: hasJoined)
-                    : null,
+            onTextTap: detail.hasTextContent
+                ? () => _openTextReader(context, detail, hasJoined: hasJoined)
+                : null,
           ),
         ),
         Expanded(
@@ -270,7 +271,7 @@ class _GroupAccumulatorScreenState
   Future<void> _onJoinTap(GroupAccumulatorDetail detail) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_accumulator_join');
       return;
     }
 
@@ -279,6 +280,7 @@ class _GroupAccumulatorScreenState
       container: ProviderScope.containerOf(context, listen: false),
       accumulatorId: detail.id,
       groupId: detail.groupId,
+      source: 'accumulator_page',
     );
 
     if (!mounted) return;
@@ -358,10 +360,9 @@ class _GroupAccumulatorScreenState
         groupAccumulatorId: detail.id,
         presetAccumulatorId: detail.presetAccumulatorId,
         groupId: detail.groupId,
-        groupTitle:
-            _resolveGroupName(detail.groupId)?.trim().isNotEmpty == true
-                ? _resolveGroupName(detail.groupId)!.trim()
-                : null,
+        groupTitle: _resolveGroupName(detail.groupId)?.trim().isNotEmpty == true
+            ? _resolveGroupName(detail.groupId)!.trim()
+            : null,
         groupAccumulatorSessionCount: startCount,
         groupAccumulatorEnded: ended,
       ),
@@ -402,20 +403,13 @@ class _GroupAccumulatorScreenState
 
   Future<void> _onShareTap(GroupAccumulatorDetail detail) async {
     final groupName = _resolveGroupName(detail.groupId);
-    final shareMessage =
-        groupName == null
-            ? context.l10n.group_accumulator_share_message_no_group(
-              detail.title,
-            )
-            : context.l10n.group_accumulator_share_message(
-              detail.title,
-              groupName,
-            );
-    final longUrl =
-        DeepLinkUrlBuilder.groupAccumulatorLink(
-          accumulatorId: detail.id,
-          groupId: detail.groupId,
-        ).toString();
+    final shareMessage = groupName == null
+        ? context.l10n.group_accumulator_share_message_no_group(detail.title)
+        : context.l10n.group_accumulator_share_message(detail.title, groupName);
+    final longUrl = DeepLinkUrlBuilder.groupAccumulatorLink(
+      accumulatorId: detail.id,
+      groupId: detail.groupId,
+    ).toString();
     final shareUrl = await resolveShareUrlRef(ref, longUrl);
     if (!mounted) return;
 
@@ -447,8 +441,8 @@ class _GroupAccumulatorScreenState
     return ref
         .read(groupProfileProvider(groupId))
         .whenOrNull(
-          data:
-              (either) => either.fold((_) => null, (profile) => profile.title),
+          data: (either) =>
+              either.fold((_) => null, (profile) => profile.title),
         );
   }
 }
@@ -456,11 +450,8 @@ class _GroupAccumulatorScreenState
 GroupType _resolveGroupType(WidgetRef ref, String groupId) {
   final profileAsync = ref.read(groupProfileProvider(groupId));
   return profileAsync.maybeWhen(
-    data:
-        (either) => either.fold(
-          (_) => GroupType.community,
-          (profile) => profile.groupType,
-        ),
+    data: (either) =>
+        either.fold((_) => GroupType.community, (profile) => profile.groupType),
     orElse: () => GroupType.community,
   );
 }

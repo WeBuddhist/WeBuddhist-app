@@ -30,12 +30,12 @@ class PlaceSearchResult {
     final parts = displayName.split(',');
     final primary =
         (json['display_place'] as String?)?.trim().isNotEmpty == true
-            ? (json['display_place'] as String).trim()
-            : parts.first.trim();
+        ? (json['display_place'] as String).trim()
+        : parts.first.trim();
     final secondary =
         (json['display_address'] as String?)?.trim().isNotEmpty == true
-            ? (json['display_address'] as String).trim()
-            : parts.skip(1).join(',').trim();
+        ? (json['display_address'] as String).trim()
+        : parts.skip(1).join(',').trim();
     if (primary.isEmpty) return null;
     return PlaceSearchResult(
       id: '${json['place_id'] ?? displayName}',

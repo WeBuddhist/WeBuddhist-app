@@ -65,8 +65,9 @@ enum LoginFailureCode {
     LoginFailureCode.unexpected => 'unexpected',
   };
 
-  /// Reads the text the Auth0 SDKs and [AuthService] produce; the repository
-  /// keeps only that text, not the exception or its code.
+  /// Reads the text [AuthService] produces (and, before the move to
+  /// Firebase, the Auth0 SDKs). Analytics is given only that text, not the
+  /// exception or its code.
   factory LoginFailureCode.fromMessage(String message) {
     final text = message.toLowerCase();
     if (text.contains('user closed the browser') ||
@@ -97,7 +98,8 @@ class AuthAnalytics {
 
   final AnalyticsService _analytics;
 
-  /// The user tapped a provider button; [method] is the Auth0 connection.
+  /// The user tapped a provider button; [method] is `google`, `apple` or
+  /// `sms` (the Auth0 connection names, kept so charts stay continuous).
   void loginStarted({required String method, required AuthSource source}) {
     _analytics.trackInBackground(AnalyticsEvents.authLoginStarted, {
       AnalyticsProperties.method: method,
@@ -106,12 +108,31 @@ class AuthAnalytics {
   }
 
   /// [source] is null when login started somewhere other than the login page
-  /// or drawer.
-  void loginSucceeded({String? method, AuthSource? source}) {
+  /// or drawer. [isNewUser] is true when the account has not finished
+  /// onboarding, null when that could not be checked.
+  ///
+  /// A new account also records its sign-up method on the person, once.
+  void loginSucceeded({String? method, AuthSource? source, bool? isNewUser}) {
+    final resolvedMethod = method ?? 'default';
     _analytics.trackInBackground(AnalyticsEvents.authLoginSucceeded, {
-      AnalyticsProperties.method: method ?? 'default',
+      AnalyticsProperties.method: resolvedMethod,
       AnalyticsProperties.source: source?.key,
+      if (isNewUser != null) AnalyticsProperties.isNewUser: isNewUser,
+      if (isNewUser == true)
+        AnalyticsProperties.personSetOnce: {
+          AnalyticsProperties.signupMethod: resolvedMethod,
+        },
     });
+  }
+
+  /// The user logged out from the Me page. Sent before the identity reset.
+  void loggedOut() {
+    _analytics.trackInBackground(AnalyticsEvents.authLogout, const {});
+  }
+
+  /// The server deleted the account. Sent before the identity reset.
+  void accountDeleted() {
+    _analytics.trackInBackground(AnalyticsEvents.accountDeleted, const {});
   }
 
   /// [failureMessage] is mapped to a code and cleaned; it is never sent as is.
@@ -145,10 +166,16 @@ class AuthAnalytics {
     });
   }
 
-  /// The login drawer closed without a login.
-  void loginPromptDismissed({required String feature}) {
+  /// The login drawer closed before a login finished in it. [loginAttempted]
+  /// is true when a login was started from the drawer: the splash screen
+  /// shown while it runs closes the drawer.
+  void loginPromptDismissed({
+    required String feature,
+    required bool loginAttempted,
+  }) {
     _analytics.trackInBackground(AnalyticsEvents.loginPromptDismissed, {
       AnalyticsProperties.feature: feature,
+      AnalyticsProperties.loginAttempted: loginAttempted,
     });
   }
 }

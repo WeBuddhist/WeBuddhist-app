@@ -15,6 +15,36 @@ void main() {
     analytics = ConnectAnalytics(service);
   });
 
+  test('post likes and comments have their own events', () {
+    analytics.postLikeChanged(
+      postId: 'p1',
+      groupId: 'g1',
+      liked: true,
+      surface: 'card',
+    );
+    analytics.postLikeChanged(
+      postId: 'p1',
+      groupId: 'g1',
+      liked: false,
+      surface: 'detail',
+    );
+    analytics.postCommentCreated(postId: 'p1', isReply: false);
+    analytics.postCommentDeleted(postId: 'p1');
+
+    expect(service.eventNames, [
+      AnalyticsEvents.postLiked,
+      AnalyticsEvents.postUnliked,
+      AnalyticsEvents.postCommentCreated,
+      AnalyticsEvents.postCommentDeleted,
+    ]);
+    expect(service.events.first.properties, {
+      'post_id': 'p1',
+      'group_id': 'g1',
+      'surface': 'card',
+    });
+    expect(service.events[2].properties, {'post_id': 'p1', 'is_reply': false});
+  });
+
   test('tabViewed carries the sub-tab and the followed count', () {
     analytics.tabViewed(subTab: 'events', followedGroupCount: 3);
 

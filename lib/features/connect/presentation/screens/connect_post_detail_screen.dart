@@ -144,7 +144,7 @@ class _ConnectPostDetailPanelState
   void _startReply(ConnectPostComment comment) {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'post_comment_reply');
       return;
     }
 
@@ -165,7 +165,7 @@ class _ConnectPostDetailPanelState
   Future<void> _submitComment() async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'post_comment');
       return;
     }
 
@@ -236,7 +236,7 @@ class _ConnectPostDetailPanelState
 
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'post_like');
       return;
     }
 
@@ -251,6 +251,7 @@ class _ConnectPostDetailPanelState
           optimisticLikeCount: _likeCount,
           includeUnfollowed: widget.includeUnfollowed,
           groupId: widget.groupId,
+          surface: 'detail',
         );
 
     if (!mounted) return;

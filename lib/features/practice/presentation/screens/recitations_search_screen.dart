@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/analytics/search_analytics.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
@@ -57,6 +58,10 @@ class _RecitationsSearchScreenState
   bool _sendingRequest = false;
   String? _requestedQuery;
 
+  /// The last query sent as `search_performed`, so each settled query is
+  /// counted once.
+  String? _trackedQuery;
+
   RecitationSearchNotifier get _searchNotifier =>
       ref.read(practiceRecitationSearchProvider(widget.languageCode).notifier);
 
@@ -97,6 +102,7 @@ class _RecitationsSearchScreenState
     _searchController.clear();
     _searchNotifier.clear();
     _bookDebounce?.cancel();
+    _trackedQuery = null;
     setState(() => _bookQuery = '');
     _focusNode.requestFocus();
   }
@@ -157,7 +163,7 @@ class _RecitationsSearchScreenState
                       textInputAction: TextInputAction.search,
                       style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: l10n.chants_search_hint,
+                        hintText: l10n.chants_search_hint_chant_books,
                         hintStyle: theme.textTheme.bodyMedium?.copyWith(
                           color: subtitleColor,
                           fontSize: 15,
@@ -271,6 +277,27 @@ class _RecitationsSearchScreenState
     final booksPending = wantsBooks && (bookAsync.isLoading || queryPending);
     final chantsPending = wantsText && chantState.isLoading;
 
+    // Only once the query's own sources (books, library chants) succeeded: a
+    // failed one has stopped loading too, and counting it would send a wrong
+    // total and block the correct one when the retry succeeds. The space-chant
+    // feed is shared, not per query, so it only has to have finished; if it
+    // failed, its chants aren't shown and aren't counted.
+    final spacesAsync = ref.watch(spaceChantsProvider);
+    _trackSearchOnceSettled(
+      settled:
+          !queryPending &&
+          _succeeded(bookAsync) &&
+          !spacesAsync.isLoading &&
+          !chantState.isLoading &&
+          chantState.error == null &&
+          chantState.query.trim() == _bookQuery,
+      resultCount:
+          books.length +
+          chants.length +
+          spaceMatches.text.length +
+          spaceMatches.audio.length,
+    );
+
     if (!showBooks && !showText && !showAudio) {
       if (booksPending || chantsPending || spacesPending) {
         return const RecitationListSkeleton(
@@ -314,24 +341,49 @@ class _RecitationsSearchScreenState
           ChantSectionHeader(title: l10n.chants_chant_books),
           _BookRail(
             books: books,
-            onTap: (book) => openChantBook(context, ref, book),
+            onTap: (book) {
+              _trackResultOpened(
+                books.indexOf(book),
+                itemType: 'chant_book',
+                itemId: book.id,
+              );
+              openChantBook(context, ref, book);
+            },
           ),
         ],
         if (showText) ...[
           ChantSectionHeader(title: l10n.chants_text_only),
-          for (final chant in spaceMatches.text)
+          for (final (index, chant) in spaceMatches.text.indexed)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: SpaceTextChantRow(chant: chant),
+              child: SpaceTextChantRow(
+                chant: chant,
+                onOpened:
+                    () => _trackResultOpened(
+                      index,
+                      itemType: 'space_chant',
+                      itemId: chant.item.textId,
+                    ),
+              ),
             ),
-          for (final chant in chants) _chantRow(context, chant),
+          // Numbered after the space chants listed above them.
+          for (final (index, chant) in chants.indexed)
+            _chantRow(context, chant, spaceMatches.text.length + index),
         ],
         if (showAudio) ...[
           ChantSectionHeader(title: l10n.chants_audio_chants),
-          for (final chant in spaceMatches.audio)
+          for (final (index, chant) in spaceMatches.audio.indexed)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: SpaceAudioChantRow(chant: chant),
+              child: SpaceAudioChantRow(
+                chant: chant,
+                onOpened:
+                    () => _trackResultOpened(
+                      index,
+                      itemType: 'space_audio_chant',
+                      itemId: chant.item.textId,
+                    ),
+              ),
             ),
         ],
         const SizedBox(height: 16),
@@ -365,7 +417,7 @@ class _RecitationsSearchScreenState
     if (query.isEmpty || _requestStatus != _RequestStatus.idle) return;
     final auth = ref.read(authProvider);
     if (auth.isGuest || !auth.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'text_request');
       return;
     }
 
@@ -390,7 +442,57 @@ class _RecitationsSearchScreenState
     );
   }
 
-  Widget _chantRow(BuildContext context, RecitationModel chant) {
+  /// Finished and successful: not loading or refreshing, no thrown error,
+  /// and the result is not a [Failure] (these sources return failures as a
+  /// value).
+  static bool _succeeded<T>(AsyncValue<Either<Failure, T>> value) =>
+      !value.isLoading &&
+      !value.hasError &&
+      (value.valueOrNull?.isRight() ?? false);
+
+  /// Sends `search_performed` once per settled query, counting every result
+  /// the screen can show: chant books, library chants and space chants. Only
+  /// successful answers count, so a failed query stays open and its retry is
+  /// sent. Run after the frame, since it is called from build.
+  void _trackSearchOnceSettled({
+    required bool settled,
+    required int resultCount,
+  }) {
+    final query = _bookQuery;
+    if (!settled ||
+        query.length < chantsSearchMinQueryLength ||
+        query == _trackedQuery) {
+      return;
+    }
+    _trackedQuery = query;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref
+          .read(searchAnalyticsProvider)
+          .searched(
+            surface: SearchSurface.recitations,
+            query: query,
+            resultCount: resultCount,
+          );
+    });
+  }
+
+  void _trackResultOpened(
+    int position, {
+    required String itemType,
+    required String itemId,
+  }) {
+    ref
+        .read(searchAnalyticsProvider)
+        .resultOpened(
+          surface: SearchSurface.recitations,
+          position: position,
+          itemType: itemType,
+          itemId: itemId,
+        );
+  }
+
+  Widget _chantRow(BuildContext context, RecitationModel chant, int position) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: TextChantRow(
@@ -398,12 +500,14 @@ class _RecitationsSearchScreenState
         openLabel: context.l10n.chants_open_chant,
         language: chant.language,
         firstVerse: chant.firstSegment?.content,
-        onTap:
-            () => openRecitationReader(
-              context,
-              chant,
-              listLanguage: widget.languageCode,
-            ),
+        onTap: () {
+          _trackResultOpened(position, itemType: 'chant', itemId: chant.textId);
+          openRecitationReader(
+            context,
+            chant,
+            listLanguage: widget.languageCode,
+          );
+        },
       ),
     );
   }

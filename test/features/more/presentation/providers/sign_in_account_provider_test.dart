@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/core/network/connectivity_service.dart'
     show ConnectivityNotifier, connectivityNotifierProvider;
+import 'package:flutter_pecha/core/storage/preferences_service.dart';
+import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/auth_credentials.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/user.dart';
 import 'package:flutter_pecha/features/auth/domain/repositories/auth_repository.dart';
@@ -14,6 +16,7 @@ import 'package:flutter_pecha/features/more/presentation/providers/sign_in_accou
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String _jwt(Map<String, dynamic> claims) {
   String part(Object value) =>
@@ -30,6 +33,9 @@ class _User extends StateNotifier<UserState> implements UserNotifier {
 
 /// Answers each getCredentials call with the next queued result.
 class _AuthRepository implements AuthRepository {
+  @override
+  void cancelPhoneSignIn() {}
+
   _AuthRepository(this.results);
 
   final List<Either<Failure, AuthCredentials>> results;
@@ -54,9 +60,8 @@ class _Connectivity extends ConnectivityNotifier {
   void set(bool isOnline) => state = isOnline;
 }
 
-AuthCredentials _credentials(String idToken) => AuthCredentials(
-  accessToken: 'a',
-  idToken: idToken,
+AuthCredentials _credentials(String accessToken) => AuthCredentials(
+  accessToken: accessToken,
   tokenType: 'Bearer',
   expiresIn: 3600,
   obtainedAt: DateTime(2026),
@@ -64,11 +69,21 @@ AuthCredentials _credentials(String idToken) => AuthCredentials(
 
 void main() {
   group('signInAccountProvider', () {
+    setUpAll(() => SharedPreferences.setMockInitialValues({}));
+    tearDown(
+      () => SharedPreferencesService.instance.delete(StorageKeys.signInMethod),
+    );
+
     test('looks again once back online after an offline failure', () async {
+      // What a phone sign-in stores; a phone account has no email to show.
+      await SharedPreferencesService.instance.set(
+        StorageKeys.signInMethod,
+        'phone',
+      );
       final repository = _AuthRepository([
         const Left(NetworkFailure('offline')),
         Right(
-          _credentials(_jwt({'sub': 'sms|1', 'phone_number': '+66812345678'})),
+          _credentials(_jwt({'sub': 'u-1', 'phone_number': '+66812345678'})),
         ),
       ]);
       final connectivity = _Connectivity(false);
@@ -122,13 +137,13 @@ void main() {
     });
   });
 
-  group('signInMethodFromUserId', () {
-    test('reads the Auth0 connection prefix', () {
-      expect(signInMethodFromUserId('google-oauth2|1'), SignInMethod.google);
-      expect(signInMethodFromUserId('apple|1'), SignInMethod.apple);
-      expect(signInMethodFromUserId('sms|1'), SignInMethod.phone);
-      expect(signInMethodFromUserId('auth0|1'), isNull);
-      expect(signInMethodFromUserId(null), isNull);
+  group('signInMethodFromStored', () {
+    test('reads what was stored at sign-in', () {
+      expect(signInMethodFromStored('google'), SignInMethod.google);
+      expect(signInMethodFromStored('apple'), SignInMethod.apple);
+      expect(signInMethodFromStored('phone'), SignInMethod.phone);
+      expect(signInMethodFromStored('sms'), isNull);
+      expect(signInMethodFromStored(null), isNull);
     });
   });
 
@@ -136,7 +151,7 @@ void main() {
     test('uses the profile email for Google', () {
       expect(
         resolveSignInAccount(
-          userId: 'google-oauth2|1',
+          method: SignInMethod.google,
           email: ' tenzin@example.com ',
         ),
         const SignInAccount(
@@ -149,7 +164,7 @@ void main() {
     test('falls back to the token email when the profile has none', () {
       expect(
         resolveSignInAccount(
-          userId: 'apple|1',
+          method: SignInMethod.apple,
           claims: {'email': 'x@privaterelay.appleid.com'},
         ),
         const SignInAccount(
@@ -159,20 +174,13 @@ void main() {
       );
     });
 
-    test('prefers phone_number for phone sign-in', () {
+    test('shows the phone number for phone sign-in, not a linked email', () {
       expect(
         resolveSignInAccount(
-          userId: 'sms|1',
-          email: 'ignored@example.com',
-          claims: {'phone_number': '+66812345678', 'name': '+1 555 0100'},
-        )?.identifier,
-        '+66812345678',
-      );
-    });
-
-    test('uses a phone-shaped name claim for phone sign-in', () {
-      expect(
-        resolveSignInAccount(userId: 'sms|1', claims: {'name': '+66812345678'}),
+          method: SignInMethod.phone,
+          email: 'linked@example.com',
+          claims: {'phone_number': '+66812345678', 'name': 'Tenzin Dolma'},
+        ),
         const SignInAccount(
           method: SignInMethod.phone,
           identifier: '+66812345678',
@@ -180,35 +188,44 @@ void main() {
       );
     });
 
-    test('ignores a name claim that is not a phone number', () {
+    test('shows the email for Google, not a linked phone number', () {
       expect(
-        resolveSignInAccount(userId: 'sms|1', claims: {'name': 'Tenzin'}),
+        resolveSignInAccount(
+          method: SignInMethod.google,
+          claims: {'email': 'tenzin@example.com', 'phone_number': '+1555'},
+        )?.identifier,
+        'tenzin@example.com',
+      );
+    });
+
+    test('a phone sign-in with no phone number resolves to nothing', () {
+      expect(
+        resolveSignInAccount(
+          method: SignInMethod.phone,
+          claims: {'name': 'Tenzin'},
+        ),
         isNull,
       );
     });
 
-    test('takes the method from the token when no user id is stored', () {
+    test('with no recorded method, shows whichever identifier exists', () {
+      expect(
+        resolveSignInAccount(method: null, email: 'tenzin@example.com'),
+        const SignInAccount(method: null, identifier: 'tenzin@example.com'),
+      );
       expect(
         resolveSignInAccount(
-          userId: null,
-          email: 'tenzin@example.com',
-          claims: {'sub': 'google-oauth2|1'},
-        )?.method,
-        SignInMethod.google,
-      );
-    });
-
-    test('keeps an unknown connection without a method', () {
-      expect(
-        resolveSignInAccount(userId: 'auth0|1', email: 'tenzin@example.com'),
-        const SignInAccount(method: null, identifier: 'tenzin@example.com'),
+          method: null,
+          claims: {'phone_number': '+66812345678'},
+        ),
+        const SignInAccount(method: null, identifier: '+66812345678'),
       );
     });
   });
 
   group('decodeJwtClaims', () {
     test('decodes the payload', () {
-      expect(decodeJwtClaims(_jwt({'sub': 'sms|1'})), {'sub': 'sms|1'});
+      expect(decodeJwtClaims(_jwt({'sub': 'u-1'})), {'sub': 'u-1'});
     });
 
     test('returns null for a malformed token', () {

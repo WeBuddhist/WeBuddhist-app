@@ -29,6 +29,7 @@ ChatRoomDTO _room({
   String? otherUserId,
   String updatedAt = '2026-09-01T10:00:00Z',
   int unreadCount = 0,
+  int unreadPrayer = 0,
   ChatMessageDTO? lastMessage,
 }) {
   return ChatRoomDTO(
@@ -40,7 +41,8 @@ ChatRoomDTO _room({
     name: 'Room $id',
     memberCount: 3,
     updatedAt: updatedAt,
-    unreadCount: unreadCount,
+    unreadChat: unreadCount,
+    unreadPrayer: unreadPrayer,
     lastMessage: lastMessage,
     otherUserId: otherUserId,
   );
@@ -164,6 +166,94 @@ void main() {
 
     test('is false when everything is read', () {
       expect(hasUnreadChatRooms([_room(id: 'a')]), isFalse);
+    });
+  });
+
+  group('chatRoomIsUnread', () {
+    test('counts the chat only: the Chats list opens the chat', () {
+      expect(chatRoomIsUnread(_room(id: 'a', unreadCount: 1)), isTrue);
+      expect(chatRoomIsUnread(_room(id: 'a', unreadPrayer: 3)), isFalse);
+    });
+  });
+
+  group('spaceUnreadOf', () {
+    test('says whether chat and prayer requests are unread', () {
+      expect(
+        spaceUnreadOf(_room(id: 'a', unreadCount: 4, unreadPrayer: 2)),
+        const SpaceUnread(chat: true, prayer: true),
+      );
+      expect(spaceUnreadOf(_room(id: 'a')).any, isFalse);
+    });
+
+    test('prayer requests alone are unread too', () {
+      final unread = spaceUnreadOf(_room(id: 'a', unreadPrayer: 1));
+      expect(unread, const SpaceUnread(prayer: true));
+      expect(unread.any, isTrue);
+    });
+  });
+
+  group('unreadSpaces', () {
+    test('maps each unread space room to its group, and nothing else', () {
+      expect(
+        unreadSpaces([
+          _room(id: 'r1', groupId: 'a', unreadCount: 2),
+          _room(id: 'r2', groupId: 'b'),
+          _room(id: 'r5', groupId: 'c', unreadPrayer: 1),
+          _direct(id: 'r3', unreadCount: 5),
+          _room(id: 'r4', groupId: null, eventId: 'ev1', unreadCount: 1),
+        ]),
+        {
+          'a': const SpaceUnread(chat: true),
+          'c': const SpaceUnread(prayer: true),
+        },
+      );
+    });
+  });
+
+  group('roomsWithRoomRead', () {
+    List<ChatRoomDTO> rooms() => [
+      _room(id: 'a', unreadCount: 2),
+      _room(id: 'b', unreadCount: 3, unreadPrayer: 1),
+    ];
+
+    test('with no type, zeroes only that room and keeps the order', () {
+      final read = roomsWithRoomRead(rooms(), 'b');
+
+      expect([for (final room in read) room.id], ['a', 'b']);
+      expect([for (final room in read) room.unreadCount], [2, 0]);
+      expect(read[1], _room(id: 'b'));
+    });
+
+    test('TEXT clears the chat and leaves prayer requests unread', () {
+      final read = roomsWithRoomRead(
+        rooms(),
+        'b',
+        messageType: ChatMessageDTO.typeText,
+      );
+
+      expect(read[1].unreadChat, 0);
+      expect(read[1].unreadPrayer, 1);
+    });
+
+    test('PRAYER clears prayer requests and leaves the chat unread', () {
+      final read = roomsWithRoomRead(
+        rooms(),
+        'b',
+        messageType: ChatMessageDTO.typePrayer,
+      );
+
+      expect(read[1].unreadChat, 3);
+      expect(read[1].unreadPrayer, 0);
+    });
+
+    test('returns the same list when there is nothing to clear', () {
+      final list = rooms();
+
+      expect(roomsWithRoomRead(list, 'missing'), same(list));
+      expect(
+        roomsWithRoomRead(list, 'a', messageType: ChatMessageDTO.typePrayer),
+        same(list),
+      );
     });
   });
 

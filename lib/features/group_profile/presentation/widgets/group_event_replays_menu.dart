@@ -24,10 +24,12 @@ class GroupEventReplaysMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final textColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final l10n = context.l10n;
     final languageCode = Localizations.localeOf(context).languageCode;
     final current = selected;
@@ -46,44 +48,43 @@ class GroupEventReplaysMenu extends StatelessWidget {
         side: BorderSide(color: isDark ? AppColors.grey800 : AppColors.grey300),
       ),
       onSelected: onSelected,
-      itemBuilder:
-          (context) => [
-            PopupMenuItem<EventReplay>(
-              enabled: false,
-              height: 32,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Text(
-                l10n.event_replays,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: secondaryColor,
-                ),
-                strutStyle: context.tibetanStrutStyle(12, compact: true),
-              ),
+      itemBuilder: (context) => [
+        PopupMenuItem<EventReplay>(
+          enabled: false,
+          height: 32,
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+          child: Text(
+            l10n.event_replays,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: secondaryColor,
             ),
-            if (replays.isEmpty)
-              PopupMenuItem<EventReplay>(
-                enabled: false,
-                child: Text(
-                  l10n.event_replays_empty,
-                  style: TextStyle(fontSize: 14, color: secondaryColor),
-                  strutStyle: context.tibetanStrutStyle(14, compact: true),
-                ),
-              ),
-            for (final replay in replays)
-              PopupMenuItem<EventReplay>(
-                value: replay,
-                height: 56,
-                child: _ReplayRow(
-                  replay: replay,
-                  label: EventReplays.label(l10n, languageCode, replay),
-                  isSelected: replay == current,
-                  textColor: textColor,
-                  secondaryColor: secondaryColor,
-                ),
-              ),
-          ],
+            strutStyle: context.tibetanStrutStyle(12, compact: true),
+          ),
+        ),
+        if (replays.isEmpty)
+          PopupMenuItem<EventReplay>(
+            enabled: false,
+            child: Text(
+              l10n.event_replays_empty,
+              style: TextStyle(fontSize: 14, color: secondaryColor),
+              strutStyle: context.tibetanStrutStyle(14, compact: true),
+            ),
+          ),
+        for (final replay in replays)
+          PopupMenuItem<EventReplay>(
+            value: replay,
+            height: 56,
+            child: _ReplayRow(
+              replay: replay,
+              label: EventReplays.label(l10n, languageCode, replay),
+              isSelected: replay == current,
+              textColor: textColor,
+              secondaryColor: secondaryColor,
+            ),
+          ),
+      ],
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         // Two pills in the actions can leave the title slot narrow; the

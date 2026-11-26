@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations_en.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
+import 'package:flutter_pecha/core/theme/font_config.dart';
 import 'package:flutter_pecha/features/auth/presentation/screens/splash_screen.dart';
 import 'package:flutter_pecha/features/auth/presentation/screens/splash_taglines.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -268,26 +270,147 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
   });
 
-  testWidgets('follows the phone brightness, not the app theme', (
-    tester,
-  ) async {
-    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+  Future<void> pumpThemed(
+    WidgetTester tester, {
+    required Brightness phone,
+    required ThemeMode app,
+  }) async {
+    tester.platformDispatcher.platformBrightnessTestValue = phone;
     addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
-
     await tester.pumpWidget(
       MaterialApp(
         theme: ThemeData.light(),
         darkTheme: ThemeData.dark(),
-        themeMode: ThemeMode.light,
+        themeMode: app,
         home: const SplashScreen(tagline: tagline),
       ),
     );
+  }
+
+  testWidgets('follows the app theme set to light on a dark phone', (
+    tester,
+  ) async {
+    await pumpThemed(tester, phone: Brightness.dark, app: ThemeMode.light);
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.backgroundColor, AppColors.surfaceLight);
+    final text = tester.widget<Text>(find.text('We'));
+    expect(text.style?.color, AppColors.textPrimary);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('follows the app theme set to dark on a light phone', (
+    tester,
+  ) async {
+    await pumpThemed(tester, phone: Brightness.light, app: ThemeMode.dark);
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.backgroundColor, AppColors.backgroundDark);
     final text = tester.widget<Text>(find.text('We'));
     expect(text.style?.color, AppColors.textPrimaryDark);
     await tester.pump(const Duration(seconds: 4));
+  });
+
+  testWidgets('follows the phone when the app theme is system', (
+    tester,
+  ) async {
+    await pumpThemed(tester, phone: Brightness.dark, app: ThemeMode.system);
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.backgroundColor, AppColors.backgroundDark);
+    await tester.pump(const Duration(seconds: 4));
+  });
+
+  test('splashTaglineLineHeight gives tall scripts more room', () {
+    expect(splashTaglineLineHeight('bo'), AppFontConfig.tibetanUiLineHeight);
+    expect(splashTaglineLineHeight('my'), 1.8);
+    expect(splashTaglineLineHeight('th'), 1.7);
+    expect(splashTaglineLineHeight('hi'), 1.6);
+    expect(splashTaglineLineHeight('ne'), 1.6);
+    expect(splashTaglineLineHeight('mn'), 1.4);
+    expect(splashTaglineLineHeight('zh'), 1.4);
+    expect(splashTaglineLineHeight('en'), 1.4);
+  });
+
+  test('every locale translates both taglines', () {
+    final arbs =
+        Directory('lib/core/l10n')
+            .listSync()
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.arb'))
+            .toList();
+    expect(arbs, isNotEmpty);
+    final english =
+        jsonDecode(File('lib/core/l10n/app_en.arb').readAsStringSync())
+            as Map<String, dynamic>;
+    for (final arb in arbs) {
+      if (arb.path.endsWith('app_en.arb')) continue;
+      final strings =
+          jsonDecode(arb.readAsStringSync()) as Map<String, dynamic>;
+      for (final key in ['splash_tagline_1', 'splash_tagline_2']) {
+        expect(strings[key], isA<String>(), reason: '$key in ${arb.path}');
+        expect(
+          strings[key],
+          isNot(english[key]),
+          reason: '$key in ${arb.path} is still English',
+        );
+      }
+    }
+  });
+
+  testWidgets('draws a translated Latin-script tagline in the bold font file', (
+    tester,
+  ) async {
+    const vietnamese = 'Phật tử chúng ta cùng nhau tu tập';
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SplashScreen(tagline: vietnamese, playIntro: false),
+      ),
+    );
+    await tester.pump();
+
+    final style = tester.widget<Text>(find.text(vietnamese)).style!;
+    expect(style.fontWeight, FontWeight.w700);
+    // Google Fonts names each weight's file; the bold one, not the regular.
+    expect(
+      style.fontFamily,
+      GoogleFonts.inter(fontWeight: FontWeight.w700).fontFamily,
+    );
+    await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('wraps a Burmese tagline with room between its lines', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    const burmese = 'ဗုဒ္ဓဘာသာဝင် ကျွန်ုပ်တို့ အတူတကွ ကျင့်ကြံကြသည်';
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('my'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SplashScreen(tagline: burmese, playIntro: false),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    final text = tester.widget<Text>(find.text(burmese));
+    expect(text.style?.height, 1.8);
+    expect(text.textAlign, TextAlign.center);
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.text(burmese),
+    );
+    // Wraps rather than overflowing, each line 1.8× the font size.
+    expect(paragraph.size.height, greaterThanOrEqualTo(2 * 20 * 1.8 - 0.5));
+    expect(paragraph.size.width, lessThanOrEqualTo(320 - 2 * 32));
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('shows a full tagline line in a short viewport with large text', (

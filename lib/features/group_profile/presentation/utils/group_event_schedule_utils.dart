@@ -195,12 +195,11 @@ class GroupEventScheduleUtils {
       }
     }
 
-    final spansDays =
-        schedule.isRecurring
-            ? (schedule.recurrence?.durationDays ?? 1) > 1
-            : schedule.isMultiDay &&
-                schedule.endDate != null &&
-                !dateOnly(schedule.endDate!).isAtSameMomentAs(dateOnly(start));
+    final spansDays = schedule.isRecurring
+        ? (schedule.recurrence?.durationDays ?? 1) > 1
+        : schedule.isMultiDay &&
+              schedule.endDate != null &&
+              !dateOnly(schedule.endDate!).isAtSameMomentAs(dateOnly(start));
     if (!schedule.allDay && !spansDays) {
       final from = schedule.startTime ?? defaultStart;
       final to = schedule.endTime ?? defaultEnd;
@@ -258,12 +257,11 @@ class GroupEventScheduleUtils {
         'results',
       };
       if (notChannels.contains(first)) continue;
-      final channelPath =
-          first.startsWith('@') || parts.length == 1
-              ? [first]
-              : (const {'channel', 'user', 'c'}.contains(first)
-                  ? parts.take(2).toList()
-                  : [first]);
+      final channelPath = first.startsWith('@') || parts.length == 1
+          ? [first]
+          : (const {'channel', 'user', 'c'}.contains(first)
+                ? parts.take(2).toList()
+                : [first]);
       return 'https://www.youtube.com/${channelPath.join('/')}/live';
     }
     return null;

@@ -31,7 +31,9 @@ void main() {
 
   const userId = 'sms|1';
 
-  // What Auth0's account creation left: a placeholder name and handle.
+  // What a phone sign-up starts with: the placeholder name
+  // (`AccountNames.placeholder`, the same one Auth0's account creation used)
+  // and a generated handle.
   const generated = User(
     id: 'u1',
     firstName: 'WeBuddhist',
@@ -160,9 +162,10 @@ void main() {
         verify(updateUserInfo(captureAny)).captured.single
             as UpdateUserInfoParams;
     expect(params.displayName, 'Tenzin Dhakar');
-    // The generated first and last name are kept, not blanked.
-    expect(params.firstName, 'WeBuddhist');
-    expect(params.lastName, 'User');
+    // The placeholder first and last name give way to the name just typed:
+    // chat and member lists show people by first and last name.
+    expect(params.firstName, 'Tenzin');
+    expect(params.lastName, 'Dhakar');
     expect(nextCalls, 1);
   });
 

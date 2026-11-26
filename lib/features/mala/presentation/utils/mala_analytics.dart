@@ -18,6 +18,25 @@ enum MalaInput { tap, swipe, mixed }
 /// What switched the mantra, carried on `mala_mantra_switched` as `via`.
 enum MalaSwitchVia { carousel, catalogue }
 
+/// Where the Mala screen was opened from, carried on `mala_screen_opened` as
+/// `source`. Openers put it in the `/mala` route's extra under `'source'`.
+enum MalaOpenSource {
+  home,
+  practiceTab,
+  routine,
+  notification,
+  bookmarks,
+  groupAccumulation,
+  deepLink;
+
+  String get key => switch (this) {
+    MalaOpenSource.practiceTab => 'practice_tab',
+    MalaOpenSource.groupAccumulation => 'group_accumulation',
+    MalaOpenSource.deepLink => 'deep_link',
+    _ => name,
+  };
+}
+
 extension MalaSelectionAnalytics on MalaAccumulationSelection {
   MalaMode get analyticsMode => isPersonal ? MalaMode.personal : MalaMode.group;
 }
@@ -57,7 +76,7 @@ class MalaAnalytics {
     required String mantraName,
     required MalaMode mode,
     String? groupId,
-    String? source,
+    MalaOpenSource? source,
   }) {
     _analytics.trackInBackground(AnalyticsEvents.malaScreenOpened, {
       if (presetId != null) AnalyticsProperties.presetId: presetId,
@@ -67,7 +86,7 @@ class MalaAnalytics {
       AnalyticsProperties.mantraName: mantraName,
       AnalyticsProperties.mode: mode.name,
       if (groupId != null) AnalyticsProperties.groupId: groupId,
-      if (source != null) AnalyticsProperties.source: source,
+      if (source != null) AnalyticsProperties.source: source.key,
     });
   }
 
@@ -184,6 +203,54 @@ class MalaAnalytics {
       AnalyticsProperties.pendingDelta: pendingDelta,
     });
   }
+
+  /// A mala setting the user changed. The image and skin fire after the
+  /// server saved them and carry the mantra; a null [value] there means the
+  /// default was restored.
+  void settingChanged({
+    required MalaSetting setting,
+    Object? value,
+    String? presetId,
+  }) {
+    _analytics.trackInBackground(AnalyticsEvents.malaSettingChanged, {
+      AnalyticsProperties.setting: setting.key,
+      AnalyticsProperties.value:
+          value ?? (setting.isAppearance ? 'default' : null),
+      if (presetId != null) AnalyticsProperties.presetId: presetId,
+    });
+  }
+
+  /// The count was reset to zero on the server. [groupAccumulatorId] is set
+  /// when a group accumulation's count was reset.
+  void countReset({required String presetId, String? groupAccumulatorId}) {
+    _analytics.trackInBackground(AnalyticsEvents.malaCountReset, {
+      AnalyticsProperties.presetId: presetId,
+      AnalyticsProperties.mode:
+          groupAccumulatorId == null ? 'personal' : 'group',
+      if (groupAccumulatorId != null)
+        AnalyticsProperties.groupAccumulatorId: groupAccumulatorId,
+    });
+  }
+}
+
+/// A mala setting, carried as `setting` on `mala_setting_changed`.
+enum MalaSetting {
+  sound,
+  vibration,
+  leftHanded,
+  animation,
+  speed,
+  deityImage,
+  skin;
+
+  String get key => switch (this) {
+    MalaSetting.leftHanded => 'left_handed',
+    MalaSetting.deityImage => 'deity_image',
+    _ => name,
+  };
+
+  bool get isAppearance =>
+      this == MalaSetting.deityImage || this == MalaSetting.skin;
 }
 
 /// Groups counted beads into sessions for `mala_session_started`,

@@ -129,16 +129,13 @@ class GroupReportsNotifier extends StateNotifier<GroupReportsState> {
 
     if (!mounted || generation != _requestGeneration) return;
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          isLoading: false,
-          hasLoaded: true,
-          error: state.reports.isEmpty ? failure.message : null,
-        );
-      },
-      _applyFirstPage,
-    );
+    result.fold((failure) {
+      state = state.copyWith(
+        isLoading: false,
+        hasLoaded: true,
+        error: state.reports.isEmpty ? failure.message : null,
+      );
+    }, _applyFirstPage);
   }
 
   void _applyFirstPage(GroupReportsPage page, {bool fresh = true}) {
@@ -511,27 +508,29 @@ class GroupReportAvatarsNotifier extends StateNotifier<Map<String, String>> {
   }
 }
 
-final groupReportAvatarsProvider = StateNotifierProvider.autoDispose.family<
-  GroupReportAvatarsNotifier,
-  Map<String, String>,
-  String
->((ref, groupId) {
-  final cache = ref.watch(groupMemberAvatarCacheProvider(groupId));
-  final notifier = GroupReportAvatarsNotifier(
-    repository: ref.watch(groupProfileRepositoryProvider),
-    groupId: groupId,
-    cache: cache,
-  );
-  cache.syncMembershipEpoch(ref.read(groupMembershipEpochProvider(groupId)));
-  ref.listen(groupMembershipEpochProvider(groupId), (previous, next) {
-    if (cache.syncMembershipEpoch(next)) {
-      notifier.resolve(const {});
-    }
-  });
-  ref.listen(
-    groupReportsProvider(groupId).select((state) => state.reports),
-    (_, reports) => notifier.resolve(reportUserIds(reports)),
-    fireImmediately: true,
-  );
-  return notifier;
-});
+final groupReportAvatarsProvider = StateNotifierProvider.autoDispose
+    .family<GroupReportAvatarsNotifier, Map<String, String>, String>((
+      ref,
+      groupId,
+    ) {
+      final cache = ref.watch(groupMemberAvatarCacheProvider(groupId));
+      final notifier = GroupReportAvatarsNotifier(
+        repository: ref.watch(groupProfileRepositoryProvider),
+        groupId: groupId,
+        cache: cache,
+      );
+      cache.syncMembershipEpoch(
+        ref.read(groupMembershipEpochProvider(groupId)),
+      );
+      ref.listen(groupMembershipEpochProvider(groupId), (previous, next) {
+        if (cache.syncMembershipEpoch(next)) {
+          notifier.resolve(const {});
+        }
+      });
+      ref.listen(
+        groupReportsProvider(groupId).select((state) => state.reports),
+        (_, reports) => notifier.resolve(reportUserIds(reports)),
+        fireImmediately: true,
+      );
+      return notifier;
+    });

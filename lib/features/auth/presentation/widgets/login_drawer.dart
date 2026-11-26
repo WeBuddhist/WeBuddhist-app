@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/utils/auth_analytics.dart';
 import 'package:go_router/go_router.dart';
+import 'login_form_widgets.dart';
 import 'social_login_button.dart';
 
 /// Modern bottom sheet drawer for guest user login
@@ -53,11 +54,21 @@ class _LoginDrawerState extends ConsumerState<LoginDrawer>
   late final AuthAnalytics _analytics;
   bool _loggedIn = false;
 
+  /// A login started here shows the splash screen while it runs, and that
+  /// closes this drawer before the login can finish.
+  bool _loginAttempted = false;
+
   @override
   void initState() {
     super.initState();
     _analytics = ref.read(authAnalyticsProvider);
     _analytics.loginPromptShown(feature: widget.feature);
+    ref.listenManual<bool>(
+      authProvider.select((state) => state.isLoading),
+      (_, isLoading) {
+        if (isLoading) _loginAttempted = true;
+      },
+    );
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -72,8 +83,14 @@ class _LoginDrawerState extends ConsumerState<LoginDrawer>
 
   @override
   void dispose() {
-    // Closed by drag, barrier or back rather than by a login.
-    if (!_loggedIn) _analytics.loginPromptDismissed(feature: widget.feature);
+    // Closed by drag, barrier or back, or by the splash screen of a login
+    // started here; login_attempted tells the two apart.
+    if (!_loggedIn) {
+      _analytics.loginPromptDismissed(
+        feature: widget.feature,
+        loginAttempted: _loginAttempted,
+      );
+    }
     _animationController.dispose();
     super.dispose();
   }
@@ -162,7 +179,7 @@ class _LoginDrawerState extends ConsumerState<LoginDrawer>
                     ),
                     const SizedBox(height: 32),
                     // Sign-in buttons
-                    if (authState.isLoading)
+                    if (authState.isLoading || authState.isSigningIn)
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 24),
                         child: CircularProgressIndicator(),
@@ -170,6 +187,7 @@ class _LoginDrawerState extends ConsumerState<LoginDrawer>
                     else
                       Column(
                         children: [
+                          LoginErrorText(reason: authState.loginError),
                           SizedBox(
                             width: double.infinity,
                             child: SocialLoginButton(

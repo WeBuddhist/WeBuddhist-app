@@ -454,7 +454,7 @@ void main() {
       repository.complete('room-1', Right(_room('room-1', eventId: 'event-1')));
       await tester.pumpAndSettle();
 
-      expect(location(), '/home/events/event-1?prayers=1');
+      expect(location(), '/home/events/event-1?prayers=1&from=push');
       expect(find.text('event event-1 prayers=1'), findsOneWidget);
     });
 
@@ -517,7 +517,7 @@ void main() {
       repository.complete('room-1', Right(_room('room-1', eventId: 'event-1')));
       await tester.pumpAndSettle();
 
-      expect(location(), '/home/events/event-2?prayers=1');
+      expect(location(), '/home/events/event-2?prayers=1&from=push');
     });
 
     testWidgets('a lookup is dropped once the user opens another screen', (

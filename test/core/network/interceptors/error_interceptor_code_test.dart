@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_pecha/core/error/exception_mapper.dart';
 import 'package:flutter_pecha/core/error/exceptions.dart';
 import 'package:flutter_pecha/core/network/interceptors/error_interceptor.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/group_chat/chat_moderation.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/chat_send_error.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _CaptureHandler extends Fake implements ErrorInterceptorHandler {
@@ -59,6 +61,35 @@ void _detailEnvelope() {
               as ValidationException;
 
       expect(error.message, 'Body must not be empty');
+    });
+
+    test('a bare code as detail is kept as the code', () {
+      // HTTPException(400, detail="EVENT_ENDED"): a prayer request in an
+      // ended event's room. The code used to arrive only as message text.
+      final error =
+          _capture(_badResponse(400, {'detail': ChatModeration.eventEnded}))
+              as ValidationException;
+
+      expect(error.code, ChatModeration.eventEnded);
+    });
+
+    test('a sentence as detail is not taken for a code', () {
+      final error =
+          _capture(_badResponse(400, {'detail': 'NOT ALLOWED here'}))
+              as ValidationException;
+
+      expect(error.code, isNull);
+    });
+
+    test('EVENT_ENDED from the server reaches the closed-board copy', () {
+      // The whole path a prayer request takes: interceptor, then the
+      // repository's mapper (which prefixes the message), then the UI.
+      final failure = ExceptionMapper.map(
+        _capture(_badResponse(400, {'detail': 'EVENT_ENDED'}))!,
+        context: 'sendEventMessage',
+      );
+
+      expect(chatSendErrorKind(failure), ChatSendErrorKind.eventEnded);
     });
 
     test('a 404 keeps the reason the server gave', () {

@@ -5,7 +5,6 @@ import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_key.dart';
 import 'package:flutter_pecha/core/error/exceptions.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/home/data/datasource/series_remote_datasource.dart';
-import 'package:flutter_pecha/features/mala/data/datasources/mala_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/data/repositories/practice_explore_repository.dart';
 import 'package:flutter_pecha/features/recitation/data/datasource/recitations_remote_datasource.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitations_page_response.dart';
@@ -63,25 +62,27 @@ void main() {
       store: store,
       seriesRemote: SeriesRemoteDatasource(dio: Dio()),
       recitationsRemote: _FakeRecitations(),
-      malaRemote: MalaRemoteDataSource(dio: Dio()),
       timersRemote: timers,
     );
   });
 
-  test('stored timers show first, then the changed server list sorted', () async {
-    store.entries[key] = jsonEncode([_timer('a', 60000).toJson()]);
-    timers.timers = [_timer('b', 120000), _timer('a', 60000)];
+  test(
+    'stored timers show first, then the changed server list sorted',
+    () async {
+      store.entries[key] = jsonEncode([_timer('a', 60000).toJson()]);
+      timers.timers = [_timer('b', 120000), _timer('a', 60000)];
 
-    final events = <Either<Failure, List<PresetTimer>>>[];
-    final sub = repo.watchTimers().listen(events.add);
-    addTearDown(sub.cancel);
-    await pumpEventQueue();
+      final events = <Either<Failure, List<PresetTimer>>>[];
+      final sub = repo.watchTimers().listen(events.add);
+      addTearDown(sub.cancel);
+      await pumpEventQueue();
 
-    expect(events.map(_durations), [
-      [60000],
-      [60000, 120000],
-    ]);
-  });
+      expect(events.map(_durations), [
+        [60000],
+        [60000, 120000],
+      ]);
+    },
+  );
 
   test('a failed refresh keeps the stored timers', () async {
     store.entries[key] = jsonEncode([_timer('a', 60000).toJson()]);

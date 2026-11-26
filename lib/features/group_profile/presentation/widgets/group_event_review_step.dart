@@ -33,8 +33,9 @@ class GroupEventReviewStep extends StatelessWidget {
     final l10n = context.l10n;
     final locale = intlFormatLocaleOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final name = eventName(draft);
 
     return SingleChildScrollView(
@@ -79,7 +80,10 @@ class GroupEventReviewStep extends StatelessWidget {
               value: GroupEventDraftSummary.liveLink(draft, l10n),
               onTap: () => onEdit(GroupEventReviewTarget.whenWhere),
             ),
-          GroupEventSectionLabel(l10n.group_event_step_practices, isDark: isDark),
+          GroupEventSectionLabel(
+            l10n.group_event_step_practices,
+            isDark: isDark,
+          ),
           GroupEventReviewRow(
             icon: AppAssets.list,
             label: l10n.group_event_review_practices,
@@ -92,7 +96,10 @@ class GroupEventReviewStep extends StatelessWidget {
             value: GroupEventDraftSummary.videos(draft, l10n),
             onTap: () => onEdit(GroupEventReviewTarget.practices),
           ),
-          GroupEventSectionLabel(l10n.group_event_review_settings, isDark: isDark),
+          GroupEventSectionLabel(
+            l10n.group_event_review_settings,
+            isDark: isDark,
+          ),
           GroupEventReviewRow(
             icon: AppAssets.sliders,
             label: l10n.group_event_review_event_settings,
@@ -189,8 +196,9 @@ class GroupEventReviewRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     return InkWell(
       onTap: onTap,

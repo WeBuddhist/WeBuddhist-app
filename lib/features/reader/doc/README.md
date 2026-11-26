@@ -14,7 +14,7 @@ Full-featured text reader: paginated segments, dual-slot layout (primary + secon
 - Font size, highlighting, segment action bar (copy, share, commentary, video)
 - Plan/routine multi-item swipe between subtasks
 - Group accumulator chant mode, group recitation collection mode
-- Bookmarks, audio (plan subtasks), mala accumulation, offline chants
+- Bookmarks, audio (plan subtasks; library recordings for chant sources, see `NavigationContext.playsChantRecordings`), mala accumulation, offline chants
 
 ## Architecture
 

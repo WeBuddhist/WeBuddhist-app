@@ -41,13 +41,11 @@ class _GroupAccumulatorMoreSheetState
     setState(() => _isBookmarking = true);
     try {
       final nav = Navigator.of(context);
-      final didToggle = await BookmarkController(
-        ref: ref,
-        context: context,
-      ).toggleGroupAccumulator(
-        widget.accumulatorId,
-        name: widget.accumulatorTitle,
-      );
+      final didToggle = await BookmarkController(ref: ref, context: context)
+          .toggleGroupAccumulator(
+            widget.accumulatorId,
+            name: widget.accumulatorTitle,
+          );
       if (mounted && didToggle) nav.pop();
     } finally {
       if (mounted) setState(() => _isBookmarking = false);
@@ -91,22 +89,21 @@ class _GroupAccumulatorMoreSheetState
           ),
           _SectionDivider(theme: theme),
           ListTile(
-            leading:
-                _isBookmarking
-                    ? SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    )
-                    : Icon(
-                      isBookmarked
-                          ? AppAssets.bookmarkSimpleFill
-                          : AppAssets.bookmarkSimple,
+            leading: _isBookmarking
+                ? SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: theme.colorScheme.onSurface,
                     ),
+                  )
+                : Icon(
+                    isBookmarked
+                        ? AppAssets.bookmarkSimpleFill
+                        : AppAssets.bookmarkSimple,
+                    color: theme.colorScheme.onSurface,
+                  ),
             title: Text(l10n.bookmark, style: theme.textTheme.bodyLarge),
             onTap: () {
               HapticFeedback.lightImpact();
@@ -156,12 +153,11 @@ void showGroupAccumulatorMoreSheet(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     useRootNavigator: true,
-    builder:
-        (_) => GroupAccumulatorMoreSheet(
-          accumulatorId: accumulatorId,
-          accumulatorTitle: accumulatorTitle,
-          onAddToPractices: onAddToPractices,
-          onShare: onShare,
-        ),
+    builder: (_) => GroupAccumulatorMoreSheet(
+      accumulatorId: accumulatorId,
+      accumulatorTitle: accumulatorTitle,
+      onAddToPractices: onAddToPractices,
+      onShare: onShare,
+    ),
   );
 }

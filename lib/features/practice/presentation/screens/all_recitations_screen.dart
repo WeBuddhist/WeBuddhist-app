@@ -12,10 +12,9 @@ import 'package:flutter_pecha/features/practice/domain/entities/chant_book.dart'
 import 'package:flutter_pecha/features/practice/domain/entities/space_chant.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/chants_page_providers.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_recitations_paginated_provider.dart';
-import 'package:flutter_pecha/features/practice/presentation/screens/audio_chants_see_all_screen.dart';
 import 'package:flutter_pecha/features/practice/presentation/screens/chant_books_see_all_screen.dart';
+import 'package:flutter_pecha/features/practice/presentation/screens/chants_see_all_screen.dart';
 import 'package:flutter_pecha/features/practice/presentation/screens/recitations_search_screen.dart';
-import 'package:flutter_pecha/features/practice/presentation/screens/text_chants_see_all_screen.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_actions.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_sections.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/recitation_reader_navigation.dart';
@@ -152,20 +151,11 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
     );
   }
 
-  void _seeAllAudioChants({required bool yours}) {
+  void _seeAllChants({required bool yours}) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        settings: const RouteSettings(name: 'audio-chants-see-all'),
-        builder: (_) => AudioChantsSeeAllScreen(showYours: yours),
-      ),
-    );
-  }
-
-  void _seeAllTextChants({required bool yours}) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        settings: const RouteSettings(name: 'text-chants-see-all'),
-        builder: (_) => TextChantsSeeAllScreen(showYours: yours),
+        settings: const RouteSettings(name: 'chants-see-all'),
+        builder: (_) => ChantsSeeAllScreen(showYours: yours),
       ),
     );
   }
@@ -278,22 +268,24 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
         hasMyChantBooks: myList.isNotEmpty,
         hasYourSpaceChantBooks: spaces.yours.isNotEmpty,
         hasOtherSpaceChantBooks: spaces.others.isNotEmpty,
-        hasTextOnlyChants:
-            chants.isNotEmpty || chantsOfSpaces.othersText.isNotEmpty,
-        hasYourAudioChants: chantsOfSpaces.yoursAudio.isNotEmpty,
-        hasOtherAudioChants: chantsOfSpaces.othersAudio.isNotEmpty,
-        hasYourTextChants: chantsOfSpaces.yoursText.isNotEmpty,
+        hasYourChants:
+            chantsOfSpaces.yoursAudio.isNotEmpty ||
+            chantsOfSpaces.yoursText.isNotEmpty,
+        hasOtherChants:
+            chants.isNotEmpty ||
+            chantsOfSpaces.othersAudio.isNotEmpty ||
+            chantsOfSpaces.othersText.isNotEmpty,
       ),
     ];
-    // The library failed while other sections show: keep a "Text only"
-    // section so its error and retry are not lost under them. With no
+    // The library failed while other sections show: keep the other
+    // chants section so its error and retry are not lost under them. With no
     // other section the full error screen below says it.
     final catalogueMatters = _filter != ChantsFilter.chantBooks;
     if (catalogueMatters &&
         catalogue.error != null &&
         sections.isNotEmpty &&
-        !sections.contains(ChantsSection.textOnlyChants)) {
-      sections.add(ChantsSection.textOnlyChants);
+        !sections.contains(ChantsSection.otherChants)) {
+      sections.add(ChantsSection.otherChants);
     }
 
     final stillLoading =
@@ -411,7 +403,7 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
       case ChantsSection.myChantBooks:
         return [
           ChantSectionHeader(
-            title: l10n.chants_my_chant_books,
+            title: l10n.chants_my_chant_books_title,
             // The design has no See all while the rail holds two or fewer.
             onSeeAll:
                 myBooks.length > 2
@@ -433,13 +425,17 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
           ),
           _ChantBookRail(books: spaces.yours, onTap: _openChantBook),
         ];
-      case ChantsSection.yourAudioChants:
-        return _audioItems(
-          context,
-          spaceChants.yoursAudio,
-          isNewUser: !spaces.hasYourSpaces,
-          onSeeAll: () => _seeAllAudioChants(yours: true),
-        );
+      case ChantsSection.yourChants:
+        final limit = chantsRowLimit(_filter);
+        final yours = [...spaceChants.yoursAudio, ...spaceChants.yoursText];
+        return [
+          ChantSectionHeader(
+            title: l10n.home_chants,
+            onSeeAll:
+                yours.length > limit ? () => _seeAllChants(yours: true) : null,
+          ),
+          for (final chant in yours.take(limit)) _SpaceChantItem(chant: chant),
+        ];
       case ChantsSection.exploreMoreHeading:
         return [ChantGroupHeading(l10n.chants_explore_more)];
       case ChantsSection.otherSpaceChantBooks:
@@ -453,58 +449,30 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
           ),
           _ChantBookRail(books: spaces.others, onTap: _openChantBook),
         ];
-      case ChantsSection.otherAudioChants:
-        return _audioItems(
-          context,
-          spaceChants.othersAudio,
-          isNewUser: !spaces.hasYourSpaces,
-          onSeeAll: () => _seeAllAudioChants(yours: false),
-        );
-      case ChantsSection.yourTextChants:
-        final limit = chantsRowLimit(_filter);
-        final yoursText = spaceChants.yoursText;
-        return [
-          ChantSectionHeader(
-            title: l10n.chants_text_only,
-            onSeeAll:
-                yoursText.length > limit
-                    ? () => _seeAllTextChants(yours: true)
-                    : null,
-          ),
-          for (final chant in yoursText.take(limit))
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: SpaceTextChantRow(chant: chant),
-            ),
-        ];
-      case ChantsSection.textOnlyChants:
-        // Other spaces' chants first, then the library's.
+      case ChantsSection.otherChants:
+        // Other spaces' chants with audio, then without, then the library's.
         final isFullList = _filter == ChantsFilter.singleChants;
-        final othersText = spaceChants.othersText;
-        final total = othersText.length + catalogue.recitations.length;
-        final shown = isFullList ? total : min(total, chantsAllTextOnlyLimit);
+        final others = [...spaceChants.othersAudio, ...spaceChants.othersText];
+        final total = others.length + catalogue.recitations.length;
+        final shown = isFullList ? total : min(total, chantsAllRowLimit);
         final showSeeAll =
-            !isFullList &&
-            (total > chantsAllTextOnlyLimit || catalogue.hasMore);
+            !isFullList && (total > chantsAllRowLimit || catalogue.hasMore);
         return [
           ChantSectionHeader(
-            title: l10n.chants_text_only,
-            onSeeAll: showSeeAll ? () => _seeAllTextChants(yours: false) : null,
+            title: l10n.home_chants,
+            onSeeAll: showSeeAll ? () => _seeAllChants(yours: false) : null,
           ),
           for (var i = 0; i < shown; i++)
-            if (i < othersText.length)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-                child: SpaceTextChantRow(chant: othersText[i]),
-              )
+            if (i < others.length)
+              _SpaceChantItem(chant: others[i])
             else
               _TextChantItem(
-                recitation: catalogue.recitations[i - othersText.length],
+                recitation: catalogue.recitations[i - others.length],
                 openLabel: l10n.chants_open_chant,
                 onTap:
                     () => openRecitationReader(
                       context,
-                      catalogue.recitations[i - othersText.length],
+                      catalogue.recitations[i - others.length],
                       listLanguage: languageCode,
                     ),
               ),
@@ -533,29 +501,6 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
             ),
         ];
     }
-  }
-
-  /// A "Chants with audio" header and the first few rows; a new user's
-  /// single list is titled "Audio chants", as in the design.
-  List<Widget> _audioItems(
-    BuildContext context,
-    List<SpaceChant> chants, {
-    required bool isNewUser,
-    required VoidCallback onSeeAll,
-  }) {
-    final l10n = context.l10n;
-    final limit = chantsRowLimit(_filter);
-    return [
-      ChantSectionHeader(
-        title: isNewUser ? l10n.chants_audio_chants : l10n.chants_with_audio,
-        onSeeAll: chants.length > limit ? onSeeAll : null,
-      ),
-      for (final chant in chants.take(limit))
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-          child: SpaceAudioChantRow(chant: chant),
-        ),
-    ];
   }
 
   Widget _catalogueError(
@@ -602,6 +547,24 @@ bool _failed<T>(AsyncValue<Either<Failure, T>> value) =>
 
 /// Shimmering audio rows standing in for the space chant sections while
 /// the books' chants load.
+/// A space chant row in a section list: with a play row when it has audio.
+class _SpaceChantItem extends StatelessWidget {
+  const _SpaceChantItem({required this.chant});
+
+  final SpaceChant chant;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child:
+          chant.hasAudio
+              ? SpaceAudioChantRow(chant: chant)
+              : SpaceTextChantRow(chant: chant),
+    );
+  }
+}
+
 class _SpaceChantsPlaceholder extends StatelessWidget {
   const _SpaceChantsPlaceholder();
 

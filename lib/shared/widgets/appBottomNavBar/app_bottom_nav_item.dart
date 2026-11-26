@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
+import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 
@@ -27,17 +28,35 @@ class AppBottomNavItem<T> extends StatelessWidget {
 
     final isSelected = model.type == selectedType;
 
+    final leading = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: _buildLeading(
+        isSelected: isSelected,
+        activeColor: activeColor,
+        inactiveColor: inactiveColor,
+      ),
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          child: _buildLeading(
-            isSelected: isSelected,
-            activeColor: activeColor,
-            inactiveColor: inactiveColor,
-          ),
-        ),
+        if (model.hasBadge)
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              leading,
+              Positioned(
+                top: -2,
+                right: -3,
+                child: _NavBadgeDot(
+                  ringColor: theme.cardColor,
+                  isDark: isDarkMode,
+                ),
+              ),
+            ],
+          )
+        else
+          leading,
         const SizedBox(height: 2),
         Text(
           model.label,
@@ -120,12 +139,37 @@ class _NavProfileAvatar extends StatelessWidget {
   }
 }
 
+/// The red unread dot on a tab icon, ringed in the bar's colour so it stays
+/// legible over the icon.
+class _NavBadgeDot extends StatelessWidget {
+  const _NavBadgeDot({required this.ringColor, required this.isDark});
+
+  final Color ringColor;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.unreadBadgeDark : AppColors.unreadBadge,
+        shape: BoxShape.circle,
+        border: Border.all(color: ringColor, width: 1.5),
+      ),
+    );
+  }
+}
+
 class AppBottomBarItemModel<T> {
   final IconData selectedIconData;
   final IconData unSelectedIconData;
   final String label;
   final Widget? selectedWidget;
   final String? avatarUrl;
+
+  /// Puts a red unread dot on the tab's icon.
+  final bool hasBadge;
 
   final T type;
 
@@ -136,6 +180,7 @@ class AppBottomBarItemModel<T> {
     required this.label,
     required this.type,
     this.avatarUrl,
+    this.hasBadge = false,
   });
 
   @override

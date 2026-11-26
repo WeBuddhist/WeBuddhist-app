@@ -5,7 +5,8 @@ import 'package:flutter/scheduler.dart';
 /// One line of text that always scrolls horizontally (right to left), short
 /// or long, with a copy following after [gap] so the loop never shows a seam.
 ///
-/// The line stays still when the system asks for reduced motion
+/// The line stays still when [animate] is false (Play animation off in Mala
+/// settings) or the system asks for reduced motion
 /// ([MediaQuery.disableAnimationsOf]): centred if it fits, otherwise clipped,
 /// and the parent's tap-to-open-in-full shows the rest.
 ///
@@ -18,6 +19,7 @@ class MantraMarquee extends StatefulWidget {
     required this.text,
     required this.style,
     this.speedFactor = 1.0,
+    this.animate = true,
     this.basePixelsPerSecond = 40,
     this.gap = 28,
   });
@@ -25,6 +27,9 @@ class MantraMarquee extends StatefulWidget {
   final String text;
   final TextStyle style;
   final double speedFactor;
+
+  /// False holds the line still.
+  final bool animate;
   final double basePixelsPerSecond;
   final double gap;
 
@@ -118,7 +123,7 @@ class _MantraMarqueeState extends State<MantraMarquee>
         width: double.infinity,
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final scrolling = !reduceMotion;
+            final scrolling = widget.animate && !reduceMotion;
             _setScrolling(scrolling);
             return ClipRect(
               child: CustomPaint(

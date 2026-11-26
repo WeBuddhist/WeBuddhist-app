@@ -1,83 +1,126 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# Generates .env.dev / .env.staging / .env.prod from CI environment variables.
+# Writes the .env file for ONE server, for a CI build.
 #
-# All three files MUST exist at build time because they are declared as Flutter
-# assets in pubspec.yaml. Only the file matching the built flavor is actually
-# loaded at runtime (main_<flavor>.dart -> dotenv.load('.env.<flavor>')), but
-# the asset bundler fails if any of the three are missing.
+#   bash ci/scripts/create_env_files.sh <dev|staging|prod>
 #
-# The library (texts) API has production values only for now, so dev and
-# staging fall back to them unless DEV_/STAGING_LIBRARY_* are set.
+# Every build is the same app (org.pecha.app, flavor prod). The server it talks
+# to is picked by the entry file, which loads the matching .env file:
 #
-# Mirrors the Codemagic "Create environment files" pre-build step.
+#   server   entry file               .env file      WeBuddhist API / library
+#   dev      lib/main_dev.dart        .env.dev       dev.api      / dev.library
+#   staging  lib/main_staging.dart    .env.staging   test.api     / testing.library
+#   prod     lib/main_prod.dart       .env.prod      api          / library-prod
+#
+# ("staging" is the name of the TESTING server's files and secrets.)
+#
+# The server URLs are written here, not read from secrets: they are public (any
+# copy of the app contains them), and a secret's value cannot be read back, so a
+# stale URL secret goes unnoticed. Only the keys come from secrets, named with
+# the server's prefix: DEV_*, STAGING_*, or no prefix for prod.
+#
+# pubspec.yaml lists all three .env files as assets, so all three must exist,
+# but only the chosen server's file gets values. The other two are placeholders,
+# so a build never carries another server's keys.
 # ---------------------------------------------------------------------------
 set -euo pipefail
 
-# Every flavor falls back to this one, and the chant list cannot load without
-# it, so a build without it would ship broken. Fail here instead.
-if [[ -z "${LIBRARY_CHANTS_TAG_ID:-}" ]]; then
-  echo "::error::LIBRARY_CHANTS_TAG_ID secret is not set"
+server="${1:-}"
+
+case "$server" in
+  dev)
+    prefix="DEV_"
+    environment="development"
+    base_api_url="https://dev.api.webuddhist.com/api/v1"
+    library_api_url="https://dev.library.webuddhist.com/api"
+    ;;
+  staging)
+    prefix="STAGING_"
+    environment="staging"
+    base_api_url="https://test.api.webuddhist.com/api/v1"
+    library_api_url="https://testing.library.webuddhist.com/api"
+    ;;
+  prod)
+    prefix=""
+    environment="production"
+    base_api_url="https://api.webuddhist.com/api/v1"
+    # The prod library does not serve /api yet (/api/v2/texts answers 404).
+    library_api_url="https://library-prod.webuddhist.com"
+    ;;
+  *)
+    echo "::error::Usage: create_env_files.sh <dev|staging|prod> (got '${server}')"
+    exit 1
+    ;;
+esac
+
+# Reads the secret <prefix><name> from the environment ("" when unset).
+secret() {
+  local name="${prefix}$1"
+  printf '%s' "${!name:-}"
+}
+
+library_api_key="$(secret LIBRARY_API_KEY)"
+chants_tag_id="$(secret LIBRARY_CHANTS_TAG_ID)"
+
+# The testing library is a copy of prod data, so it has the same tag IDs.
+if [[ -z "$chants_tag_id" && "$server" == "staging" ]]; then
+  chants_tag_id="${LIBRARY_CHANTS_TAG_ID:-}"
+  [[ -n "$chants_tag_id" ]] &&
+    echo "::notice::STAGING_LIBRARY_CHANTS_TAG_ID is not set; using the prod chants tag (testing is a copy of prod)."
+fi
+
+# Each library rejects calls without its own key, and the chant list cannot
+# load without its tag, so a build without them would ship broken. Fail here.
+missing=()
+[[ -z "$library_api_key" ]] && missing+=("${prefix}LIBRARY_API_KEY")
+[[ -z "$chants_tag_id" ]] && missing+=("${prefix}LIBRARY_CHANTS_TAG_ID")
+if (( ${#missing[@]} > 0 )); then
+  echo "::error::Missing secrets for the ${server} server: ${missing[*]}"
   exit 1
 fi
 
-# The library API rejects requests without its key; same reasoning.
-if [[ -z "${LIBRARY_API_KEY:-}" ]]; then
-  echo "::error::LIBRARY_API_KEY secret is not set"
-  exit 1
-fi
-
-# --- Development -----------------------------------------------------------
+# --- The chosen server's file ------------------------------------------------
 {
-  echo "BASE_API_URL=${DEV_BASE_API_URL:-}"
-  echo "LIBRARY_API_URL=${DEV_LIBRARY_API_URL:-${LIBRARY_API_URL:-}}"
-  echo "LIBRARY_CHANTS_TAG_ID=${DEV_LIBRARY_CHANTS_TAG_ID:-${LIBRARY_CHANTS_TAG_ID:-}}"
-  echo "LIBRARY_API_KEY=${DEV_LIBRARY_API_KEY:-${LIBRARY_API_KEY:-}}"
-  echo "AUTH0_SCHEME=org.pecha.app.dev"
-  echo "AUTH0_AUDIENCE=${DEV_AUTH0_AUDIENCE:-}"
-  echo "ENVIRONMENT=development"
-  echo "POSTHOG_API_KEY=${DEV_POSTHOG_API_KEY-}"
-  echo "POSTHOG_HOST=${POSTHOG_HOST-https://us.i.posthog.com}"
-  echo "CLARITY_PROJECT_ID=${CLARITY_PROJECT_ID-yn5na4zbuc}"
-  echo "CLARITY_ENABLED=${DEV_CLARITY_ENABLED-}"
-  echo "LOCATIONIQ_TOKEN=${LOCATIONIQ_TOKEN-}"
-} > .env.dev
-
-# --- Staging ---------------------------------------------------------------
-{
-  echo "BASE_API_URL=${STAGING_BASE_API_URL:-}"
-  echo "LIBRARY_API_URL=${STAGING_LIBRARY_API_URL:-${LIBRARY_API_URL:-}}"
-  echo "LIBRARY_CHANTS_TAG_ID=${STAGING_LIBRARY_CHANTS_TAG_ID:-${LIBRARY_CHANTS_TAG_ID:-}}"
-  echo "LIBRARY_API_KEY=${STAGING_LIBRARY_API_KEY:-${LIBRARY_API_KEY:-}}"
-  echo "AUTH0_SCHEME=org.pecha.app.staging"
-  echo "AUTH0_AUDIENCE=${STAGING_AUTH0_AUDIENCE:-}"
-  echo "ENVIRONMENT=staging"
-  echo "POSTHOG_API_KEY=${STAGING_POSTHOG_API_KEY-}"
-  echo "POSTHOG_HOST=${POSTHOG_HOST-https://us.i.posthog.com}"
-  echo "CLARITY_PROJECT_ID=${CLARITY_PROJECT_ID-yn5na4zbuc}"
-  echo "CLARITY_ENABLED=${STAGING_CLARITY_ENABLED-}"
-  echo "LOCATIONIQ_TOKEN=${LOCATIONIQ_TOKEN-}"
-} > .env.staging
-
-# --- Production ------------------------------------------------------------
-{
-  echo "BASE_API_URL=${BASE_API_URL:-}"
-  echo "LIBRARY_API_URL=${LIBRARY_API_URL:-}"
-  echo "LIBRARY_CHANTS_TAG_ID=${LIBRARY_CHANTS_TAG_ID:-}"
-  echo "LIBRARY_API_KEY=${LIBRARY_API_KEY:-}"
+  echo "BASE_API_URL=${base_api_url}"
+  echo "LIBRARY_API_URL=${library_api_url}"
+  echo "LIBRARY_CHANTS_TAG_ID=${chants_tag_id}"
+  echo "LIBRARY_API_KEY=${library_api_key}"
+  # One app for every server, so one URL scheme.
   echo "AUTH0_SCHEME=org.pecha.app"
-  echo "AUTH0_AUDIENCE=${AUTH0_AUDIENCE:-}"
-  echo "ENVIRONMENT=production"
+  echo "AUTH0_AUDIENCE=$(secret AUTH0_AUDIENCE)"
+  echo "ENVIRONMENT=${environment}"
   # PostHog stays off while the key is empty.
-  echo "POSTHOG_API_KEY=${POSTHOG_API_KEY-}"
-  echo "POSTHOG_HOST=${POSTHOG_HOST-https://us.i.posthog.com}"
-  # Clarity project id is a public identifier, not a secret. Unset falls back
-  # to the shared project; export it empty (or CLARITY_ENABLED=false) to build
-  # without Clarity.
+  echo "POSTHOG_API_KEY=$(secret POSTHOG_API_KEY)"
+  echo "POSTHOG_HOST=${POSTHOG_HOST:-https://us.i.posthog.com}"
+  # Clarity project id is a public identifier, not a secret. Sessions carry an
+  # `environment` tag, so one project serves every server.
   echo "CLARITY_PROJECT_ID=${CLARITY_PROJECT_ID-yn5na4zbuc}"
-  echo "CLARITY_ENABLED=${CLARITY_ENABLED-}"
+  echo "CLARITY_ENABLED=$(secret CLARITY_ENABLED)"
   # Venue search; it is hidden while the key is empty.
-  echo "LOCATIONIQ_TOKEN=${LOCATIONIQ_TOKEN-}"
-} > .env.prod
+  echo "LOCATIONIQ_TOKEN=${LOCATIONIQ_TOKEN:-}"
+} > ".env.${server}"
 
-echo "Created .env.dev, .env.staging, .env.prod"
+# --- Placeholders for the other two servers ----------------------------------
+for other in dev staging prod; do
+  [[ "$other" == "$server" ]] && continue
+  echo "# Not used: this build talks to the ${server} server." > ".env.${other}"
+done
+
+# Only names and URLs go to the log, never key values.
+set_or_empty() { [[ -n "$1" ]] && echo "set" || echo "empty"; }
+summary="$(cat <<EOF
+### Server: ${server}
+
+| Setting | Value |
+| --- | --- |
+| Entry file | \`lib/main_${server}.dart\` |
+| WeBuddhist API | ${base_api_url} |
+| Library API | ${library_api_url} |
+| Library key (\`${prefix}LIBRARY_API_KEY\`) | set |
+| PostHog key (\`${prefix}POSTHOG_API_KEY\`) | $(set_or_empty "$(secret POSTHOG_API_KEY)") |
+EOF
+)"
+echo "$summary"
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  echo "$summary" >> "$GITHUB_STEP_SUMMARY"
+fi

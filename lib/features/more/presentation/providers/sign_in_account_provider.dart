@@ -17,7 +17,7 @@ enum SignInMethod { google, apple, phone }
 class SignInAccount extends Equatable {
   const SignInAccount({required this.method, required this.identifier});
 
-  /// null when the Auth0 connection is not one the app offers.
+  /// null when the method was not recorded at sign-in.
   final SignInMethod? method;
 
   /// Email for Google and Apple, phone number for phone sign-in.
@@ -27,48 +27,44 @@ class SignInAccount extends Equatable {
   List<Object?> get props => [method, identifier];
 }
 
-/// [userId] is the Auth0 `sub`, e.g. `google-oauth2|…`, `apple|…`, `sms|…`.
-SignInMethod? signInMethodFromUserId(String? userId) {
-  if (userId == null) return null;
-  if (userId.startsWith('google-oauth2|')) return SignInMethod.google;
-  if (userId.startsWith('apple|')) return SignInMethod.apple;
-  if (userId.startsWith('sms|')) return SignInMethod.phone;
-  return null;
-}
+/// [stored] is what `AuthService` saved under [StorageKeys.signInMethod] at
+/// sign-in: `google`, `apple` or `phone`. The backend's tokens do not name
+/// the provider.
+SignInMethod? signInMethodFromStored(String? stored) => switch (stored) {
+  'google' => SignInMethod.google,
+  'apple' => SignInMethod.apple,
+  'phone' => SignInMethod.phone,
+  _ => null,
+};
 
-final _phonePattern = RegExp(r'^\+?[0-9][0-9 ()\-]{5,}$');
-
-/// Builds the account from the Auth0 [userId], the profile [email], and the
-/// ID token [claims] (only needed when the profile has no identifier).
+/// Builds the account from the stored sign-in [method], the profile [email],
+/// and the access token [claims] (only needed when the profile has no
+/// identifier).
 ///
-/// Auth0 puts the phone number in `phone_number` when the `phone` scope is
-/// granted, and in `name` for passwordless SMS accounts otherwise.
+/// The backend puts the account's `email` and `phone_number` in its access
+/// token. An account can hold both (a phone linked to a Google account), so
+/// the one that matches [method] is shown; with no recorded method, whichever
+/// exists.
 SignInAccount? resolveSignInAccount({
-  required String? userId,
+  required SignInMethod? method,
   String? email,
   Map<String, dynamic>? claims,
 }) {
-  final method = signInMethodFromUserId(userId ?? claims?['sub'] as String?);
-
-  String? identifier;
-  if (method == SignInMethod.phone) {
-    final phone = (claims?['phone_number'] as String?)?.trim();
-    final name = (claims?['name'] as String?)?.trim();
-    identifier =
-        (phone != null && phone.isNotEmpty)
-            ? phone
-            : (name != null && _phonePattern.hasMatch(name))
-            ? name
-            : null;
-  } else {
-    final profileEmail = email?.trim();
-    identifier =
-        (profileEmail != null && profileEmail.isNotEmpty)
-            ? profileEmail
-            : (claims?['email'] as String?)?.trim();
+  String? text(Object? value) {
+    final trimmed = value is String ? value.trim() : '';
+    return trimmed.isEmpty ? null : trimmed;
   }
 
-  if (identifier == null || identifier.isEmpty) return null;
+  final accountEmail = text(email) ?? text(claims?['email']);
+  final phone = text(claims?['phone_number']);
+
+  final identifier = switch (method) {
+    SignInMethod.phone => phone,
+    SignInMethod.google || SignInMethod.apple => accountEmail,
+    null => accountEmail ?? phone,
+  };
+
+  if (identifier == null) return null;
   return SignInAccount(method: method, identifier: identifier);
 }
 
@@ -86,18 +82,22 @@ Map<String, dynamic>? decodeJwtClaims(String token) {
 
 /// The signed-in account's sign-in method and email or phone number.
 ///
-/// Google and Apple accounts resolve from the profile; the stored ID token is
+/// Google and Apple accounts resolve from the profile; the access token is
 /// read only when the profile has no identifier, as for phone sign-in.
 final signInAccountProvider = FutureProvider.autoDispose<SignInAccount?>((
   ref,
 ) async {
   final email = ref.watch(userProvider.select((s) => s.user?.email));
-  final userId = SharedPreferencesService.instance.getSync<String>(
-    StorageKeys.currentUserId,
+  final method = signInMethodFromStored(
+    SharedPreferencesService.instance.getSync<String>(
+      StorageKeys.signInMethod,
+    ),
   );
 
-  final fromProfile = resolveSignInAccount(userId: userId, email: email);
-  if (fromProfile != null) return fromProfile;
+  if (method != SignInMethod.phone) {
+    final fromProfile = resolveSignInAccount(method: method, email: email);
+    if (fromProfile != null) return fromProfile;
+  }
 
   final credentials = await ref.read(authRepositoryProvider).getCredentials();
   final failure = credentials.fold((f) => f, (_) => null);
@@ -109,12 +109,12 @@ final signInAccountProvider = FutureProvider.autoDispose<SignInAccount?>((
     });
     return null;
   }
-  final idToken = credentials.fold((_) => null, (c) => c.idToken);
-  if (idToken == null || idToken.isEmpty) return null;
+  final accessToken = credentials.fold((_) => null, (c) => c.accessToken);
+  if (accessToken == null || accessToken.isEmpty) return null;
 
   return resolveSignInAccount(
-    userId: userId,
+    method: method,
     email: email,
-    claims: decodeJwtClaims(idToken),
+    claims: decodeJwtClaims(accessToken),
   );
 });

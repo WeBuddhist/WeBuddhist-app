@@ -7,6 +7,7 @@ import 'package:flutter_pecha/features/auth/presentation/providers/state_provide
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/chat_room_live_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/providers/chat_rooms_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_thread_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -197,9 +198,16 @@ class DirectChatNotifier extends StateNotifier<DirectChatState>
     return result;
   }
 
-  /// Best effort: a failed read receipt never surfaces.
+  /// Best effort: a failed read receipt never surfaces. A successful one
+  /// clears the room's unread badge at once.
   Future<void> markRead() async {
-    await ref.read(groupChatRepositoryProvider).markRoomRead(roomId);
+    final result = await ref
+        .read(groupChatRepositoryProvider)
+        .markRoomRead(roomId);
+    if (_disposed || !result.isRight()) return;
+    if (ref.exists(chatRoomsProvider)) {
+      ref.read(chatRoomsProvider.notifier).markReadLocally(roomId);
+    }
   }
 
   /// Whether a page is pushed on top of the chat, from the screen. Coming

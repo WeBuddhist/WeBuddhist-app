@@ -137,24 +137,42 @@ class MalaLocalDataSource {
 
   String _key(String userId, String presetId) => '$userId:$presetId';
   // Bumped when the cached preset shape gains fields (v2: deity_image), so a
-  // cache written by an older build is skipped instead of served stale.
-  String _catalogueKey(String language) => 'catalogue:v2:$language';
+  // cache written by an older build is skipped instead of served stale. v3 is
+  // per account: rows carry the user's `last_used_at`, and the list itself is
+  // filtered by the user's saved traditions.
+  String _catalogueKey(String userId, String language) =>
+      'catalogue:v3:$userId:$language';
 
-  /// Key used before v2. Only read as an offline fallback, and deleted once a
-  /// v2 catalogue is written.
-  String _legacyCatalogueKey(String language) => 'catalogue:$language';
+  /// Keys used before v3, shared by every account. Only read as an offline
+  /// fallback (without usage times), and deleted once a v3 catalogue is
+  /// written.
+  List<String> _legacyCatalogueKeys(String language) => [
+    'catalogue:v2:$language',
+    'catalogue:$language',
+  ];
 
-  /// The cached catalogue for [language]. With [allowLegacy], falls back to a
-  /// pre-v2 cache (no deity images) when there is no v2 one — for when the
-  /// network is down and an older cache beats an empty screen.
+  /// [userId]'s cached catalogue for [language]. With [allowLegacy], falls
+  /// back to a pre-v3 cache when there is none — for when the network is down
+  /// and an older cache beats an empty screen. A legacy cache isn't tied to
+  /// an account, so its usage times are dropped.
   List<PresetAccumulatorModel>? readCatalogue(
+    String userId,
     String language, {
     bool allowLegacy = false,
   }) {
-    final raw =
-        _box.get(_catalogueKey(language)) ??
-        (allowLegacy ? _box.get(_legacyCatalogueKey(language)) : null);
-    if (raw == null) return null;
+    final own = _box.get(_catalogueKey(userId, language));
+    if (own != null) return _decodeCatalogue(own);
+    if (!allowLegacy) return null;
+    for (final key in _legacyCatalogueKeys(language)) {
+      final raw = _box.get(key);
+      if (raw != null) {
+        return _decodeCatalogue(raw)?.map((p) => p.withoutUsage()).toList();
+      }
+    }
+    return null;
+  }
+
+  List<PresetAccumulatorModel>? _decodeCatalogue(String raw) {
     try {
       return (jsonDecode(raw) as List<dynamic>)
           .map(
@@ -168,20 +186,35 @@ class MalaLocalDataSource {
     }
   }
 
-  /// Fires when the stored catalogue for [language] changes.
-  Stream<void> watchCatalogue(String language) {
-    return _box.watch(key: _catalogueKey(language)).map((_) => null);
+  /// Fires when [userId]'s stored catalogue for [language] changes.
+  Stream<void> watchCatalogue(String userId, String language) {
+    return _box.watch(key: _catalogueKey(userId, language)).map((_) => null);
   }
 
   Future<void> writeCatalogue(
+    String userId,
     String language,
     List<PresetAccumulatorModel> presets,
   ) async {
     await _box.put(
-      _catalogueKey(language),
+      _catalogueKey(userId, language),
       jsonEncode(presets.map((preset) => preset.toJson()).toList()),
     );
-    await _box.delete(_legacyCatalogueKey(language));
+    await _box.deleteAll(_legacyCatalogueKeys(language));
+  }
+
+  /// Deletes every cached catalogue: each account's v3 one and the shared
+  /// legacy ones. Called on logout, so a device keeps no catalogue of an
+  /// account that has signed out, and the next account can't be served a
+  /// legacy list filtered by someone else's saved traditions. Counts
+  /// (`{userId}:{presetId}`) are kept.
+  Future<void> clearCatalogues() async {
+    final keys =
+        _box.keys
+            .cast<String>()
+            .where((k) => k.startsWith('catalogue:'))
+            .toList();
+    await _box.deleteAll(keys);
   }
 
   LocalMalaState read(String userId, String presetId) {

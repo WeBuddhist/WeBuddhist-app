@@ -18,6 +18,47 @@ import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
+/// The verse as a white card: image on top, then the verse and its source.
+/// White in dark mode too — it is what the shared image shows.
+class VerseShareCard extends StatelessWidget {
+  const VerseShareCard({
+    super.key,
+    required this.verseOfDay,
+    required this.languageCode,
+  });
+
+  final VerseOfDay verseOfDay;
+  final String languageCode;
+
+  /// The Figma card's image (350 × 263).
+  static const _imageAspectRatio = 350 / 263;
+
+  @override
+  Widget build(BuildContext context) {
+    final typography = VerseOfDayTypography.forShare(languageCode);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceWhite,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: VerseOfDayContent(
+        verseOfDay: verseOfDay,
+        typography: typography,
+        imageAspectRatio: _imageAspectRatio,
+        verseColor: Colors.black87,
+        sourceColor: AppColors.textSecondary,
+        useContentFontForAttribution: typography.useContentFontForAttribution,
+        textAlign: TextAlign.start,
+        attributionSpacing: 16,
+        verseLineHeight: 1.6,
+        textPadding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+      ),
+    );
+  }
+}
+
 /// Shareable verse preview rendered for screenshot capture.
 class VerseSharePreview extends StatelessWidget {
   const VerseSharePreview({
@@ -33,7 +74,6 @@ class VerseSharePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typography = VerseOfDayTypography.forShare(languageCode);
     final lightTheme = AppTheme.lightTheme(locale);
 
     return Theme(
@@ -46,24 +86,7 @@ class VerseSharePreview extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: VerseOfDayContent(
-                  verseOfDay: verseOfDay,
-                  typography: typography,
-                  verseColor: Colors.black87,
-                  sourceColor: AppColors.textSecondary,
-                  useContentFontForAttribution:
-                      typography.useContentFontForAttribution,
-                  textAlign: TextAlign.start,
-                  attributionSpacing: 16,
-                  textPadding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                ),
-              ),
+              VerseShareCard(verseOfDay: verseOfDay, languageCode: languageCode),
               const SizedBox(height: 24),
               const VerseShareBranding(
                 logoSize: 32,
@@ -218,10 +241,11 @@ class VerseShareSheet extends StatefulWidget {
 }
 
 class _VerseShareSheetState extends State<VerseShareSheet> {
-  final ScreenshotController _screenshotController = ScreenshotController();
   final GlobalKey _shareButtonKey = GlobalKey();
   bool _isSharing = false;
 
+  /// The shared image is rendered off screen (card, background and
+  /// branding), so the sheet is free to follow the sheet design.
   Future<void> _shareQuote() async {
     if (_isSharing) return;
 
@@ -230,7 +254,6 @@ class _VerseShareSheetState extends State<VerseShareSheet> {
       context,
       verseOfDay: widget.verseOfDay,
       shareOriginKey: _shareButtonKey,
-      screenshotController: _screenshotController,
     );
     if (mounted) setState(() => _isSharing = false);
   }
@@ -241,7 +264,6 @@ class _VerseShareSheetState extends State<VerseShareSheet> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final locale = Localizations.localeOf(context);
     final shareLabelFontSize = getLocalizedFontSize(AppTextSize.body);
 
     return Container(
@@ -254,55 +276,61 @@ class _VerseShareSheetState extends State<VerseShareSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Container(
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[400],
+                color: isDark ? AppColors.grey800 : AppColors.grey900,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 12),
-            // Scrolls on long verses so the share button is never pushed off.
-            Flexible(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Screenshot(
-                  controller: _screenshotController,
-                  child: VerseSharePreview(
-                    verseOfDay: widget.verseOfDay,
-                    languageCode: languageCode,
-                    locale: locale,
-                  ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                  icon: Icon(AppAssets.x, size: 22, color: colorScheme.onSurface),
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            // Scrolls on long verses so the share button is never pushed off.
+            Flexible(
+              child: _EdgeFadeScrollView(
+                horizontalPadding: 20,
+                child: VerseShareCard(
+                  verseOfDay: widget.verseOfDay,
+                  languageCode: languageCode,
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
+            VerseShareBranding(
+              logoSize: 34,
+              appTitleFontSize: 14,
+              showSharedFrom: false,
+              appTitleColor:
+                  isDark ? AppColors.textSecondaryDark : AppColors.grey900,
+            ),
+            const SizedBox(height: 24),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: SizedBox(
                 width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
+                height: 48,
+                child: OutlinedButton.icon(
                   key: _shareButtonKey,
                   onPressed: _isSharing ? null : _shareQuote,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDark
-                            ? AppColors.cardBorderDark
-                            : AppColors.surfaceWhite,
+                  style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.onSurface,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                      side: BorderSide(
-                        color: colorScheme.onSurface.withValues(alpha: 0.12),
-                        width: 1,
-                      ),
+                    shape: const StadiumBorder(),
+                    side: BorderSide(
+                      color:
+                          isDark ? AppColors.grey800 : AppColors.grey300,
                     ),
                   ),
-
                   icon:
                       _isSharing
                           ? SizedBox(
@@ -315,7 +343,7 @@ class _VerseShareSheetState extends State<VerseShareSheet> {
                           )
                           : Icon(AppAssets.readerShare, size: 22),
                   label: Text(
-                    localizations.share_this_quote,
+                    localizations.share_this_verse,
                     strutStyle: AppFontConfig.tibetanStrutStyle(
                       languageCode,
                       shareLabelFontSize,
@@ -323,7 +351,7 @@ class _VerseShareSheetState extends State<VerseShareSheet> {
                     ),
                     style: TextStyle(
                       fontFamily: getSystemFontFamily(languageCode),
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                       fontSize: shareLabelFontSize,
                       height: getLineHeight(languageCode),
                       leadingDistribution:
@@ -337,6 +365,77 @@ class _VerseShareSheetState extends State<VerseShareSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Scroll view that fades the bottom of its content into the card's white
+/// while there is more below, so a long verse cut at the bottom reads as
+/// scrollable. Fading to the card colour (not to transparent) keeps the card
+/// white over the dark sheet. No top fade: it would haze the image, and
+/// whoever scrolled already knows the card scrolls.
+class _EdgeFadeScrollView extends StatefulWidget {
+  const _EdgeFadeScrollView({
+    required this.child,
+    required this.horizontalPadding,
+  });
+
+  final Widget child;
+
+  /// Inset of the card; the fades cover the card's width only.
+  final double horizontalPadding;
+
+  @override
+  State<_EdgeFadeScrollView> createState() => _EdgeFadeScrollViewState();
+}
+
+class _EdgeFadeScrollViewState extends State<_EdgeFadeScrollView> {
+  static const _fadeExtent = 56.0;
+  static const _fadeColor = AppColors.surfaceWhite;
+
+  bool _moreBelow = false;
+
+  bool _onMetrics(ScrollMetrics metrics) {
+    final below = metrics.extentAfter > 0.5;
+    if (below != _moreBelow) setState(() => _moreBelow = below);
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        NotificationListener<ScrollMetricsNotification>(
+          onNotification: (n) => _onMetrics(n.metrics),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (n) => _onMetrics(n.metrics),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: widget.horizontalPadding,
+              ),
+              child: widget.child,
+            ),
+          ),
+        ),
+        if (_moreBelow)
+          Positioned(
+            left: widget.horizontalPadding,
+            right: widget.horizontalPadding,
+            bottom: 0,
+            height: _fadeExtent,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [_fadeColor, _fadeColor.withValues(alpha: 0)],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

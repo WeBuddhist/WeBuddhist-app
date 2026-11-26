@@ -39,6 +39,7 @@ void main() {
       'from': 'en',
       'to': 'bo',
       'source': 'settings',
+      r'$set': {'content_language': 'bo'},
     });
   });
 
@@ -62,6 +63,7 @@ void main() {
       'from': 'en',
       'to': 'zh',
       'source': 'reconcile',
+      r'$set': {'content_language': 'zh'},
     });
   });
 }

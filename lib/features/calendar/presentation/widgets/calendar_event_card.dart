@@ -31,7 +31,7 @@ class _CalendarEventCardState extends ConsumerState<CalendarEventCard> {
     final id = event.eventId;
     if (id == null || _opening) return;
     if (event.kind == CalendarEventKind.group) {
-      context.push(AppRoutes.groupEventPath(id));
+      context.push(AppRoutes.groupEventPath(id, source: 'calendar'));
       return;
     }
 

@@ -299,7 +299,7 @@ class _JoinButton extends ConsumerWidget {
   ) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'group_follow');
       return;
     }
 
@@ -321,6 +321,6 @@ class _JoinButton extends ConsumerWidget {
     }
 
     final notifier = ref.read(groupFollowProvider(followKey).notifier);
-    await notifier.follow(connectGroup: group);
+    await notifier.follow(connectGroup: group, via: 'discover');
   }
 }

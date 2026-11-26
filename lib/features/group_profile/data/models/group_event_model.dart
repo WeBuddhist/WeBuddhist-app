@@ -70,6 +70,7 @@ class GroupEventParticipantModel {
   final DateTime? createdAt;
   final String? username;
   final String? fullname;
+  final String? displayName;
   final String? avatarUrl;
   final String? participationType;
 
@@ -78,6 +79,7 @@ class GroupEventParticipantModel {
     this.createdAt,
     this.username,
     this.fullname,
+    this.displayName,
     this.avatarUrl,
     this.participationType,
   });
@@ -88,6 +90,7 @@ class GroupEventParticipantModel {
       createdAt: GroupEventModel._parseDate(json['created_at']),
       username: json['username'] as String?,
       fullname: json['fullname'] as String?,
+      displayName: json['display_name'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       participationType: json['participation_type'] as String?,
     );
@@ -99,6 +102,7 @@ class GroupEventParticipantModel {
       createdAt: createdAt,
       username: username,
       fullname: fullname,
+      userDisplayName: displayName,
       avatarUrl: avatarUrl,
       participationType: GroupEventParticipationType.fromApi(participationType),
     );
@@ -338,10 +342,9 @@ class GroupEventModel {
       isOneDay: json['is_one_day'] as bool? ?? false,
       featured: json['featured'] as bool? ?? false,
       isRecurring: json['is_recurring'] as bool? ?? false,
-      recurrence:
-          recurrenceJson != null
-              ? GroupEventRecurrenceModel.fromJson(recurrenceJson)
-              : null,
+      recurrence: recurrenceJson != null
+          ? GroupEventRecurrenceModel.fromJson(recurrenceJson)
+          : null,
       occurrenceDate: _parseDate(json['occurrence_date']),
       metadata: _parseMetadata(json['metadata'], language: language),
       image: imageJson != null ? ResponsiveImage.fromJson(imageJson) : null,
@@ -368,16 +371,14 @@ class GroupEventModel {
       groupName: json['group_name'] as String?,
       groupAvatarUrl: json['group_avatar_url'] as String?,
       locationId: json['location_id'] as String?,
-      location:
-          locationJson != null
-              ? GroupEventLocationModel.fromJson(locationJson)
-              : null,
+      location: locationJson != null
+          ? GroupEventLocationModel.fromJson(locationJson)
+          : null,
       eventFormat: json['event_format'] as String?,
       myParticipationType: json['my_participation_type'] as String?,
       chatEnabled: json['chat_enabled'] as bool? ?? false,
       chatRoomId: json['chat_room_id'] as String?,
-      prayerRequestCount:
-          (json['prayer_request_count'] as num?)?.toInt() ?? 0,
+      prayerRequestCount: (json['prayer_request_count'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -470,14 +471,13 @@ class GroupEventModel {
       final items = value.whereType<Map<String, dynamic>>().toList();
       for (final code in [language, 'en']) {
         if (code == null || code.isEmpty) continue;
-        final match =
-            items
-                .where(
-                  (item) =>
-                      (item['language'] as String? ?? '').toLowerCase() ==
-                      code.toLowerCase(),
-                )
-                .firstOrNull;
+        final match = items
+            .where(
+              (item) =>
+                  (item['language'] as String? ?? '').toLowerCase() ==
+                  code.toLowerCase(),
+            )
+            .firstOrNull;
         if (match != null) {
           return GroupEventMetadataModel.fromJson(match);
         }
@@ -560,8 +560,9 @@ class GroupEventParticipantsPageModel {
 
   GroupEventParticipantsPage toEntity() {
     return GroupEventParticipantsPage(
-      participants:
-          participants.map((participant) => participant.toEntity()).toList(),
+      participants: participants
+          .map((participant) => participant.toEntity())
+          .toList(),
       skip: skip,
       limit: limit,
       total: total,

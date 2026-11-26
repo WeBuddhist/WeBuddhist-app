@@ -16,6 +16,7 @@ import 'package:flutter_pecha/features/mala/presentation/providers/mala_sync_man
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_notifier.dart';
+import 'package:flutter_pecha/features/group_profile/presentation/utils/group_analytics.dart';
 
 final groupAccumulatorRemoteDatasourceProvider =
     Provider<GroupAccumulatorRemoteDatasource>((ref) {
@@ -38,24 +39,25 @@ typedef GroupAccumulatorsNotifier =
     >;
 
 /// Stored page is the first state, refreshed in the background.
-final groupAccumulatorsProvider = AsyncNotifierProvider.autoDispose.family<
-  GroupAccumulatorsNotifier,
-  Either<Failure, GroupAccumulatorsPage>,
-  String
->(() {
-  return GroupAccumulatorsNotifier((ref, groupId, bind) {
-    ref.watch(authProvider);
-    final language = ref.watch(contentLanguageProvider);
-    final repository = ref.watch(groupAccumulatorRepositoryProvider);
-    return bind.source(
-      repository.groupAccumulatorsSource(
-        groupId,
-        limit: 20,
-        language: language,
-      ),
-    );
-  });
-});
+final groupAccumulatorsProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      GroupAccumulatorsNotifier,
+      Either<Failure, GroupAccumulatorsPage>,
+      String
+    >(() {
+      return GroupAccumulatorsNotifier((ref, groupId, bind) {
+        ref.watch(authProvider);
+        final language = ref.watch(contentLanguageProvider);
+        final repository = ref.watch(groupAccumulatorRepositoryProvider);
+        return bind.source(
+          repository.groupAccumulatorsSource(
+            groupId,
+            limit: 20,
+            language: language,
+          ),
+        );
+      });
+    });
 
 typedef GroupAccumulatorDetailNotifier =
     AutoDisposeScreenCacheFamilyNotifier<
@@ -66,23 +68,24 @@ typedef GroupAccumulatorDetailNotifier =
 
 /// `.future` resolves with the stored detail; use `refreshGroupAccumulator`
 /// when the server copy is required.
-final groupAccumulatorDetailProvider = AsyncNotifierProvider.autoDispose.family<
-  GroupAccumulatorDetailNotifier,
-  Either<Failure, GroupAccumulatorDetail>,
-  String
->(() {
-  return GroupAccumulatorDetailNotifier((ref, accumulatorId, bind) {
-    ref.watch(authProvider);
-    final language = ref.watch(contentLanguageProvider);
-    final repository = ref.watch(groupAccumulatorRepositoryProvider);
-    return bind.source(
-      repository.groupAccumulatorDetailSource(
-        accumulatorId,
-        language: language,
-      ),
-    );
-  });
-});
+final groupAccumulatorDetailProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      GroupAccumulatorDetailNotifier,
+      Either<Failure, GroupAccumulatorDetail>,
+      String
+    >(() {
+      return GroupAccumulatorDetailNotifier((ref, accumulatorId, bind) {
+        ref.watch(authProvider);
+        final language = ref.watch(contentLanguageProvider);
+        final repository = ref.watch(groupAccumulatorRepositoryProvider);
+        return bind.source(
+          repository.groupAccumulatorDetailSource(
+            accumulatorId,
+            language: language,
+          ),
+        );
+      });
+    });
 
 /// The server's detail, for anything that hands the user's count on (the
 /// reader mirrors it exactly). The stored copy can be behind chants made
@@ -133,10 +136,12 @@ List<GroupAccumulatorMember> sortAccumulatorMembers(
 ) {
   final sorted = List<GroupAccumulatorMember>.from(members);
   sorted.sort((a, b) {
-    final aCount =
-        sort == GroupAccumulatorMemberSort.today ? a.todayCount : a.totalCount;
-    final bCount =
-        sort == GroupAccumulatorMemberSort.today ? b.todayCount : b.totalCount;
+    final aCount = sort == GroupAccumulatorMemberSort.today
+        ? a.todayCount
+        : a.totalCount;
+    final bCount = sort == GroupAccumulatorMemberSort.today
+        ? b.todayCount
+        : b.totalCount;
     return bCount.compareTo(aCount);
   });
   return sorted;
@@ -214,10 +219,7 @@ class GroupAccumulatorMembersNotifier
   Future<void> loadInitial({bool force = false}) async {
     if (_hasLoaded && !force) return;
     _hasLoaded = true;
-    state = state.copyWith(
-      isLoading: state.members.isEmpty,
-      clearError: true,
-    );
+    state = state.copyWith(isLoading: state.members.isEmpty, clearError: true);
 
     _firstPageInFlight = true;
     final Either<Failure, GroupAccumulatorMembersPage> result;
@@ -319,16 +321,14 @@ class GroupAccumulatorJoinCacheNotifier extends StateNotifier<Set<String>> {
   void clear() => state = const {};
 
   void syncFromApi(List<GroupAccumulator> accumulators) {
-    final joinedIds =
-        accumulators
-            .where((accumulator) => accumulator.isJoined == true)
-            .map((accumulator) => accumulator.id)
-            .toSet();
-    final notJoinedIds =
-        accumulators
-            .where((accumulator) => accumulator.isJoined == false)
-            .map((accumulator) => accumulator.id)
-            .toSet();
+    final joinedIds = accumulators
+        .where((accumulator) => accumulator.isJoined == true)
+        .map((accumulator) => accumulator.id)
+        .toSet();
+    final notJoinedIds = accumulators
+        .where((accumulator) => accumulator.isJoined == false)
+        .map((accumulator) => accumulator.id)
+        .toSet();
 
     state = {...state, ...joinedIds}..removeAll(notJoinedIds);
   }
@@ -385,16 +385,12 @@ Future<bool> joinGroupAccumulator({
   required String groupId,
   GroupProfile? group,
   bool awaitRefresh = true,
+  String? source,
 }) async {
   final repository = container.read(groupAccumulatorRepositoryProvider);
-  final result = await repository.joinGroupAccumulator(accumulatorId);
 
-  if (result.isLeft()) return false;
-
-  container
-      .read(groupAccumulatorJoinCacheProvider(groupId).notifier)
-      .markJoined(accumulatorId);
-
+  // Resolved before the join: a profile fetched afterwards already says the
+  // user is a member, and the join would never count as `group_followed`.
   GroupProfile? resolvedGroup = group;
   if (resolvedGroup == null) {
     final profileResult = await container.read(
@@ -403,6 +399,22 @@ Future<bool> joinGroupAccumulator({
     resolvedGroup = profileResult.fold((_) => null, (profile) => profile);
   }
 
+  final result = await repository.joinGroupAccumulator(accumulatorId);
+
+  if (result.isLeft()) return false;
+
+  container
+      .read(groupAnalyticsProvider)
+      .groupAccumulatorJoined(
+        accumulatorId: accumulatorId,
+        groupId: groupId,
+        source: source,
+      );
+
+  container
+      .read(groupAccumulatorJoinCacheProvider(groupId).notifier)
+      .markJoined(accumulatorId);
+
   if (resolvedGroup != null) {
     final followKey = GroupFollowKey(
       groupId: groupId,
@@ -410,7 +422,10 @@ Future<bool> joinGroupAccumulator({
     );
     container
         .read(groupFollowProvider(followKey).notifier)
-        .markAutoJoinedFromPracticeEnrollment(group: resolvedGroup);
+        .markAutoJoinedFromPracticeEnrollment(
+          group: resolvedGroup,
+          via: 'accumulation',
+        );
   }
 
   refreshGroupAccumulatorData(
@@ -437,7 +452,9 @@ Future<bool> joinGroupAccumulator({
 ///
 /// Takes the app's [ProviderContainer] because the reader is usually closing
 /// while the flush runs, and its `ref` is unusable once it is disposed.
-Future<bool> finishGroupAccumulatorSession({
+///
+/// Never fails: a flush that throws is left to the sync manager's retries.
+Future<void> finishGroupAccumulatorSession({
   required ProviderContainer container,
   required String groupAccumulatorId,
   required String presetId,
@@ -456,6 +473,4 @@ Future<bool> finishGroupAccumulatorSession({
   );
   container.invalidate(joinedGroupUserCountsProvider(presetId));
   container.invalidate(joinedAccumulatorGroupsProvider(presetId));
-
-  return true;
 }

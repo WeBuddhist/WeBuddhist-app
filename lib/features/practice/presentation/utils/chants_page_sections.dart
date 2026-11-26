@@ -17,11 +17,9 @@ enum ChantsSection {
   /// Chant books from spaces the user joined.
   yourSpaceChantBooks,
 
-  /// Chants with recordings from spaces the user joined.
-  yourAudioChants,
-
-  /// Chants without recordings from spaces the user joined.
-  yourTextChants,
+  /// One list of the chants from spaces the user joined: those with
+  /// recordings first, then text-only ones, each A to Z.
+  yourChants,
 
   /// "Explore more" group heading.
   exploreMoreHeading,
@@ -29,13 +27,10 @@ enum ChantsSection {
   /// Chant books from other public spaces.
   otherSpaceChantBooks,
 
-  /// Chants with recordings from other public spaces; "Audio chants" for a
-  /// new user.
-  otherAudioChants,
-
-  /// Text-only chants from other spaces, then the library's: a short list
-  /// under All, the full paged list under Single chants.
-  textOnlyChants,
+  /// One list of the other chants: other spaces' chants with recordings,
+  /// then their text-only chants (each A to Z), then the library's. A short
+  /// list under All, the full paged list under Single chants.
+  otherChants,
 }
 
 /// The design's layouts:
@@ -46,6 +41,8 @@ enum ChantsSection {
 ///   and "Explore more" title the two rails themselves.
 /// - Empty sections are left out; a heading with nothing under it too, and
 ///   "Explore more" only follows a "From your spaces" group.
+/// - Chants with and without audio share one list, audio first, rather
+///   than two sections.
 ///
 /// Library chants belong to no space, so they sit under "Explore more".
 List<ChantsSection> chantsPageSections({
@@ -53,23 +50,19 @@ List<ChantsSection> chantsPageSections({
   required bool hasMyChantBooks,
   required bool hasYourSpaceChantBooks,
   required bool hasOtherSpaceChantBooks,
-  required bool hasTextOnlyChants,
-  bool hasYourAudioChants = false,
-  bool hasOtherAudioChants = false,
-  bool hasYourTextChants = false,
+  bool hasYourChants = false,
+  bool hasOtherChants = false,
 }) {
   final books = filter != ChantsFilter.singleChants;
   final singles = filter != ChantsFilter.chantBooks;
   final grouped = singles && hasYourSpaceChantBooks;
   final yours = [
     if (books && hasYourSpaceChantBooks) ChantsSection.yourSpaceChantBooks,
-    if (singles && hasYourAudioChants) ChantsSection.yourAudioChants,
-    if (singles && hasYourTextChants) ChantsSection.yourTextChants,
+    if (singles && hasYourChants) ChantsSection.yourChants,
   ];
   final explore = [
     if (books && hasOtherSpaceChantBooks) ChantsSection.otherSpaceChantBooks,
-    if (singles && hasOtherAudioChants) ChantsSection.otherAudioChants,
-    if (singles && hasTextOnlyChants) ChantsSection.textOnlyChants,
+    if (singles && hasOtherChants) ChantsSection.otherChants,
   ];
   return [
     if (books && hasMyChantBooks) ChantsSection.myChantBooks,
@@ -81,13 +74,13 @@ List<ChantsSection> chantsPageSections({
   ];
 }
 
-/// Text-only chants listed under All before "See all".
-const int chantsAllTextOnlyLimit = 3;
+/// Chants listed under All before "See all".
+const int chantsAllRowLimit = 3;
 
-/// Chants with audio, and your spaces' text-only chants, listed before
-/// "See all": 3 under All, 4 under Single chants.
+/// Your spaces' chants listed before "See all": 3 under All, 4 under
+/// Single chants. (Under Single chants the other chants list in full.)
 int chantsRowLimit(ChantsFilter filter) =>
-    filter == ChantsFilter.singleChants ? 4 : 3;
+    filter == ChantsFilter.singleChants ? 4 : chantsAllRowLimit;
 
 /// Shortest search query that runs, matching the chant search.
 const int chantsSearchMinQueryLength = 3;

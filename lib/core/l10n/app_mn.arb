@@ -33,6 +33,14 @@
       }
     }
   },
+  "home_practices_sessions": "{count, plural,\n=1 {1 хичээл}\nother {{count} хичээл}\n}",
+  "@home_practices_sessions": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "home_shortcut_plans": "Төлөвлөгөө",
   "home_chants": "Магтаал",
   "home_mala": "Эрх",
@@ -75,7 +83,7 @@
     }
   },
   "mala_group_accumulations": "Уншлага нэмэх",
-  "mala_groups_section": "Groups",
+  "mala_groups_section": "Орон зай",
   "mala_group_untitled": "Нэргүй орон зай",
   "mala_all_time_accumulation": "Миний нийт хуримтлал",
   "mala_personal_practice": "Хувийн дадлага",
@@ -164,20 +172,19 @@
   "recitations_search_for": "Уншлага хайх",
   "recitations_no_found": "Уншлага олдсонгүй",
   "recitations_no_content": "Уншлага байхгүй байна",
-  "my_recitation_collection_new_title": "Шинэ цуглуулга",
+  "chant_book_new_title": "Шинэ магтаалын ном",
   "my_recitation_collection_next": "Дараах",
   "my_recitation_collection_create": "Үүсгэх",
-  "my_recitation_collection_create_button": "Цуглуулга үүсгэх",
   "my_recitation_collection_change_title": "Гарчиг өөрчлөх",
   "my_recitation_collection_change": "Өөрчлөх",
   "my_recitation_collection_add_chants": "Уншлага нэмэх",
   "my_recitation_collection_search_chants": "Уншлага хайх",
-  "my_recitation_collection_add_to_collection": "Цуглуулгад нэмэх",
-  "my_recitation_collection_edit": "Цуглуулга засах",
-  "my_recitation_collection_delete": "Цуглуулга устгах",
-  "my_recitation_collection_delete_title": "Цуглуулгыг устгах уу?",
-  "my_recitation_collection_delete_message": "Энэ цуглуулга бүрмөсөн устгагдана",
-  "my_recitation_collection_fallback_title": "Уншлагын цуглуулга",
+  "chant_book_add_to": "Магтаалын номд нэмэх",
+  "chant_book_edit": "Магтаалын ном засах",
+  "chant_book_delete": "Магтаалын ном устгах",
+  "chant_book_delete_title": "Магтаалын номыг устгах уу?",
+  "chant_book_delete_message": "Энэ магтаалын ном бүрмөсөн устгагдана",
+  "chant_book_fallback_title": "Магтаалын ном",
   "my_recitation_collection_unavailable": "Цаашид боломжгүй",
   "my_recitation_collection_chant_count": "{count, plural,\n=0 {0 уншлага}\n=1 {1 уншлага}\nother {{count} уншлага}\n}",
   "@my_recitation_collection_chant_count": {
@@ -195,8 +202,8 @@
       }
     }
   },
-  "bookmarks_empty_chant_collections_title": "Хараахан уншлагын цуглуулга хавчуургалаагүй байна",
-  "bookmarks_empty_chant_collections_subtitle": "Энд хадгалахын тулд цуглуулга хавчуургалаарай",
+  "chant_book_bookmarks_empty_title": "Хараахан магтаалын ном хавчуургалаагүй байна",
+  "chant_book_bookmarks_empty_subtitle": "Энд хадгалахын тулд магтаалын ном хавчуургалаарай",
   "notification_allow_title": "Мэдэгдэл зөвшөөрөх",
   "notification_allow_subtitle_disabled": "Зөвшөөрөл шаардлагатай. Тохиргоо хэсэгт олгохын тулд дарна уу",
   "notification_snack_permission_denied": "Мэдэгдэл хаагдсан байна. Тохиргоо хэсэгт идэвхжүүлнэ үү",
@@ -352,6 +359,26 @@
   "continueWithGoogle": "Google-ээр үргэлжлүүлэх",
   "continueWithApple": "Apple-ээр үргэлжлүүлэх",
   "continueWithPhone": "Утсаар үргэлжлүүлэх",
+  "login_last_used": "Сүүлд ашигласан",
+  "phone_login_title": "Утасны дугаараа оруулна уу",
+  "phone_login_subtitle": "Таныг мөн эсэхийг баталгаажуулахын тулд бид танд код илгээнэ.",
+  "phone_login_number_hint": "Утасны дугаар",
+  "phone_login_country_search": "Улс хайх",
+  "phone_login_send_code": "Код илгээх",
+  "phone_login_code_title": "Кодоо оруулна уу",
+  "phone_login_code_subtitle": "Бид {phoneNumber} дугаар руу 6 оронтой код илгээлээ.",
+  "phone_login_code_hint": "6 оронтой код",
+  "phone_login_verify": "Баталгаажуулах",
+  "phone_login_resend": "Кодыг дахин илгээх",
+  "phone_login_resend_in": "{seconds} секундын дараа кодыг дахин илгээх",
+  "phone_login_change_number": "Дугаар солих",
+  "login_error_invalid_phone": "Зөв утасны дугаар оруулна уу.",
+  "login_error_invalid_code": "Код буруу байна. Шалгаад дахин оролдоно уу.",
+  "login_error_code_expired": "Кодын хугацаа дууссан. Шинэ код авна уу.",
+  "login_error_too_many_requests": "Хэт олон удаа оролдлоо. Дараа дахин оролдоно уу.",
+  "login_error_network": "Интернэт холболтоо шалгаад дахин оролдоно уу.",
+  "login_error_email_not_verified": "Энэ бүртгэлийн имэйл хаяг баталгаажаагүй байна. Үйлчилгээ үзүүлэгчээрээ баталгаажуулаад дахин оролдоно уу.",
+  "login_error_generic": "Нэвтэрч чадсангүй. Дахин оролдоно уу.",
   "exploreAsGuest": "Зочноор судлах",
   "signIn": "Нэвтрэх",
   "profileError": "Профайл ачаалахад алдаа гарлаа",
@@ -563,6 +590,64 @@
       }
     }
   },
+  "calendar_choose_calendar": "Хуанли сонгох",
+  "calendar_tradition_vajrayana": "Очир хөлгөн",
+  "calendar_tradition_theravada": "Тэравада",
+  "calendar_tradition_mahayana": "Их хөлгөн",
+  "calendar_type_phugpa": "Төвөд (Пүгба)",
+  "calendar_type_tsurphu": "Төвөд (Цурпү)",
+  "calendar_type_nyingmapa": "Нингма",
+  "calendar_type_sinhalese": "Синхала",
+  "calendar_type_thai": "Тай",
+  "calendar_type_burmese": "Бирм",
+  "calendar_type_lao": "Лаос",
+  "calendar_type_chinese": "Хятад",
+  "calendar_type_vietnamese": "Вьетнам",
+  "calendar_type_korean": "Солонгос",
+  "calendar_type_japanese": "Япон",
+  "calendar_today": "Өнөөдөр",
+  "calendar_no_events": "Арга хэмжээ алга",
+  "calendar_source_lunar": "Билгийн тоолол",
+  "calendar_add_event": "Арга хэмжээ нэмэх",
+  "calendar_event_name": "Арга хэмжээний нэр",
+  "calendar_event_name_hint": "Хуанлидаа арга хэмжээ нэмэх",
+  "calendar_repeat": "Давтах",
+  "calendar_does_not_repeat": "Давтахгүй",
+  "calendar_repeat_weekly": "Долоо хоног бүр",
+  "calendar_repeat_monthly": "Сар бүр",
+  "calendar_repeat_yearly": "Жил бүр",
+  "calendar_repeat_monthly_lunar": "Сар бүр (билгийн {day}-ний өдөр)",
+  "@calendar_repeat_monthly_lunar": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_repeat_yearly_lunar": "Жил бүр (билгийн огноо)",
+  "calendar_delete_event": "Арга хэмжээ устгах",
+  "calendar_delete_event_title": "Арга хэмжээг устгах уу?",
+  "calendar_delete_event_body": "\"{title}\" таны хуанлиас хасагдана. Үүнийг буцаах боломжгүй.",
+  "@calendar_delete_event_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_delete_repeating_title": "Давтагдах арга хэмжээг устгах уу?",
+  "calendar_delete_repeating_body": "\"{title}\" ({repeat})-ийн бүх огноо таны хуанлиас хасагдана. Үүнийг буцаах боломжгүй.",
+  "@calendar_delete_repeating_body": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "repeat": {
+        "type": "String"
+      }
+    }
+  },
+  "calendar_event_deleted": "Арга хэмжээ устгагдлаа",
   "moon_phase_new_moon": "Шинэ сар",
   "moon_phase_first_quarter": "Тэргүүн улирал",
   "moon_phase_full_moon": "Тэргэл сар",
@@ -636,22 +721,22 @@
   "group_members_empty": "Одоогоор гишүүн байхгүй",
   "group_member_admin": "Админ",
   "group_remove_member": "{name}-г хасах",
-  "group_remove_member_title": "Орон зайгаас хасах уу?",
-  "group_remove_member_message": "{name} энэ орон зайгаас хасагдах бөгөөд хориг цуцлагдах хүртэл дахин нэгдэх боломжгүй",
-  "group_remove_member_blocked_for": "Хоригийн хугацаа:",
+  "group_remove_member_title": "{name}-г хасах",
+  "group_remove_member_message": "Түүнийг энэ орон зайгаас хасах бөгөөд {duration} хугацаанд дахин нэгдэх боломжгүй.",
+  "group_remove_member_blocked_for": "Дахин нэгдэх боломжгүй хугацаа",
   "group_remove_member_duration_day": "1 өдөр",
   "group_remove_member_duration_days": "{count} өдөр",
   "group_remove_member_duration_year": "1 жил",
   "group_remove_member_reason_label": "Шалтгаан (заавал биш)",
-  "group_remove_member_reason_hint": "Бусад...",
-  "group_remove_member_action": "Хасах",
+  "group_remove_member_reason_hint": "Та энэ гишүүнийг яагаад хасаж байна вэ?",
+  "group_remove_member_action": "Гишүүнийг хасах",
   "group_remove_member_success": "{name} орон зайгаас хасагдлаа",
   "group_remove_member_error": "Энэ гишүүнийг хасаж чадсангүй. Дахин оролдоно уу",
   "group_join_banned_until": "Та энэ орон зайгаас хасагдсан тул {date} хүртэл дахин нэгдэх боломжгүй",
-  "group_join_banned": "Та энэ орон зайгаас хасагдсан тул хориг цуцлагдах хүртэл дахин нэгдэх боломжгүй",
+  "group_join_banned": "Та энэ орон зайгаас хасагдсан тул одоогоор дахин нэгдэх боломжгүй",
   "group_removed_title": "Та энэ орон зайгаас хасагдсан байна",
   "group_removed_message": "{group}-ийн админ таныг энэ орон зайгаас хаслаа. Та {duration}-ийн турш түүний нийтлэл, арга хэмжээ, дадлагыг үзэх эсвэл дахин нэгдэх хүсэлт гаргах боломжгүй.",
-  "group_removed_message_no_date": "{group}-ийн админ таныг энэ орон зайгаас хаслаа. Та түүний нийтлэл, арга хэмжээ, дадлагыг үзэх эсвэл дахин нэгдэх хүсэлт гаргах боломжгүй",
+  "group_removed_message_no_date": "{group}-ийн админ таныг энэ орон зайгаас хаслаа. Админ зөвшөөрөх хүртэл та дахин нэгдэх боломжгүй",
   "group_removed_rejoin_label": "Та энэ орон зайд нэгдэх хүсэлтийг дараах өдөр гаргах боломжтой",
   "group_removed_rejoin_value": "{date} · {remaining}",
   "group_removed_day_left": "1 өдөр үлдсэн",
@@ -675,7 +760,7 @@
   "group_accumulator_everyone": "Бүгд",
   "group_accumulator_me": "Би",
   "group_accumulator_my_contributions": "Миний хувь нэмэр",
-  "group_accumulator_recited": "Уншсан",
+  "group_accumulator_recited": "Уншлага",
   "group_accumulator_total": "Нийт",
   "group_accumulator_contributions_empty": "Хувь нэмрээ хянахын тулд энэ хуримтлалд нэгдэнэ үү",
   "group_accumulator_leaderboard_empty": "Одоогоор уншлага алга",
@@ -690,7 +775,7 @@
   "group_accumulator_session_share_message": "Би WeBuddhist дээрх {group} орон зайн \"{accumulation}\" хуримтлалд {count} уншлага гүйцэтгэлээ. Та ч бас надтай нэгдээрэй!",
   "group_accumulator_session_share_message_no_group": "Би WeBuddhist дээр \"{accumulation}\" хуримтлалд {count} уншлага гүйцэтгэлээ. Та ч бас надтай нэгдээрэй!",
   "group_accumulator_session_share_error": "Хуралдааныг хуваалцаж чадсангүй. Дахин оролдоно уу",
-  "share_this_quote": "Энэ ишлэлийг хуваалцах",
+  "share_this_verse": "Энэ шүлгийг хуваалцах",
   "shared_from": "Хуваалцсан:",
   "verse_share_error": "Ишлэлийг хуваалцах боломжгүй. Дахин оролдоно уу",
   "share_app_message": "Би өдөр тутмын Буддын дадлага хийхийн тулд энэ аппыг ашиглаж байна, та ч дуртай болно гэж бодлоо.",
@@ -977,7 +1062,7 @@
   "event_prayer_empty_title": "Одоогоор залбирлын хүсэлт алга",
   "event_prayer_empty_body": "Таны болон таны орон зайн хүсэлтүүд энд харагдана",
   "event_prayer_add": "Залбирлын хүсэлт нэмэх",
-  "event_prayer_hint": "Өнөөдөр бид таны төлөө хэрхэн залбирах вэ?",
+  "event_prayer_hint": "Залбирлын хүсэлтээ хуваалцаарай",
   "event_prayer_load_failed": "Залбирлын хүсэлтүүдийг ачаалж чадсангүй",
   "event_prayer_closed": "Энэ арга хэмжээний залбирлын хүсэлт хаагдсан",
   "event_prayer_pray": "Залбирах",
@@ -1120,7 +1205,7 @@
   "group_leave_space_confirm_title": "Энэ орон зайнаас гарах уу?",
   "group_leave_space_failed": "Орон зайнаас гарч чадсангүй. Дахин оролдоно уу",
   "group_accumulator_join_before_practice": "Дадлагадаа нэмэхээсээ өмнө энэ хуримтлалд нэгдээрэй",
-  "group_recitation_collection_share_message": "WeBuddhist дээрх {group} орон зайн \"{collection}\" уншлагын цуглуулгыг үзээрэй. Бидэнтэй хамт дадлага хийцгээе!",
+  "group_recitation_collection_share_message": "WeBuddhist дээрх {group}-ийн \"{collection}\" магтаалын номыг үзээрэй. Бидэнтэй хамт дадлага хийцгээе!",
   "@group_recitation_collection_share_message": {
     "placeholders": {
       "collection": {
@@ -1131,7 +1216,7 @@
       }
     }
   },
-  "group_recitation_collection_share_message_no_group": "WeBuddhist дээрх \"{collection}\" уншлагын цуглуулгыг үзээрэй. Бидэнтэй хамт дадлага хийцгээе!",
+  "group_recitation_collection_share_message_no_group": "WeBuddhist дээрх \"{collection}\" магтаалын номыг үзээрэй. Бидэнтэй хамт дадлага хийцгээе!",
   "@group_recitation_collection_share_message_no_group": {
     "placeholders": {
       "collection": {
@@ -1141,7 +1226,7 @@
   },
   "bookmarks_empty_group_accumulations_title": "Хараахан орон зайн хуримтлал хавчуургалаагүй байна",
   "bookmarks_empty_group_accumulations_subtitle": "Энд хадгалахын тулд хуримтлал хавчуургалаарай",
-  "practice_collection_already_added": "Энэ цуглуулга таны дадлагад аль хэдийн байна",
+  "chant_book_already_in_practices": "Энэ магтаалын ном таны дадлагад аль хэдийн байна",
   "practice_group_accumulator_already_added": "Энэ хуримтлал таны дадлагад аль хэдийн байна",
   "group_member_owner": "Эзэмшигч",
   "reader_display_title": "Харагдац",
@@ -1177,7 +1262,7 @@
   "chants_filter_all": "Бүгд",
   "chants_chant_books": "Магтаалын ном",
   "chants_filter_single_chants": "Дан магтаал",
-  "chants_my_chant_books": "Миний магтаалын ном",
+  "chants_my_chant_books_title": "Миний магтаалын ном",
   "chants_text_only": "Зөвхөн бичвэртэй магтаал",
   "chants_from_your_spaces": "Таны орон зайнаас",
   "chants_explore_more": "Бусдыг судлах",
@@ -1185,7 +1270,7 @@
   "chants_open_chant": "Магтаал нээх",
   "chants_your_spaces": "Таны орон зайнууд",
   "chants_other_spaces": "Бусад орон зай",
-  "chants_search_hint": "Магтаал болон магтаалын ном хайх",
+  "chants_search_hint_chant_books": "Магтаал болон магтаалын ном хайх",
   "chants_cant_find": "Хайж буй бичвэрээ олсонгүй юу?",
   "chants_request_text": "Бичвэр хүсэх",
   "chants_request_done": "Хүсэлт илгээсэн",
@@ -1194,5 +1279,58 @@
   "chants_with_audio": "Аудиотой магтаал",
   "chants_audio_chants": "Аудио магтаал",
   "reader_no_resources_title": "Энэ хэсэгт тайлбар эсвэл хувилбар байхгүй байна",
-  "reader_no_resources_subtitle": "Бид шинэ судар тогтмол нэмдэг; удахгүй дахин шалгаарай"
+  "reader_no_resources_subtitle": "Бид шинэ судар тогтмол нэмдэг; удахгүй дахин шалгаарай",
+  "mala_section_practice": "Дадлага",
+  "mala_section_appearance": "Харагдах байдал",
+  "mala_section_save_share": "Хадгалах ба хуваалцах",
+  "mala_mantra_animation": "Тарнины хөдөлгөөн",
+  "mala_play_animation": "Хөдөлгөөн тоглуулах",
+  "mala_speed": "Хурд",
+  "mala_animation_off": "Унтраалттай",
+  "mala_bead_style": "Мөхлөгийн загвар",
+  "mala_bead_default": "Үндсэн",
+  "mala_use_this_style": "Энэ загварыг ашиглах",
+  "mala_bead_style_updated": "Мөхлөгийн загвар шинэчлэгдлээ",
+  "mala_change_image": "Зураг солих",
+  "mala_use_image": "Ашиглах",
+  "mala_restore_default_image": "Үндсэн рүү буцаах",
+  "mala_image_updated": "Зураг шинэчлэгдлээ",
+  "mala_images_empty": "Зураг байхгүй",
+  "mala_images_load_error": "Зургийг ачаалж чадсангүй",
+  "mala_bookmarked": "Хавчуурганд нэмсэн",
+  "mala_beads_load_error": "Мөхлөгийн загваруудыг ачаалж чадсангүй",
+  "mala_appearance_save_failed": "Хадгалж чадсангүй. Дахин оролдоно уу",
+  "session_search_plans_hint": "Төлөвлөгөө хайх",
+  "session_search_chants_hint": "Магтаал хайх",
+  "session_search_malas_hint": "Эрхи хайх",
+  "session_search_timers_hint": "Нэр эсвэл хугацаагаар цаг хэмжигч хайх",
+  "search_min_query_length": "Хайхын тулд дор хаяж {count} тэмдэгт бичнэ үү",
+  "splash_tagline_1": "Бид буддистууд хамтдаа бясалгадаг",
+  "splash_tagline_2": "Бид буддистууд өдөр бүр бясалгадаг",
+  "practice_next_session": "Дараагийн хичээл",
+  "practice_more_in_session": "Энэ хичээлд +{count} бусад",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "Таны орон зайнаас",
+  "practice_discover_more": "Илүү ихийг судлах",
+  "practice_space_accumulations": "Орон зайн хуримтлал",
+  "practice_no_space_accumulations": "Одоогоор бусад орон зайн хуримтлал алга",
+  "practice_search_hint": "Бясалгал хайх",
+  "practice_search_recent": "Сүүлд",
+  "practice_search_no_results": "\"{query}\"-д тохирох илэрц алга",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "Түгээмэл бясалгалууд",
+  "practice_start_routine": "Дадал эхлүүлэх",
+  "practice_start_routine_hint": "Эсвэл дадлага дээр дараад \"Миний дадлагад нэмэх\"-ийг сонгоно уу."
 }

@@ -14,6 +14,7 @@ import 'package:flutter_pecha/core/theme/theme_notifier.dart';
 import 'package:flutter_pecha/shared/widgets/app_toggle_switch.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/auth/presentation/widgets/login_drawer.dart';
+import 'package:flutter_pecha/features/calendar/presentation/widgets/calendar_type_settings_row.dart';
 import 'package:flutter_pecha/features/feedback/presentation/screens/help_contact_screen.dart';
 import 'package:flutter_pecha/features/feedback/presentation/utils/help_contact_analytics.dart';
 import 'package:flutter_pecha/features/more/presentation/providers/sign_in_account_provider.dart';
@@ -73,6 +74,7 @@ class MoreScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _buildLanguageRow(context, ref, contentLanguageCode),
+            const CalendarTypeSettingsRow(),
             _buildNotificationRow(context, localizations),
             _buildThemeToggleRow(context, ref, isDarkMode, localizations),
             const SizedBox(height: 24),
@@ -118,7 +120,7 @@ class MoreScreen extends ConsumerWidget {
                 title: localizations.sign_in,
                 onTap:
                     () =>
-                        LoginDrawer.show(context, ref, useRootNavigator: true),
+                        LoginDrawer.show(context, ref, useRootNavigator: true, feature: 'me_sign_in'),
               ),
             ] else ...[
               const _SignInAccountRow(),

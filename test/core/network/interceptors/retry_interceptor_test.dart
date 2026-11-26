@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_pecha/core/network/interceptors/retry_interceptor.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
@@ -48,9 +47,9 @@ void main() {
   });
 
   group('401 with positive evidence the session is gone', () {
-    test('missing credentials end the session for a signed-in user', () async {
+    test('a missing session ends the session for a signed-in user', () async {
       when(authService.forceRefreshAccessToken()).thenThrow(
-        const CredentialsManagerException('NO_CREDENTIALS', 'none', {}),
+        AuthException('No session', code: AuthService.noSessionCode),
       );
       when(authService.isGuestMode()).thenAnswer((_) async => false);
 
@@ -63,25 +62,11 @@ void main() {
       verifyNever(handler.resolve(any));
     });
 
-    test('a missing refresh token ends the session', () async {
-      when(authService.forceRefreshAccessToken()).thenThrow(
-        const CredentialsManagerException('NO_REFRESH_TOKEN', 'none', {}),
-      );
-      when(authService.isGuestMode()).thenAnswer((_) async => false);
-
-      final err = unauthorized();
-      interceptor.onError(err, handler);
-      await untilCalled(handler.next(any));
-
-      expect(authExpiredCalls, 1);
-      verify(handler.next(err)).called(1);
-    });
-
-    test('an opaque (pre-audience) token ends the session', () async {
+    test('a refresh token the backend rejected ends the session', () async {
       when(authService.forceRefreshAccessToken()).thenThrow(
         AuthException(
-          'Opaque access token; re-authentication required',
-          code: AuthService.opaqueAccessTokenCode,
+          'Refresh token rejected',
+          code: AuthService.refreshRejectedCode,
         ),
       );
       when(authService.isGuestMode()).thenAnswer((_) async => false);
@@ -95,10 +80,13 @@ void main() {
       verifyNever(handler.resolve(any));
     });
 
-    test('a rejected renewal (RENEW_FAILED while online) ends the session',
+    test('a refresh refused with another 4xx (while online) ends the session',
         () async {
       when(authService.forceRefreshAccessToken()).thenThrow(
-        const CredentialsManagerException('RENEW_FAILED', 'rejected', {}),
+        AuthException(
+          'Refresh refused (HTTP 404)',
+          code: AuthService.refreshRefusedCode,
+        ),
       );
       when(authService.isGuestMode()).thenAnswer((_) async => false);
 
@@ -112,7 +100,7 @@ void main() {
 
     test('does not end the session for a guest', () async {
       when(authService.forceRefreshAccessToken()).thenThrow(
-        const CredentialsManagerException('NO_CREDENTIALS', 'none', {}),
+        AuthException('No session', code: AuthService.noSessionCode),
       );
       when(authService.isGuestMode()).thenAnswer((_) async => true);
 
@@ -221,7 +209,7 @@ void main() {
       '(FastAPI missing-header quirk)',
       () async {
         when(authService.forceRefreshAccessToken()).thenThrow(
-          const CredentialsManagerException('NO_CREDENTIALS', 'none', {}),
+          AuthException('No session', code: AuthService.noSessionCode),
         );
         when(authService.isGuestMode()).thenAnswer((_) async => false);
 

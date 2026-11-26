@@ -1,17 +1,27 @@
 class ConnectPostCommentUser {
   final String? firstName;
   final String? lastName;
+
+  /// The name the user picked in Edit profile (`display_name`); null when
+  /// they have not picked one.
+  final String? userDisplayName;
   final String email;
   final String? avatarUrl;
 
   const ConnectPostCommentUser({
     this.firstName,
     this.lastName,
+    this.userDisplayName,
     required this.email,
     this.avatarUrl,
   });
 
+  /// The name to show: the display name exactly as its owner typed it, then
+  /// first and last name, then the email's local part.
   String get displayName {
+    final picked = userDisplayName?.trim() ?? '';
+    if (picked.isNotEmpty) return picked;
+
     final nameParts =
         [firstName, lastName]
             .where((part) => part != null && part.trim().isNotEmpty)

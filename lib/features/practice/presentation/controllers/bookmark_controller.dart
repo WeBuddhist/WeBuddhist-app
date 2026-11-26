@@ -7,6 +7,7 @@ import 'package:flutter_pecha/features/practice/data/datasource/bookmark_remote_
 import 'package:flutter_pecha/features/practice/data/models/bookmark_models.dart';
 import 'package:flutter_pecha/features/practice/data/repositories/bookmark_repository.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
+import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Controller for bookmark create/remove (toggle) operations.
@@ -15,6 +16,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// optimistic UI that reverts on failure.
 /// What a toggle did; `blocked` means the guest login gate showed instead.
 enum BookmarkToggleOutcome { added, removed, failed, blocked }
+
+/// The analytics key for a bookmark type, in snake_case.
+String bookmarkTypeKey(BookmarkType type) => switch (type) {
+  BookmarkType.groupRecitationCollection => 'group_recitation_collection',
+  BookmarkType.recitationCollection => 'recitation_collection',
+  BookmarkType.groupAccumulator => 'group_accumulator',
+  BookmarkType.accumulator => 'mala',
+  _ => type.name,
+};
 
 class BookmarkController {
   final _logger = AppLogger('BookmarkController');
@@ -97,12 +107,13 @@ class BookmarkController {
   }) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'bookmark');
       return BookmarkToggleOutcome.blocked;
     }
 
     final target = BookmarkTarget(type: type, sourceId: sourceId);
     final repository = ref.read(bookmarkRepositoryProvider);
+    final analytics = ref.read(practiceAnalyticsProvider);
     final cache = ref.read(bookmarkExistsCacheProvider.notifier);
     final previous = readBookmarkStatus(ref, target);
     final wasBookmarked = previous.exists;
@@ -151,6 +162,11 @@ class BookmarkController {
       return BookmarkToggleOutcome.failed;
     }
 
+    analytics.bookmarkChanged(
+      added: !wasBookmarked,
+      itemType: bookmarkTypeKey(type),
+      itemId: sourceId,
+    );
     return wasBookmarked
         ? BookmarkToggleOutcome.removed
         : BookmarkToggleOutcome.added;

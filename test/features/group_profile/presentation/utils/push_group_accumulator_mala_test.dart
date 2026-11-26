@@ -5,6 +5,7 @@ import 'package:flutter_pecha/features/group_profile/domain/entities/group_accum
 import 'package:flutter_pecha/features/group_profile/presentation/utils/group_accumulator_practice_launcher.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/mala/presentation/providers/mala_providers.dart';
+import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
@@ -103,6 +104,7 @@ void main() {
     expect(extra['presetId'], 'tara');
     expect(extra['groupAccumulatorId'], 'acc-1');
     expect(extra.containsKey('groupAccumulator'), isFalse);
+    expect(extra['source'], MalaOpenSource.groupAccumulation);
     expect(r.opened, isTrue);
   });
 
@@ -111,6 +113,7 @@ void main() {
     final r = await _recite(tester, detail);
     final extra = r.extra! as Map<String, dynamic>;
     expect(extra['groupAccumulator'], same(detail));
+    expect(extra['source'], MalaOpenSource.groupAccumulation);
     expect(r.opened, isTrue);
   });
 

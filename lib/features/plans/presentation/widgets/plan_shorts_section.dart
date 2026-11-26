@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/analytics/media_analytics.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
@@ -91,6 +92,9 @@ class _PlanSessionCard extends StatelessWidget {
   Future<void> _open(BuildContext context) async {
     final url = _playUrl;
     if (url.isEmpty) return;
+    MediaAnalytics.of(
+      context,
+    ).videoOpened(surface: VideoSurface.planSession, videoUrl: url);
     await Navigator.of(context).push(
       MaterialPageRoute(
         settings: const RouteSettings(name: 'video-player'),
@@ -289,6 +293,9 @@ class _ShortVideoCardState extends State<_ShortVideoCard> {
 
   Future<void> _openFullScreen() async {
     _controller?.pause();
+    MediaAnalytics.of(
+      context,
+    ).videoOpened(surface: VideoSurface.planShort, videoUrl: widget.video.url);
 
     await Navigator.of(context).push(
       MaterialPageRoute(

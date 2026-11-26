@@ -39,8 +39,9 @@ class _GroupAccumulatorMyContributionsListState
   @override
   Widget build(BuildContext context) {
     final user = widget.detail.user;
-    final secondaryColor =
-        widget.isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = widget.isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final numberFormat = NumberFormat.decimalPattern(
       intlFormatLocaleOf(context),
     );
@@ -57,10 +58,9 @@ class _GroupAccumulatorMyContributionsListState
       return widget.embedded ? empty : Center(child: empty);
     }
 
-    final count =
-        _sort == GroupAccumulatorMemberSort.today
-            ? user.todayCount
-            : user.totalCount;
+    final count = _sort == GroupAccumulatorMemberSort.today
+        ? user.todayCount
+        : user.totalCount;
 
     final content = Column(
       mainAxisSize: MainAxisSize.min,
@@ -205,8 +205,9 @@ class _GroupAccumulatorLeaderboardListState
     final membersState = ref.watch(
       groupAccumulatorMembersProvider(_membersKey),
     );
-    final secondaryColor =
-        widget.isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = widget.isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final numberFormat = NumberFormat.decimalPattern(
       intlFormatLocaleOf(context),
     );
@@ -229,21 +230,18 @@ class _GroupAccumulatorLeaderboardListState
       return _wrapStatus(
         ErrorStateWidget(
           error: membersState.error!,
-          onRetry:
-              () =>
-                  ref
-                      .read(
-                        groupAccumulatorMembersProvider(_membersKey).notifier,
-                      )
-                      .retry(),
+          onRetry: () => ref
+              .read(groupAccumulatorMembersProvider(_membersKey).notifier)
+              .retry(),
         ),
       );
     }
 
-    final sortedMembers =
-        sortAccumulatorMembers(membersState.members, _sort).where((member) {
+    final sortedMembers = sortAccumulatorMembers(membersState.members, _sort)
+        .where((member) {
           return _countOf(member) > 0;
-        }).toList();
+        })
+        .toList();
 
     final hasAnyPositive = membersState.members.any(
       (member) => _countOf(member) > 0,
@@ -351,8 +349,8 @@ class _GroupAccumulatorLeaderboardListState
 
   int _countOf(GroupAccumulatorMember member) =>
       _sort == GroupAccumulatorMemberSort.today
-          ? member.todayCount
-          : member.totalCount;
+      ? member.todayCount
+      : member.totalCount;
 
   Widget _wrapStatus(Widget child) {
     if (!widget.embedded) return Center(child: child);
@@ -450,10 +448,9 @@ class _SortToggleChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color:
-              isSelected
-                  ? (isDark ? AppColors.surfaceWhite : AppColors.textPrimary)
-                  : Colors.transparent,
+          color: isSelected
+              ? (isDark ? AppColors.surfaceWhite : AppColors.textPrimary)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
@@ -461,12 +458,11 @@ class _SortToggleChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color:
-                isSelected
-                    ? (isDark ? AppColors.textPrimary : AppColors.surfaceWhite)
-                    : (isDark
-                        ? AppColors.textTertiaryDark
-                        : AppColors.textSecondary),
+            color: isSelected
+                ? (isDark ? AppColors.textPrimary : AppColors.surfaceWhite)
+                : (isDark
+                      ? AppColors.textTertiaryDark
+                      : AppColors.textSecondary),
           ),
         ),
       ),
@@ -490,14 +486,13 @@ class GroupAccumulatorMemberAvatar extends StatelessWidget {
       child: SizedBox(
         width: 40,
         height: 40,
-        child:
-            avatarUrl != null && avatarUrl!.isNotEmpty
-                ? CachedNetworkImageWidget(
-                  imageUrl: avatarUrl!,
-                  fit: BoxFit.cover,
-                  errorWidget: AvatarFallback(isDark: isDark),
-                )
-                : AvatarFallback(isDark: isDark),
+        child: avatarUrl != null && avatarUrl!.isNotEmpty
+            ? CachedNetworkImageWidget(
+                imageUrl: avatarUrl!,
+                fit: BoxFit.cover,
+                errorWidget: AvatarFallback(isDark: isDark),
+              )
+            : AvatarFallback(isDark: isDark),
       ),
     );
   }

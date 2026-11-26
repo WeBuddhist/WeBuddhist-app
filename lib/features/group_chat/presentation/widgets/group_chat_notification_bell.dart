@@ -98,6 +98,8 @@ class GroupChatNotificationBell extends ConsumerWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // An action would otherwise keep it up indefinitely.
+          persist: false,
           content: Text(l10n.group_notifications_master_off),
           action: SnackBarAction(
             label: l10n.group_notifications_open_settings,
@@ -107,6 +109,9 @@ class GroupChatNotificationBell extends ConsumerWidget {
             onPressed:
                 () => navigator.push<void>(
                   MaterialPageRoute<void>(
+                    // The name of the notifications route, so it counts as
+                    // the same screen however it was opened.
+                    settings: const RouteSettings(name: 'notifications'),
                     builder: (_) => const NotificationSettingsScreen(),
                   ),
                 ),

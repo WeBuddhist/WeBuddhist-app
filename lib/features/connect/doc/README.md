@@ -48,7 +48,7 @@ connect/
 - `StateNotifierProvider.autoDispose` with explicit state classes per tab (`myUnifiedConnectFeedProvider` / `discoverUnifiedConnectFeedProvider`, events, practices, `discoverGroupsProvider`, `groupSearchProvider`, `connectPostCommentsProvider` family)
 - `FutureProvider`: `myGroupsProvider`
 - `StateProvider`: pending join/unjoin optimistic state
-- `joinedSpacesProvider` — joined spaces merged with pending joins/leaves; `connectLastSpaceProvider` — space the tab last showed (SharedPreferences)
+- `joinedSpacesProvider` — joined spaces merged with pending joins/leaves; `connectLastSpaceProvider` — space the tab last showed (SharedPreferences); `connectOpenedSpacesProvider` — spaces the tab has opened, for the landing rule (first visit opens on the space info, later visits on the feed with the header scrolled away)
 - `homeCommunityFeedProvider` — Home shows the member's own feed, falling back to Discover once it loads empty
 
 ## Data sources
@@ -59,7 +59,7 @@ connect/
 ## Cross-feature dependencies
 
 - **auth** — guest gating, login prompts
-- **group_chat** — `chatRoomsProvider` / `chatRoomsPushRefreshProvider` drive the ☰ unread dot (`unreadSpaceIdsProvider`)
+- **group_chat** — `chatRoomsProvider` / `chatRoomsPushRefreshProvider` drive the unread dots (`unreadSpacesProvider`): the bottom-nav Connect tab for any space (`MainNavigationBottomBar`), ☰ for another space, the space in "Your spaces", then the space page: a dot on the chat button and/or on 🙏, never a number (`SpaceUnread`, from v2's per-type `unread`). Marking one type read clears its badge at once (`ChatRoomsNotifier.markReadLocally`)
 - **group_profile** — entities (`GroupProfile`, `GroupEvent`, `GroupPractice`), repository, follow invalidation
 - **core** — `contentLanguageProvider`, theme
 

@@ -185,7 +185,7 @@ class BookmarkCard extends StatelessWidget {
     return switch (bookmark.type) {
       BookmarkItemType.groupRecitationCollection ||
       BookmarkItemType.recitationCollection =>
-        context.l10n.my_recitation_collection_fallback_title,
+        context.l10n.chant_book_fallback_title,
       _ => bookmark.displayTitle,
     };
   }

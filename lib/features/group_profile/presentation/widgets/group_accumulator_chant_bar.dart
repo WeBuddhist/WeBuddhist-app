@@ -44,10 +44,12 @@ class GroupAccumulatorChantBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final pillColor = isDark ? const Color(0xCC454545) : AppColors.grey100;
-    final primaryTextColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryTextColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final titleFontSize =
         Theme.of(context).textTheme.titleMedium?.fontSize ?? 16;
 
@@ -71,10 +73,9 @@ class GroupAccumulatorChantBar extends ConsumerWidget {
         ref.invalidate(joinedAccumulatorGroupsProvider(presetId));
       } else if (!ref.read(joinedGroupUserCountsProvider(presetId)).isLoading &&
           groups.any(
-            (group) =>
-                !ref
-                    .read(groupAccumulationCountsProvider(presetId).notifier)
-                    .hasServerCount(group.groupAccumulatorId),
+            (group) => !ref
+                .read(groupAccumulationCountsProvider(presetId).notifier)
+                .hasServerCount(group.groupAccumulatorId),
           )) {
         // A count that failed to load keeps its group from taking chants;
         // asking again lets it come in.
@@ -198,8 +199,9 @@ class _GroupSessionAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fallbackColor =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
+    final fallbackColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
 
     return Container(
       width: _size,
@@ -210,19 +212,18 @@ class _GroupSessionAvatar extends StatelessWidget {
         border: Border.all(color: AppColors.surfaceWhite, width: 1),
       ),
       clipBehavior: Clip.antiAlias,
-      child:
-          group?.image != null && !group!.image!.isEmpty
-              ? ResponsiveCoverImage(
-                image: group!.image,
-                width: _size,
-                height: _size,
-                fit: BoxFit.cover,
-              )
-              : Icon(
-                isPersonal ? AppAssets.profile : AppAssets.bookOpenText,
-                size: _size * 0.55,
-                color: isDark ? AppColors.grey500 : AppColors.grey600,
-              ),
+      child: group?.image != null && !group!.image!.isEmpty
+          ? ResponsiveCoverImage(
+              image: group!.image,
+              width: _size,
+              height: _size,
+              fit: BoxFit.cover,
+            )
+          : Icon(
+              isPersonal ? AppAssets.profile : AppAssets.bookOpenText,
+              size: _size * 0.55,
+              color: isDark ? AppColors.grey500 : AppColors.grey600,
+            ),
     );
   }
 }

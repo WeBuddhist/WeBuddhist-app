@@ -24,7 +24,8 @@ class _NavigatorStack {
 }
 
 /// Resolves the visible screen across nested navigators and reports every
-/// change to [onScreenChanged]. Clarity groups heatmaps by that name.
+/// change to [onScreenChanged]. Clarity groups heatmaps by that name, and
+/// PostHog sends it as `$screen`; each service keeps its own tracker.
 class ClarityScreenTracker {
   ClarityScreenTracker({
     required this.onScreenChanged,

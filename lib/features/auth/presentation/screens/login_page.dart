@@ -18,7 +18,10 @@ class LoginPage extends ConsumerWidget {
     // During loading or while a redirect is pending (already logged in / guest),
     // we stay in a loading state so the form never flashes on screen.
     final isUnauthenticated =
-        !authState.isLoading && !authState.isLoggedIn && !authState.isGuest;
+        !authState.isLoading &&
+        !authState.isSigningIn &&
+        !authState.isLoggedIn &&
+        !authState.isGuest;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

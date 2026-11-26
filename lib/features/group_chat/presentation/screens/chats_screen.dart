@@ -9,6 +9,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_room_tile.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_error_state.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,6 +32,10 @@ class _ChatsScreenState extends ConsumerState<ChatsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    final rooms = ref.read(chatRoomsProvider);
+    ref
+        .read(groupChatAnalyticsProvider)
+        .chatsListOpened(hasUnread: rooms.hasLoaded ? rooms.hasUnread : null);
     // Whatever opened this screen may have loaded the list minutes ago.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(chatRoomsProvider.notifier).refresh();

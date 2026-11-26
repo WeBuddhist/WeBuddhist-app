@@ -304,11 +304,11 @@ void main() {
       );
       await _advanceThroughCountdown(tester, clock);
 
-      await tester.tap(find.byType(IconButton));
+      await tester.tap(find.text('Pause'));
       await tester.pump();
       expect(keepAlive.isHolding, isFalse);
 
-      await tester.tap(find.byType(IconButton));
+      await tester.tap(find.text('Resume'));
       await tester.pump();
       expect(keepAlive.isHolding, isTrue);
     });
@@ -433,7 +433,7 @@ void main() {
         await tester.pump();
 
         expect(soundPlayer.playCount, 0);
-        expect(find.text('00 : 05'), findsOneWidget);
+        expect(find.text('00:05'), findsOneWidget);
         expect(notifier.cancelCompletionCount, 1);
 
         await _advanceBy(tester, clock, const Duration(seconds: 5));
@@ -462,7 +462,7 @@ void main() {
       await tester.pump();
 
       expect(soundPlayer.playCount, 1);
-      expect(find.text('00 : 05'), findsOneWidget);
+      expect(find.text('00:05'), findsOneWidget);
     });
 
     testWidgets(
@@ -485,7 +485,8 @@ void main() {
         await tester.pump();
 
         expect(soundPlayer.playCount, 0);
-        expect(find.text('00 : 00'), findsOneWidget);
+        expect(find.text('Session complete'), findsOneWidget);
+        expect(find.text('10 sec · saved to your practice'), findsOneWidget);
         expect(notifier.cancelAllCount, 1);
       },
     );
@@ -526,7 +527,7 @@ void main() {
       expect(find.text('3'), findsOneWidget);
       expect(find.text('Starting...'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Cancel'));
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Cancel'));
       await tester.pumpAndSettle();
 
       expect(find.text('Starting...'), findsNothing);
@@ -570,7 +571,9 @@ void main() {
       expect(analytics.eventNames, [AnalyticsEvents.timerStarted]);
       expect(analytics.events.single.properties, {
         'preset_id': 'timer-1',
+        'timer_kind': 'preset',
         'duration_s': 10,
+        'has_ambient_sound': false,
       });
     });
 
@@ -589,9 +592,9 @@ void main() {
       );
       await _advanceThroughCountdown(tester, clock);
 
-      await tester.tap(find.byType(IconButton));
+      await tester.tap(find.text('Pause'));
       await tester.pump();
-      await tester.tap(find.byType(IconButton));
+      await tester.tap(find.text('Resume'));
       await tester.pump();
       await _lockScreen(tester);
       binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -604,9 +607,11 @@ void main() {
       ]);
       expect(analytics.events.last.properties, {
         'preset_id': 'timer-1',
+        'timer_kind': 'preset',
         'duration_s': 10,
         'was_backgrounded': true,
         'pause_count': 1,
+        'has_ambient_sound': false,
       });
     });
 
@@ -620,10 +625,9 @@ void main() {
       await _advanceThroughCountdown(tester, clock);
       await _advanceBy(tester, clock, const Duration(seconds: 4));
 
-      await tester.tap(find.byType(IconButton));
-      await tester.pump();
-      await tester.tap(find.byType(OutlinedButton));
-      await tester.pump();
+      await _openFinishDialog(tester);
+      await tester.tap(find.text('Save session'));
+      await tester.pumpAndSettle();
 
       expect(analytics.eventNames, [
         AnalyticsEvents.timerStarted,
@@ -631,9 +635,13 @@ void main() {
       ]);
       expect(analytics.events.last.properties, {
         'preset_id': 'timer-1',
+        'timer_kind': 'preset',
+        'action': 'finish',
         'elapsed_s': 4,
         'pct_complete': 40,
       });
+      expect(find.text('Session saved'), findsOneWidget);
+      expect(find.text('4 sec · saved to your practice'), findsOneWidget);
     });
 
     testWidgets('finishing after the bell is not a discard', (tester) async {
@@ -644,13 +652,323 @@ void main() {
       await _advanceThroughCountdown(tester, clock);
       await _advanceBy(tester, clock, _timerDuration);
 
-      await tester.tap(find.byType(OutlinedButton));
-      await tester.pump();
+      expect(find.text('Finish'), findsNothing);
+      expect(find.text('Session complete'), findsOneWidget);
+      expect(find.text('10 sec · saved to your practice'), findsOneWidget);
+
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
 
       expect(analytics.eventNames, [
         AnalyticsEvents.timerStarted,
         AnalyticsEvents.timerCompleted,
       ]);
+    });
+  });
+
+  group('finish dialog', () {
+    testWidgets('save keeps the elapsed time from when Finish opened', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, const Duration(seconds: 8));
+
+      await _openFinishDialog(tester);
+      clock.advance(const Duration(seconds: 30));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Session complete'), findsNothing);
+      expect(stops, isEmpty);
+
+      await tester.tap(find.text('Save session'));
+      await tester.pumpAndSettle();
+
+      expect(stops, [(timerId: 'timer-1', durationMs: 8000)]);
+      expect(find.text('Session saved'), findsOneWidget);
+      expect(find.text('8 sec · saved to your practice'), findsOneWidget);
+      expect(analytics.eventNames, [
+        AnalyticsEvents.timerStarted,
+        AnalyticsEvents.timerDiscarded,
+      ]);
+    });
+
+    testWidgets('discard does not save even if the deadline passed', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, const Duration(seconds: 8));
+
+      await _openFinishDialog(tester);
+      clock.advance(const Duration(seconds: 30));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Discard this session?'), findsOneWidget);
+      expect(find.text('Session complete'), findsNothing);
+      expect(stops, isEmpty);
+
+      await tester.tap(find.text('Discard session'));
+      await tester.pumpAndSettle();
+
+      expect(stops, isEmpty);
+      expect(find.text('Discard this session?'), findsNothing);
+      expect(find.text('00:02'), findsNothing);
+      expect(analytics.eventNames, [
+        AnalyticsEvents.timerStarted,
+        AnalyticsEvents.timerDiscarded,
+      ]);
+      expect(analytics.events.last.properties, {
+        'preset_id': 'timer-1',
+        'timer_kind': 'preset',
+        'action': 'discard',
+        'elapsed_s': 8,
+        'pct_complete': 80,
+      });
+    });
+
+    testWidgets('dismissing Finish resumes a timer that was running', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final keepAlive = _FakeTimerKeepAlive();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        keepAlive: keepAlive,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      expect(find.text('00:10'), findsOneWidget);
+      expect(keepAlive.isHolding, isTrue);
+
+      await _openFinishDialog(tester);
+      expect(keepAlive.isHolding, isFalse);
+      expect(find.text('Paused · tap to resume'), findsNothing);
+
+      clock.advance(const Duration(seconds: 30));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('00:10'), findsOneWidget);
+      expect(find.text('Session complete'), findsNothing);
+      expect(stops, isEmpty);
+
+      await tester.binding.handlePopRoute();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Discard this session?'), findsNothing);
+      expect(find.text('Pause'), findsOneWidget);
+      expect(find.text('00:10'), findsOneWidget);
+      expect(keepAlive.isHolding, isTrue);
+      expect(stops, isEmpty);
+
+      await _advanceBy(tester, clock, const Duration(seconds: 1));
+      expect(find.text('00:09'), findsOneWidget);
+
+      await _advanceBy(tester, clock, const Duration(seconds: 9));
+      expect(analytics.events.last.properties['pause_count'], 0);
+      expect(stops, [(timerId: 'timer-1', durationMs: 10000)]);
+    });
+
+    testWidgets('dismissing Finish leaves a paused timer paused', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final keepAlive = _FakeTimerKeepAlive();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        keepAlive: keepAlive,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, const Duration(seconds: 2));
+
+      await tester.tap(find.text('Pause'));
+      await tester.pump();
+      expect(find.text('Resume'), findsOneWidget);
+      expect(find.text('Paused · tap to resume'), findsOneWidget);
+      expect(find.text('00:08'), findsOneWidget);
+      expect(keepAlive.isHolding, isFalse);
+      expect(stops, isEmpty);
+
+      await _openFinishDialog(tester);
+      clock.advance(const Duration(seconds: 30));
+      await tester.pump(const Duration(seconds: 1));
+
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Discard this session?'), findsNothing);
+      expect(find.text('Resume'), findsOneWidget);
+      expect(find.text('Paused · tap to resume'), findsOneWidget);
+      expect(find.text('00:08'), findsOneWidget);
+      expect(find.text('Pause'), findsNothing);
+      expect(keepAlive.isHolding, isFalse);
+      expect(stops, isEmpty);
+
+      clock.advance(const Duration(seconds: 5));
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.text('00:08'), findsOneWidget);
+      expect(find.text('Session complete'), findsNothing);
+    });
+
+    testWidgets('discarding after a pause saves nothing', (tester) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, const Duration(seconds: 3));
+
+      await tester.tap(find.text('Pause'));
+      await tester.pump();
+      await tester.tap(find.text('Resume'));
+      await tester.pump();
+      await _advanceBy(tester, clock, const Duration(seconds: 2));
+      await tester.tap(find.text('Pause'));
+      await tester.pump();
+
+      await _openFinishDialog(tester);
+      await tester.tap(find.text('Discard session'));
+      await tester.pumpAndSettle();
+
+      expect(stops, isEmpty);
+      expect(find.text('Discard this session?'), findsNothing);
+    });
+
+    testWidgets('saving after a pause reports the session once', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, const Duration(seconds: 3));
+
+      await tester.tap(find.text('Pause'));
+      await tester.pump();
+      expect(stops, isEmpty);
+
+      await _openFinishDialog(tester);
+      await tester.tap(find.text('Save session'));
+      await tester.pumpAndSettle();
+
+      expect(stops, [(timerId: 'timer-1', durationMs: 3000)]);
+      expect(find.text('3 sec · saved to your practice'), findsOneWidget);
+    });
+  });
+
+  group('done', () {
+    testWidgets('returns to the screen below', (tester) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+
+      await _pumpRoutedScreen(tester, clock: clock, analytics: analytics);
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, _timerDuration);
+      expect(find.text('Session complete'), findsOneWidget);
+
+      await tester.tap(find.text('Done'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ActiveTimerScreen), findsNothing);
+      expect(find.byType(Scaffold), findsOneWidget);
+    });
+  });
+
+  group('bare-duration routine timer', () {
+    testWidgets('completion does not say the session was saved', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final stops = <_StopCall>[];
+
+      await _pumpScreen(
+        tester,
+        clock: clock,
+        notifier: _FakeTimerSessionNotifications(),
+        soundPlayer: _FakeTimerBellPlayer(),
+        presetTimer: _bareDurationTimer,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, _timerDuration);
+
+      expect(find.text('Session complete'), findsOneWidget);
+      expect(find.text('Session saved'), findsNothing);
+      expect(find.text('10 sec'), findsOneWidget);
+      expect(find.textContaining('saved'), findsNothing);
+      expect(stops, isEmpty);
+    });
+
+    testWidgets('saving early does not say the session was saved', (
+      tester,
+    ) async {
+      final clock = _FakeClock();
+      final analytics = RecordingAnalyticsService();
+      final stops = <_StopCall>[];
+
+      await _pumpRoutedScreen(
+        tester,
+        clock: clock,
+        analytics: analytics,
+        presetTimer: _bareDurationTimer,
+        stops: stops,
+      );
+      await _advanceThroughCountdown(tester, clock);
+      await _advanceBy(tester, clock, const Duration(seconds: 4));
+
+      await _openFinishDialog(tester);
+      await tester.tap(find.text('Save session'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Session complete'), findsOneWidget);
+      expect(find.text('Session saved'), findsNothing);
+      expect(find.text('4 sec'), findsOneWidget);
+      expect(find.textContaining('saved'), findsNothing);
+      expect(stops, isEmpty);
     });
   });
 }
@@ -677,6 +995,17 @@ Future<void> _advanceBy(
 
 const _timerDuration = Duration(seconds: 10);
 
+const _bareDurationTimer = PresetTimer(id: '', name: 'Sit', durationMs: 10000);
+
+typedef _StopCall = ({String timerId, int durationMs});
+
+Future<void> _openFinishDialog(WidgetTester tester) async {
+  await tester.tap(find.text('Finish'));
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 300));
+  expect(find.text('Discard this session?'), findsOneWidget);
+}
+
 Future<void> _pumpScreen(
   WidgetTester tester, {
   required _FakeClock clock,
@@ -684,11 +1013,16 @@ Future<void> _pumpScreen(
   required _FakeTimerBellPlayer soundPlayer,
   _FakeTimerKeepAlive? keepAlive,
   RecordingAnalyticsService? analytics,
+  PresetTimer? presetTimer,
+  List<_StopCall>? stops,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: _overrides(analytics),
+      overrides: _overrides(analytics, stops: stops),
       child: MaterialApp(
+        // Material 3 paints button presses with the ink sparkle shader, which
+        // this test runtime cannot decode. The buttons are still tappable.
+        theme: ThemeData(splashFactory: NoSplash.splashFactory),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: _buildScreen(
@@ -696,6 +1030,7 @@ Future<void> _pumpScreen(
           notifier: notifier,
           soundPlayer: soundPlayer,
           keepAlive: keepAlive,
+          presetTimer: presetTimer,
         ),
       ),
     ),
@@ -709,6 +1044,9 @@ Future<void> _pumpRoutedScreen(
   WidgetTester tester, {
   required _FakeClock clock,
   required RecordingAnalyticsService analytics,
+  _FakeTimerKeepAlive? keepAlive,
+  PresetTimer? presetTimer,
+  List<_StopCall>? stops,
 }) async {
   final router = GoRouter(
     initialLocation: '/timer',
@@ -724,6 +1062,8 @@ Future<void> _pumpRoutedScreen(
                   clock: clock,
                   notifier: _FakeTimerSessionNotifications(),
                   soundPlayer: _FakeTimerBellPlayer(),
+                  keepAlive: keepAlive,
+                  presetTimer: presetTimer,
                 ),
           ),
         ],
@@ -732,8 +1072,9 @@ Future<void> _pumpRoutedScreen(
   );
   await tester.pumpWidget(
     ProviderScope(
-      overrides: _overrides(analytics),
+      overrides: _overrides(analytics, stops: stops),
       child: MaterialApp.router(
+        theme: ThemeData(splashFactory: NoSplash.splashFactory),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
@@ -743,12 +1084,15 @@ Future<void> _pumpRoutedScreen(
   await tester.pump();
 }
 
-List<Override> _overrides(RecordingAnalyticsService? analytics) => [
+List<Override> _overrides(
+  RecordingAnalyticsService? analytics, {
+  List<_StopCall>? stops,
+}) => [
   stopUserTimerUseCaseProvider.overrideWithValue(
-    StopUserTimerUseCase(
-      ({required durationMs, required timerId}) async =>
-          Right<Failure, void>(null),
-    ),
+    StopUserTimerUseCase(({required durationMs, required timerId}) async {
+      stops?.add((timerId: timerId, durationMs: durationMs));
+      return Right<Failure, void>(null);
+    }),
   ),
   timerAnalyticsProvider.overrideWithValue(
     TimerAnalytics(analytics ?? RecordingAnalyticsService()),
@@ -760,13 +1104,12 @@ ActiveTimerScreen _buildScreen({
   required _FakeTimerSessionNotifications notifier,
   required _FakeTimerBellPlayer soundPlayer,
   _FakeTimerKeepAlive? keepAlive,
+  PresetTimer? presetTimer,
 }) {
   return ActiveTimerScreen(
-    presetTimer: PresetTimer(
-      id: 'timer-1',
-      name: 'Meditation',
-      durationMs: _timerDuration.inMilliseconds,
-    ),
+    presetTimer:
+        presetTimer ??
+        const PresetTimer(id: 'timer-1', name: 'Meditation', durationMs: 10000),
     clock: clock.now,
     soundPlayer: soundPlayer,
     sessionNotifier: notifier,

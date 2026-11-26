@@ -14,15 +14,24 @@ class VerseOfDayRemoteDatasource {
   final Dio dio;
   final _logger = AppLogger('VerseOfDayRemoteDatasource');
 
-  Future<VerseOfDayModel> fetchVerseOfDay({required String language}) async {
+  /// Today's verse in the user's timezone, or null when none is published
+  /// (for [tradition], when given: a day whose verses are all for other
+  /// traditions is null too, never another tradition's verse).
+  Future<VerseOfDayModel?> fetchVerseOfDay({
+    required String language,
+    String? tradition,
+  }) async {
     try {
       final response = await dio.get(
         '/verse-of-day/today',
-        queryParameters: {'lang': language},
+        queryParameters: {
+          'lang': language,
+          if (tradition != null) 'tradition': tradition,
+        },
       );
 
       if (response.statusCode == 200) {
-        return VerseOfDayModel.fromJson(response.data as Map<String, dynamic>);
+        return VerseOfDayModel.tryParse(response.data, language: language);
       } else {
         _logger.error('Failed to load verse of day: ${response.statusCode}');
         throw _statusToException(
@@ -32,6 +41,40 @@ class VerseOfDayRemoteDatasource {
       }
     } on DioException catch (e) {
       _logger.error('Dio error in fetchVerseOfDay', e);
+      throw _dioToException(e, 'Failed to load verse of day');
+    }
+  }
+
+  /// The verse for [date] (`YYYY-MM-DD`, taken as given — no timezone), or
+  /// null when that day has none (for [tradition], when given), including
+  /// days the backend has deleted.
+  Future<VerseOfDayModel?> fetchVerseOfDayByDate({
+    required String language,
+    required String date,
+    String? tradition,
+  }) async {
+    try {
+      final response = await dio.get(
+        '/verse-of-day',
+        queryParameters: {
+          'date': date,
+          'lang': language,
+          if (tradition != null) 'tradition': tradition,
+        },
+      );
+      if (response.statusCode != 200) {
+        _logger.error(
+          'Failed to load verse of day for $date: ${response.statusCode}',
+        );
+        throw _statusToException(
+          response.statusCode,
+          'Failed to load verse of day',
+        );
+      }
+      return VerseOfDayModel.tryParse(response.data, language: language);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      _logger.error('Dio error in fetchVerseOfDayByDate', e);
       throw _dioToException(e, 'Failed to load verse of day');
     }
   }

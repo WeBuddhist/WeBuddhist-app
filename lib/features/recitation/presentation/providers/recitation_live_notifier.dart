@@ -6,6 +6,7 @@ import 'package:flutter_pecha/core/network/reconnect_backoff.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/recitation/data/datasource/recitation_live_client.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitation_live_position.dart';
+import 'package:flutter_pecha/features/reader/presentation/utils/reader_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum RecitationLiveConnection {
@@ -123,6 +124,19 @@ class RecitationLiveState {
   );
 }
 
+/// How one live-recitation visit's following went, for analytics.
+class RecitationFollowSummary {
+  const RecitationFollowSummary({
+    required this.following,
+    required this.pausedCount,
+    required this.resumedCount,
+  });
+
+  final Duration following;
+  final int pausedCount;
+  final int resumedCount;
+}
+
 /// Holds the event's recitation socket for as long as a reader is on screen.
 ///
 /// Reconnects with backoff after a drop, pings every 30s so a sleeping phone
@@ -139,6 +153,7 @@ class RecitationLiveNotifier extends StateNotifier<RecitationLiveState>
     Duration Function(int attempt) backoff = reconnectDelay,
     this.snapshotGrace = const Duration(seconds: 2),
     this.endedNoticeDuration = const Duration(seconds: 4),
+    this.onFollowEnded,
   }) : _getToken = getToken,
        _restBaseUrl = restBaseUrl,
        _clientFactory = clientFactory ?? RecitationLiveClient.new,
@@ -148,6 +163,36 @@ class RecitationLiveNotifier extends StateNotifier<RecitationLiveState>
     if (_observeLifecycle) WidgetsBinding.instance.addObserver(this);
     unawaited(connect());
   }
+
+  /// Told once, from [dispose], how this visit's following went.
+  final void Function(RecitationFollowSummary summary)? onFollowEnded;
+
+  /// Runs only while the reader really follows the operator: following is on,
+  /// the socket is connected and the app is on screen. See [_syncFollowClock].
+  final Stopwatch _following = Stopwatch();
+
+  @override
+  set state(RecitationLiveState value) {
+    super.state = value;
+    _syncFollowClock();
+  }
+
+  /// Starts or stops [_following] to match what the reader can do now, so a
+  /// locked phone, a dropped connection or an ended session adds nothing.
+  void _syncFollowClock() {
+    final active =
+        !_disposed &&
+        !_suspended &&
+        state.isFollowing &&
+        state.connection == RecitationLiveConnection.connected;
+    if (active) {
+      _following.start();
+    } else {
+      _following.stop();
+    }
+  }
+  int _pausedCount = 0;
+  int _resumedCount = 0;
 
   static const Duration pingInterval = Duration(seconds: 30);
 
@@ -358,11 +403,13 @@ class RecitationLiveNotifier extends StateNotifier<RecitationLiveState>
       case AppLifecycleState.inactive:
         break;
     }
+    _syncFollowClock();
   }
 
   /// Scroll to wherever the operator is now and keep following.
   void resumeFollowing() {
     if (_disposed) return;
+    if (!state.isFollowing) _resumedCount++;
     state = state.copyWith(
       followMode: RecitationLiveFollowMode.following,
       outOfSync: false,
@@ -373,6 +420,7 @@ class RecitationLiveNotifier extends StateNotifier<RecitationLiveState>
   /// The reader scrolled away on its own: keep the highlight, stop scrolling.
   void pauseFollowing() {
     if (_disposed || !state.isFollowing) return;
+    _pausedCount++;
     state = state.copyWith(followMode: RecitationLiveFollowMode.paused);
   }
 
@@ -389,6 +437,14 @@ class RecitationLiveNotifier extends StateNotifier<RecitationLiveState>
 
   @override
   void dispose() {
+    _following.stop();
+    onFollowEnded?.call(
+      RecitationFollowSummary(
+        following: _following.elapsed,
+        pausedCount: _pausedCount,
+        resumedCount: _resumedCount,
+      ),
+    );
     _disposed = true;
     if (_observeLifecycle) WidgetsBinding.instance.removeObserver(this);
     _reconnectTimer?.cancel();
@@ -423,9 +479,17 @@ final recitationLiveProvider = StateNotifierProvider.autoDispose
       });
       ref.onDispose(() => graceTimer?.cancel());
 
+      final analytics = ref.read(readerAnalyticsProvider);
       return RecitationLiveNotifier(
         eventId: eventId,
         getToken: () => ref.read(authServiceProvider).getValidAccessToken(),
         restBaseUrl: ref.read(apiConfigProvider).baseUrl,
+        onFollowEnded:
+            (summary) => analytics.recitationLiveFollowed(
+              eventId: eventId,
+              following: summary.following,
+              pausedCount: summary.pausedCount,
+              resumedCount: summary.resumedCount,
+            ),
       );
     });

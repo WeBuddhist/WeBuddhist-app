@@ -5,8 +5,10 @@ import 'package:flutter_pecha/features/group_profile/presentation/providers/grou
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Which accumulation of an event the in-person counts belong to.
-typedef GroupEventInPersonCountsKey =
-    ({String eventId, String eventAccumulationId});
+typedef GroupEventInPersonCountsKey = ({
+  String eventId,
+  String eventAccumulationId,
+});
 
 class GroupEventInPersonCountsState {
   final List<GroupEventInPersonCount> items;
@@ -124,21 +126,20 @@ class GroupEventInPersonCountsNotifier
   }) async {
     if (state.isSaving) return null;
     state = state.copyWith(isSaving: true);
-    final result =
-        countId == null
-            ? await _repository.addInPersonCount(
-              _key.eventId,
-              eventAccumulationId: _key.eventAccumulationId,
-              day: day,
-              count: count,
-            )
-            : await _repository.updateInPersonCount(
-              _key.eventId,
-              countId,
-              eventAccumulationId: _key.eventAccumulationId,
-              day: day,
-              count: count,
-            );
+    final result = countId == null
+        ? await _repository.addInPersonCount(
+            _key.eventId,
+            eventAccumulationId: _key.eventAccumulationId,
+            day: day,
+            count: count,
+          )
+        : await _repository.updateInPersonCount(
+            _key.eventId,
+            countId,
+            eventAccumulationId: _key.eventAccumulationId,
+            day: day,
+            count: count,
+          );
     if (!mounted) return null;
     state = state.copyWith(isSaving: false);
     return result.fold((failure) => failure, (_) {

@@ -33,6 +33,7 @@ class PrayerRequestTile extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.onToggleCompleted,
+    this.onOpenSource,
     this.mantra,
     this.now,
   });
@@ -63,6 +64,11 @@ class PrayerRequestTile extends StatelessWidget {
 
   /// Marks the request accomplished, or active again when it already is.
   final VoidCallback? onToggleCompleted;
+
+  /// Shows where the request was posted — its space, or its space and event —
+  /// as a row that opens it. Only for lists that span rooms, like
+  /// "My prayer requests"; inside a room the row would repeat the screen.
+  final VoidCallback? onOpenSource;
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +174,18 @@ class PrayerRequestTile extends StatelessWidget {
               muted: muted,
               linkColor: prayerAccentTextColor(accent, isDark),
             ),
+            if (onOpenSource != null &&
+                prayerRequestSourceLabel(request) != null) ...[
+              const SizedBox(height: 10),
+              _SourceRow(
+                request: request,
+                label: prayerRequestSourceLabel(request)!,
+                muted: muted,
+                accent: accent,
+                isDark: isDark,
+                onTap: onOpenSource!,
+              ),
+            ],
             const SizedBox(height: 12),
             Divider(
               height: 1,
@@ -258,6 +276,108 @@ class PrayerRequestTile extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Where [request] was posted, as the card names it: "Space · Event" for a
+/// request made in an event, the space alone otherwise. Null when the server
+/// named neither, e.g. the space was deleted.
+String? prayerRequestSourceLabel(ChatMessageDTO request) {
+  final space = request.group?.name?.trim() ?? '';
+  final event = request.event?.name?.trim() ?? '';
+  final parts = [space, event].where((part) => part.isNotEmpty);
+  if (parts.isEmpty) return null;
+  return parts.join(' · ');
+}
+
+/// The card's "posted in" row: the event's picture (rounded square) or the
+/// space's avatar (circle), the label, and a chevron. The two shapes keep an
+/// event apart from a space at a glance.
+class _SourceRow extends StatelessWidget {
+  const _SourceRow({
+    required this.request,
+    required this.label,
+    required this.muted,
+    required this.accent,
+    required this.isDark,
+    required this.onTap,
+  });
+
+  final ChatMessageDTO request;
+  final String label;
+  final Color muted;
+  final Color accent;
+  final bool isDark;
+  final VoidCallback onTap;
+
+  static const double _iconSize = 18;
+
+  @override
+  Widget build(BuildContext context) {
+    final event = request.event;
+    final Widget icon;
+    if (event != null) {
+      final url = event.thumbnailUrl;
+      final fallback = ColoredBox(
+        color: isDark ? AppColors.chipBackgroundDark : AppColors.grey100,
+        child: Icon(AppAssets.calendarBlank, size: 12, color: muted),
+      );
+      icon = ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: SizedBox(
+          width: _iconSize,
+          height: _iconSize,
+          child:
+              url == null
+                  ? fallback
+                  : CachedNetworkImageWidget(
+                    key: networkImageKey(url),
+                    imageUrl: url,
+                    width: _iconSize,
+                    height: _iconSize,
+                    fit: BoxFit.cover,
+                    errorWidget: fallback,
+                  ),
+        ),
+      );
+    } else {
+      icon = PrayerAvatar(
+        avatarUrl: request.group?.avatarUrl,
+        label: request.group?.name ?? label,
+        size: _iconSize,
+        accent: accent,
+        isDark: isDark,
+      );
+    }
+
+    return Semantics(
+      button: true,
+      child: InkWell(
+        key: const ValueKey('prayer-request-source'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Row(
+            children: [
+              icon,
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  strutStyle: context.tibetanStrutStyle(12, compact: true),
+                  style: TextStyle(fontSize: 12, color: muted),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(AppAssets.caretRight, size: 14, color: muted),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

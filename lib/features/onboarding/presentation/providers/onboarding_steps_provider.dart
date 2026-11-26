@@ -5,22 +5,25 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// The onboarding pages for the signed-in account, in order.
 ///
-/// Auth0 creates a phone account with a generated display name and username,
-/// so phone accounts set their own on an extra [OnboardingStep.profile] page.
+/// A phone sign-in shares no name, so a phone account is created with a
+/// placeholder name and a generated username; phone accounts pick their own
+/// display name and username on an extra [OnboardingStep.profile] page.
 /// Accounts that already finished onboarding never see it.
 final onboardingStepsProvider = Provider.autoDispose<List<OnboardingStep>>((
   ref,
 ) {
-  // Stored before auth state flips, so it is set by the time onboarding opens.
-  final userId = SharedPreferencesService.instance.getSync<String>(
-    StorageKeys.currentUserId,
+  // Stored at sign-in, before auth state flips, so it is set by the time
+  // onboarding opens.
+  final signInMethod = SharedPreferencesService.instance.getSync<String>(
+    StorageKeys.signInMethod,
   );
-  return onboardingStepsFor(userId);
+  return onboardingStepsFor(signInMethod);
 });
 
-/// [userId] is the Auth0 `sub`; SMS logins have the form `sms|<id>`.
-List<OnboardingStep> onboardingStepsFor(String? userId) {
-  final isPhoneAccount = userId?.startsWith('sms|') ?? false;
+/// [signInMethod] is what was stored under [StorageKeys.signInMethod] at
+/// sign-in: `google`, `apple` or `phone`.
+List<OnboardingStep> onboardingStepsFor(String? signInMethod) {
+  final isPhoneAccount = signInMethod == 'phone';
   return [
     OnboardingStep.welcome,
     if (isPhoneAccount) OnboardingStep.profile,

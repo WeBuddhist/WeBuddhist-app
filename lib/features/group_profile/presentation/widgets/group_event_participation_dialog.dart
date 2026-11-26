@@ -43,17 +43,18 @@ class GroupEventParticipationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed:
-                  () => Navigator.of(
-                    context,
-                  ).pop(GroupEventParticipationType.offline),
+              onPressed: () => Navigator.of(
+                context,
+              ).pop(GroupEventParticipationType.offline),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 minimumSize: const Size(double.infinity, 48),
-                backgroundColor:
-                    isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                foregroundColor:
-                    isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                backgroundColor: isDark
+                    ? AppColors.surfaceWhite
+                    : AppColors.textPrimary,
+                foregroundColor: isDark
+                    ? AppColors.textPrimary
+                    : AppColors.surfaceWhite,
                 shape: shape,
               ),
               child: Text(
@@ -70,17 +71,17 @@ class GroupEventParticipationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed:
-                  () => Navigator.of(
-                    context,
-                  ).pop(GroupEventParticipationType.online),
+              onPressed: () =>
+                  Navigator.of(context).pop(GroupEventParticipationType.online),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 minimumSize: const Size(double.infinity, 48),
-                backgroundColor:
-                    isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-                foregroundColor:
-                    isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                backgroundColor: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.grey100,
+                foregroundColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
                 shape: shape,
               ),
               child: Text(

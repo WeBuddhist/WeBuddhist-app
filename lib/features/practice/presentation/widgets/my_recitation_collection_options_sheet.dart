@@ -8,6 +8,7 @@ import 'package:flutter_pecha/features/practice/data/repositories/my_recitation_
 import 'package:flutter_pecha/features/practice/presentation/providers/my_recitation_collections_providers.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/practice_recitations_paginated_provider.dart';
 import 'package:flutter_pecha/features/practice/presentation/screens/create_edit_collection_screen.dart';
+import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -63,13 +64,13 @@ class MyRecitationCollectionOptionsSheet extends ConsumerWidget {
             ),
             _OptionsTile(
               icon: PhosphorIconsRegular.pencilSimple,
-              label: context.l10n.my_recitation_collection_edit,
+              label: context.l10n.chant_book_edit,
               onTap: () => _onEdit(context),
             ),
             Divider(height: 1, color: dividerColor),
             _OptionsTile(
               icon: AppAssets.trash,
-              label: context.l10n.my_recitation_collection_delete,
+              label: context.l10n.chant_book_delete,
               labelColor: destructiveColor,
               iconColor: destructiveColor,
               onTap: () => _onDelete(context, ref),
@@ -88,6 +89,7 @@ class MyRecitationCollectionOptionsSheet extends ConsumerWidget {
 
   Future<void> _onDelete(BuildContext context, WidgetRef ref) async {
     final repository = ref.read(myRecitationCollectionsRepositoryProvider);
+    final analytics = ref.read(practiceAnalyticsProvider);
     final languageCode = ref.read(practiceRecitationsLanguageProvider);
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
@@ -95,8 +97,8 @@ class MyRecitationCollectionOptionsSheet extends ConsumerWidget {
 
     final confirmed = await showDestructiveConfirmationDialog(
       context,
-      title: context.l10n.my_recitation_collection_delete_title,
-      message: context.l10n.my_recitation_collection_delete_message,
+      title: context.l10n.chant_book_delete_title,
+      message: context.l10n.chant_book_delete_message,
       barrierDismissible: false,
       onConfirmed:
           () => _deleteCollection(
@@ -108,6 +110,7 @@ class MyRecitationCollectionOptionsSheet extends ConsumerWidget {
     if (!context.mounted) return;
 
     if (confirmed == true) {
+      analytics.collectionDeleted(collectionId: collectionId);
       // Kick off list reload (do not await) so AllRecitationsScreen can show
       // its existing skeleton, then immediately return to that screen.
       _startChantsListReload(ref, languageCode);

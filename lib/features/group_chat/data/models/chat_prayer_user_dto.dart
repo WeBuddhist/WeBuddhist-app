@@ -1,9 +1,12 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_visible_name.dart';
 
 /// One person praying: the `recent_prayers` avatar stack on a message, or a
 /// row of the who-prayed roster (which adds email, time and their count).
 class ChatPrayerUserDTO extends Equatable {
   final String userId;
+
+  /// The name to show: their display name, then first and last name.
   final String? name;
   final String? avatarUrl;
   final String? email;
@@ -27,7 +30,7 @@ class ChatPrayerUserDTO extends Equatable {
     final count = json['prayer_count'];
     return ChatPrayerUserDTO(
       userId: json['user_id']?.toString() ?? '',
-      name: json['name'] as String?,
+      name: chatVisibleName(json['display_name'], json['name']),
       avatarUrl: json['avatar_url'] as String?,
       email: json['email'] as String?,
       createdAt: json['created_at'] as String?,

@@ -31,8 +31,9 @@ class GroupAdminQueueRow extends StatelessWidget {
     final locale = Localizations.localeOf(context);
     final isTibetan = context.isTibetanLocale;
     final rowHeight = isTibetan ? 60.0 : 56.0;
-    final labelColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final labelColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
     final chevronColor = isDark ? AppColors.grey500 : AppColors.grey800;
     final countLabel = count > 99 ? '99+' : '$count';
 
@@ -54,10 +55,9 @@ class GroupAdminQueueRow extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color:
-                          isDark
-                              ? AppColors.chipBackgroundDark
-                              : AppColors.grey100,
+                      color: isDark
+                          ? AppColors.chipBackgroundDark
+                          : AppColors.grey100,
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
@@ -90,10 +90,9 @@ class GroupAdminQueueRow extends StatelessWidget {
                       height: 22,
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       decoration: BoxDecoration(
-                        color:
-                            isDark
-                                ? AppColors.surfaceWhite
-                                : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.surfaceWhite
+                            : AppColors.textPrimary,
                         borderRadius: BorderRadius.circular(11),
                       ),
                       alignment: Alignment.center,
@@ -106,10 +105,9 @@ class GroupAdminQueueRow extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color:
-                              isDark
-                                  ? AppColors.textPrimary
-                                  : AppColors.surfaceWhite,
+                          color: isDark
+                              ? AppColors.textPrimary
+                              : AppColors.surfaceWhite,
                           fontFamily: getSystemFontFamily(locale.languageCode),
                         ),
                       ),

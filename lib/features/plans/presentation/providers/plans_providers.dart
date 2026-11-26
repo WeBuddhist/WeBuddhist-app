@@ -10,7 +10,6 @@ import '../../domain/entities/plan.dart';
 import 'use_case_providers.dart';
 import 'plan_search_provider.dart';
 import 'find_plans_paginated_provider.dart';
-import 'package:flutter_pecha/features/plans/presentation/utils/plan_analytics.dart';
 
 final _logger = AppLogger('PlansProviders');
 
@@ -92,6 +91,5 @@ final planSearchProvider =
       return PlanSearchNotifier(
         getPlansUseCase: getPlansUseCase,
         languageCode: languageCode,
-        analytics: ref.watch(planAnalyticsProvider),
       );
     });

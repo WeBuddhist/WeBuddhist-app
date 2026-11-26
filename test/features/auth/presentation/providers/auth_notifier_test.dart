@@ -106,7 +106,7 @@ void main() {
     when(
       connectivity.onConnectivityChanged,
     ).thenAnswer((_) => const Stream<bool>.empty());
-    when(initAuth(any)).thenAnswer((_) async => const Right(null));
+    when(initAuth(any)).thenAnswer((_) async => const Right(false));
     when(isGuest(any)).thenAnswer((_) async => const Right(false));
     // A known install skips the Android fresh-install credential clear.
     storage = FakeLocalStorage()..values[StorageKeys.firstLaunch] = true;
@@ -191,14 +191,13 @@ void main() {
 
   test('a restored session sends no person properties', () async {
     final payload = base64Url.encode(
-      utf8.encode(jsonEncode({'sub': 'auth0|u1'})),
+      utf8.encode(jsonEncode({'sub': 'u1'})),
     );
     when(hasValid(any)).thenAnswer((_) async => const Right(true));
     when(getCreds(any)).thenAnswer(
       (_) async => Right(
         AuthCredentials(
-          accessToken: 'access',
-          idToken: 'header.$payload.signature',
+          accessToken: 'header.$payload.signature',
           tokenType: 'Bearer',
           expiresIn: 3600,
           obtainedAt: DateTime.now(),
@@ -224,8 +223,7 @@ void main() {
     when(getCreds(any)).thenAnswer(
       (_) async => Right(
         AuthCredentials(
-          accessToken: 'access',
-          idToken: 'a.b.c',
+          accessToken: 'a.b.c',
           tokenType: 'Bearer',
           expiresIn: 3600,
           obtainedAt: DateTime.now(),
@@ -250,8 +248,7 @@ void main() {
     when(getCreds(any)).thenAnswer(
       (_) async => Right(
         AuthCredentials(
-          accessToken: 'access',
-          idToken: 'a.b.c',
+          accessToken: 'a.b.c',
           tokenType: 'Bearer',
           expiresIn: 3600,
           obtainedAt: DateTime.now(),

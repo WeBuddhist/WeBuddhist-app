@@ -475,10 +475,10 @@ void main() {
     await tester.tap(find.text('Pray'));
     await tester.pump();
     expect(prayed, 1);
-    expect(find.text('Om Tare Tuttare Ture Soha'), findsOneWidget);
+    expect(find.text('Om Mani Padme Hum'), findsOneWidget);
 
     await tester.pumpAndSettle();
-    expect(find.text('Om Tare Tuttare Ture Soha'), findsNothing);
+    expect(find.text('Om Mani Padme Hum'), findsNothing);
   });
 
   testWidgets('praying again adds another prayer and another mantra', (
@@ -495,7 +495,7 @@ void main() {
     await tester.tap(find.text('Pray'));
     await tester.pump();
     expect(prayed, 1);
-    expect(find.text('Om Tare Tuttare Ture Soha'), findsOneWidget);
+    expect(find.text('Om Mani Padme Hum'), findsOneWidget);
     await tester.pumpAndSettle();
   });
 
@@ -507,12 +507,13 @@ void main() {
       count: 0,
       prayedByMe: false,
       onPray: () {},
-      mantra: 'Om Mani Padme Hum',
+      // An organiser's choice other than the built-in Mani.
+      mantra: 'Om Tare Tuttare Ture Soha',
     );
     await tester.tap(find.text('Pray'));
     await tester.pump();
-    expect(find.text('Om Mani Padme Hum'), findsOneWidget);
-    expect(find.text('Om Tare Tuttare Ture Soha'), findsNothing);
+    expect(find.text('Om Tare Tuttare Ture Soha'), findsOneWidget);
+    expect(find.text('Om Mani Padme Hum'), findsNothing);
     await tester.pumpAndSettle();
   });
 
@@ -528,17 +529,18 @@ void main() {
     );
     await tester.tap(find.text('Pray'));
     await tester.pump();
-    expect(find.text('Om Tare Tuttare Ture Soha'), findsOneWidget);
+    expect(find.text('Om Mani Padme Hum'), findsOneWidget);
     await tester.pumpAndSettle();
   });
 
-  test('the mantra follows the app language, English otherwise', () {
-    expect(prayerMantraForLocale(const Locale('bo')), startsWith('ཨོཾ'));
-    expect(prayerMantraForLocale(const Locale('zh')), startsWith('嗡'));
-    expect(prayerMantraForLocale(const Locale('mn')), startsWith('Ом'));
-    expect(prayerMantraForLocale(const Locale('hi')), startsWith('ॐ'));
-    expect(prayerMantraForLocale(const Locale('ne')), startsWith('ॐ'));
-    expect(prayerMantraForLocale(const Locale('fr')), 'Om Tare Tuttare Ture Soha');
+  test('the built-in mantra is Mani in the app language, English otherwise', () {
+    expect(prayerMantraForLocale(const Locale('bo')), 'ཨོཾ་མ་ཎི་པདྨེ་ཧཱུྃ།');
+    expect(prayerMantraForLocale(const Locale('zh')), '嗡 嘛呢 叭咪 吽');
+    expect(prayerMantraForLocale(const Locale('mn')), 'Ум мани бадмэ хум');
+    expect(prayerMantraForLocale(const Locale('hi')), 'ॐ मणि पद्मे हूँ');
+    expect(prayerMantraForLocale(const Locale('ne')), 'ॐ मणि पद्मे हूँ');
+    expect(prayerMantraForLocale(const Locale('en')), 'Om Mani Padme Hum');
+    expect(prayerMantraForLocale(const Locale('fr')), 'Om Mani Padme Hum');
   });
 
   test('intention hex parses with or without the hash', () {

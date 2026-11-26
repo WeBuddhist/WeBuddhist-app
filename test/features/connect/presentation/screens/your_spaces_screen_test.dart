@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/l10n/generated/app_localizations.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_space_providers.dart';
 import 'package:flutter_pecha/features/connect/presentation/screens/your_spaces_screen.dart';
+import 'package:flutter_pecha/features/connect/presentation/widgets/connect_unread_dot.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +28,9 @@ Future<ProviderContainer> _open(WidgetTester tester) async {
       joinedSpacesProvider.overrideWithValue(
         const JoinedSpaces(spaces: _spaces, isLoading: false),
       ),
-      unreadSpaceIdsProvider.overrideWithValue(const {'b'}),
+      unreadSpacesProvider.overrideWithValue(
+        const {'b': SpaceUnread(chat: true)},
+      ),
     ],
   );
   addTearDown(container.dispose);

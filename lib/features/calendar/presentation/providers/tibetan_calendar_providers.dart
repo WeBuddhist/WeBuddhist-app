@@ -12,6 +12,7 @@ import 'package:flutter_pecha/features/calendar/domain/tibetan_calendar_service.
 import 'package:flutter_pecha/features/calendar/domain/usecases/get_calendar_month_usecase.dart';
 import 'package:flutter_pecha/features/calendar/domain/usecases/get_today_calendar_usecase.dart';
 import 'package:flutter_pecha/features/calendar/presentation/calendar_l10n_utils.dart';
+import 'package:flutter_pecha/features/calendar/presentation/providers/calendar_type_providers.dart';
 import 'package:flutter_pecha/features/calendar/presentation/providers/calendar_event_sources_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
@@ -31,10 +32,13 @@ final calendarRemoteDatasourceProvider = Provider<CalendarRemoteDatasource>(
   (ref) => CalendarRemoteDatasource(dio: ref.watch(dioProvider)),
 );
 
+/// Rebuilt when the viewer picks another calendar, so every month, today and
+/// the event feed are fetched (and cached) in that calendar.
 final calendarRepositoryProvider = Provider<CalendarRepository>(
   (ref) => CalendarRepositoryImpl(
     datasource: ref.watch(calendarRemoteDatasourceProvider),
     store: ref.watch(screenCacheStoreProvider),
+    calendarType: ref.watch(selectedCalendarTypeProvider),
   ),
 );
 

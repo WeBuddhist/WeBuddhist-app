@@ -1,21 +1,22 @@
 import 'dart:io';
 
-import 'package:auth0_flutter/auth0_flutter.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:flutter_pecha/core/error/exception_mapper.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/auth/data/datasource/auth_remote_datasource.dart';
+import 'package:flutter_pecha/features/auth/data/session/session_token_store.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/auth_credentials.dart';
+import 'package:flutter_pecha/features/auth/domain/entities/phone_code_start.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/user.dart';
 import 'package:flutter_pecha/features/auth/domain/entities/username_update_result.dart';
+import 'package:flutter_pecha/features/auth/domain/failures/login_failure.dart';
 import 'package:flutter_pecha/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_pecha/features/auth/auth_service.dart';
 
 /// Auth repository implementation (Data Layer)
 ///
-/// Wraps the working AuthService to provide repository interface.
-/// This maintains all existing functionality while providing clean abstraction.
-/// Converts between Auth0 Credentials and domain AuthCredentials.
+/// Wraps [AuthService]: turns its session tokens into domain
+/// [AuthCredentials] and its exceptions into [Failure]s.
 class AuthRepositoryImpl implements AuthRepository {
   final AuthService _authService;
   final AuthRemoteDataSource _remoteDataSource;
@@ -26,20 +27,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }) : _authService = authService,
        _remoteDataSource = remoteDataSource;
 
-  /// Convert Auth0 Credentials to domain AuthCredentials
-  AuthCredentials _toAuthCredentials(Credentials credentials) {
-    final now = DateTime.now();
-    final expiresAt = credentials.expiresAt;
-    final expiresIn = expiresAt.difference(now).inSeconds;
-
+  AuthCredentials _toAuthCredentials(SessionTokens tokens) {
+    final expiresIn = _authService.jwtRemainingTtlSeconds(tokens.accessToken);
     return AuthCredentials(
-      accessToken: credentials.accessToken,
-      idToken: credentials.idToken,
-      tokenType: credentials.tokenType,
-      expiresIn: expiresIn > 0 ? expiresIn : 3600,
-      obtainedAt: now,
-      refreshToken: credentials.refreshToken,
-      scope: null, // Not exposed by Auth0 Credentials
+      accessToken: tokens.accessToken,
+      tokenType: 'Bearer',
+      expiresIn: expiresIn,
+      obtainedAt: DateTime.now(),
+      refreshToken: tokens.refreshToken,
+      scope: null,
     );
   }
 
@@ -55,45 +51,80 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  bool takeLegacySessionRemoved() => _authService.takeLegacySessionRemoved();
+
   // ========== Authentication Operations ==========
 
   @override
-  Future<Either<Failure, AuthCredentials>> loginWithGoogle() async {
+  Future<Either<Failure, AuthCredentials>> loginWithGoogle() =>
+      _login('Google', _authService.loginWithGoogle);
+
+  @override
+  Future<Either<Failure, AuthCredentials>> loginWithApple() =>
+      _login('Apple', _authService.loginWithApple);
+
+  @override
+  Future<Either<Failure, PhoneCodeStart>> requestPhoneCode(
+    String phoneNumber, {
+    int? resendToken,
+  }) async {
     try {
-      final credentials = await _authService.loginWithGoogle();
-      if (credentials == null) {
-        return const Left(AuthenticationFailure('Google login failed'));
+      final start = await _authService.requestPhoneCode(
+        phoneNumber,
+        resendToken: resendToken,
+      );
+      final session = start.session;
+      if (session != null) {
+        return Right(PhoneCodeStart.signedIn(_toAuthCredentials(session)));
       }
-      return Right(_toAuthCredentials(credentials));
+      return Right(
+        PhoneCodeStart.codeSent(
+          verificationId: start.verificationId!,
+          resendToken: start.resendToken,
+          autoSignIn: start.autoSignIn?.then(
+            (tokens) => tokens == null ? null : _toAuthCredentials(tokens),
+          ),
+        ),
+      );
     } catch (e) {
-      return Left(AuthenticationFailure('Google login failed: $e'));
+      return Left(_loginFailure('Phone', e));
     }
   }
 
   @override
-  Future<Either<Failure, AuthCredentials>> loginWithApple() async {
+  void cancelPhoneSignIn() => _authService.cancelPhoneSignIn();
+
+  @override
+  Future<Either<Failure, AuthCredentials>> loginWithPhoneCode({
+    required String verificationId,
+    required String smsCode,
+  }) => _login(
+    'Phone',
+    () => _authService.loginWithPhoneCode(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    ),
+  );
+
+  Future<Either<Failure, AuthCredentials>> _login(
+    String provider,
+    Future<SessionTokens> Function() signIn,
+  ) async {
     try {
-      final credentials = await _authService.loginWithApple();
-      if (credentials == null) {
-        return const Left(AuthenticationFailure('Apple login failed'));
-      }
-      return Right(_toAuthCredentials(credentials));
+      return Right(_toAuthCredentials(await signIn()));
     } catch (e) {
-      return Left(AuthenticationFailure('Apple login failed: $e'));
+      return Left(_loginFailure(provider, e));
     }
   }
 
-  @override
-  Future<Either<Failure, AuthCredentials>> loginWithPhone() async {
-    try {
-      final credentials = await _authService.loginWithPhone();
-      if (credentials == null) {
-        return const Left(AuthenticationFailure('Phone login failed'));
-      }
-      return Right(_toAuthCredentials(credentials));
-    } catch (e) {
-      return Left(AuthenticationFailure('Phone login failed: $e'));
-    }
+  /// The message keeps the `<Provider> login failed: ` wrapper that auth
+  /// analytics strips; the reason is what the screens read.
+  LoginFailure _loginFailure(String provider, Object error) {
+    return LoginFailure(
+      '$provider login failed: $error',
+      loginFailureReasonFor(error),
+    );
   }
 
   @override
@@ -119,29 +150,21 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, AuthCredentials>> getCredentials() async {
     try {
-      final credentials = await _authService.getCredentials();
-      if (credentials == null) {
-        return const Left(AuthenticationFailure('No credentials found'));
-      }
-      return Right(_toAuthCredentials(credentials));
+      final tokens = await _authService.getCredentials();
+      return Right(_toAuthCredentials(tokens));
     } catch (e) {
       return Left(_credentialFailure(e, 'Failed to get credentials'));
     }
   }
 
-  /// Maps a credentials-operation error to a [Failure], distinguishing a
-  /// permanently-lost session ([AuthenticationFailure] → re-login) from a
-  /// transient/offline renewal failure ([NetworkFailure] → keep the session
-  /// and retry). See [AuthService.isSessionPermanentlyLost].
+  /// Maps a session error to a [Failure], distinguishing a permanently-lost
+  /// session ([AuthenticationFailure] → re-login) from a transient/offline
+  /// refresh failure ([NetworkFailure] → keep the session and retry). See
+  /// [AuthService.isSessionPermanentlyLost].
   Failure _credentialFailure(Object error, String context) {
     return AuthService.isSessionPermanentlyLost(error)
         ? AuthenticationFailure('$context: $error')
         : NetworkFailure('$context: $error');
-  }
-
-  @override
-  bool isIdTokenExpired(String idToken) {
-    return _authService.isIdTokenExpired(idToken);
   }
 
   @override
@@ -283,4 +306,29 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ExceptionMapper.map(e, context: 'deleteAccount'));
     }
   }
+}
+
+/// The [LoginFailureReason] for what a sign-in threw. [AuthException.code]
+/// is one of [AuthService]'s own codes, a Firebase Authentication error code
+/// or `http_<status>` from the exchange.
+LoginFailureReason loginFailureReasonFor(Object error) {
+  final code = error is AuthException ? error.code : null;
+  return switch (code) {
+    AuthService.cancelledCode => LoginFailureReason.cancelled,
+    'invalid-phone-number' ||
+    'missing-phone-number' => LoginFailureReason.invalidPhoneNumber,
+    'invalid-verification-code' ||
+    'missing-verification-code' => LoginFailureReason.invalidCode,
+    'session-expired' ||
+    'code-expired' ||
+    'invalid-verification-id' => LoginFailureReason.codeExpired,
+    'too-many-requests' ||
+    'quota-exceeded' => LoginFailureReason.tooManyRequests,
+    'network' || 'network-request-failed' => LoginFailureReason.network,
+    // The exchange answers 403 only for an email the provider has not
+    // verified.
+    'http_403' => LoginFailureReason.emailNotVerified,
+    'not-configured' => LoginFailureReason.notConfigured,
+    _ => LoginFailureReason.unknown,
+  };
 }

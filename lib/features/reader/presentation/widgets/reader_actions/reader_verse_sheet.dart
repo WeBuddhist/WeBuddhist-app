@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_pecha/core/analytics/media_analytics.dart';
 import 'package:flutter_pecha/core/analytics/share_analytics.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/deep_linking/deep_link_url_builder.dart';
@@ -229,24 +230,18 @@ class _ReaderVerseSheetState extends ConsumerState<ReaderVerseSheet> {
               ],
             ),
           ),
-          if (tabs.isNotEmpty)
-            Padding(
-              // The track lands 72 below the top, as WF13; its tap target
-              // reaches 2 past it either way.
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-              child: ReaderSheetSegments<ReaderResourceTab>(
-                values: tabs,
-                selected: tabs.contains(open) ? open! : tabs.first,
-                labelOf:
-                    (tab) => switch (tab) {
-                      ReaderResourceTab.commentary => l10n.reader_tab_commentary,
-                      ReaderResourceTab.versions => l10n.reader_tab_versions,
-                      ReaderResourceTab.videos => l10n.reader_videos,
-                      ReaderResourceTab.rootText => l10n.root_text,
-                    },
-                onSelected: _onTab,
-              ),
-            ),
+          ReaderResourceTabBar(
+            tabs: tabs,
+            selected: open,
+            labelOf:
+                (tab) => switch (tab) {
+                  ReaderResourceTab.commentary => l10n.reader_tab_commentary,
+                  ReaderResourceTab.versions => l10n.reader_tab_versions,
+                  ReaderResourceTab.videos => l10n.reader_videos,
+                  ReaderResourceTab.rootText => l10n.root_text,
+                },
+            onSelected: _onTab,
+          ),
           Expanded(
             child: switch (open) {
               // Keyed by verse: a new verse's list starts on its first
@@ -309,6 +304,66 @@ List<ReaderResourceTab> readerResourceTabs(
     if (info.videos.isNotEmpty) ReaderResourceTab.videos,
     if (info.relatedText.hasRootText) ReaderResourceTab.rootText,
   ];
+}
+
+/// The row under a verse sheet's header (#1146): the segmented tabs when
+/// the verse has two or more, a plain label naming the one it has when it
+/// has a single one (a lone segment reads as a button that does nothing),
+/// and nothing when it has none.
+class ReaderResourceTabBar extends ConsumerWidget {
+  const ReaderResourceTabBar({
+    super.key,
+    required this.tabs,
+    required this.selected,
+    required this.labelOf,
+    required this.onSelected,
+  });
+
+  final List<ReaderResourceTab> tabs;
+  final ReaderResourceTab? selected;
+  final String Function(ReaderResourceTab tab) labelOf;
+  final ValueChanged<ReaderResourceTab> onSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (tabs.isEmpty) return const SizedBox.shrink();
+    if (tabs.length == 1) {
+      final palette = ReaderPalette.resolve(Theme.of(context), ref);
+      return Padding(
+        // Lined up with the language chips below it.
+        padding: const EdgeInsets.fromLTRB(
+          readerVerseSheetInset,
+          10,
+          readerVerseSheetInset,
+          6,
+        ),
+        child: Semantics(
+          header: true,
+          child: Text(
+            labelOf(tabs.single),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: readerSheetText(
+              context,
+              ReaderSheetTextRole.segmentSelected,
+              color: palette.ink,
+            ),
+          ),
+        ),
+      );
+    }
+    return Padding(
+      // The track lands 72 below the top, as WF13; its tap target reaches 2
+      // past it either way.
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      child: ReaderSheetSegments<ReaderResourceTab>(
+        values: tabs,
+        selected: tabs.contains(selected) ? selected! : tabs.first,
+        labelOf: labelOf,
+        onSelected: onSelected,
+      ),
+    );
+  }
 }
 
 /// The sheet of a verse with no commentaries, versions, videos or root
@@ -588,7 +643,11 @@ String readerPlainText(String html) {
   var text = html;
   for (final tag in const ['sup', 'i']) {
     text = text.replaceAll(
-      RegExp('<$tag(?:\\s[^>]*)?>.*?<\\/$tag>', caseSensitive: false, dotAll: true),
+      RegExp(
+        '<$tag(?:\\s[^>]*)?>.*?<\\/$tag>',
+        caseSensitive: false,
+        dotAll: true,
+      ),
       '',
     );
   }
@@ -611,6 +670,9 @@ class ReaderVideosTab extends ConsumerWidget {
     if (video.url.isEmpty) return;
     HapticFeedback.lightImpact();
     onOpened();
+    MediaAnalytics.of(
+      context,
+    ).videoOpened(surface: VideoSurface.reader, videoUrl: video.url);
     await Navigator.of(context, rootNavigator: true).push<void>(
       MaterialPageRoute<void>(
         settings: const RouteSettings(name: 'video-player'),

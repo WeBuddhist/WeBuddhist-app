@@ -52,8 +52,9 @@ final groupEventComposerRepositoryProvider =
 
 final groupEventIntentionsProvider =
     FutureProvider.autoDispose<List<GroupEventIntention>>((ref) async {
-      final result =
-          await ref.watch(groupEventComposerRepositoryProvider).getIntentions();
+      final result = await ref
+          .watch(groupEventComposerRepositoryProvider)
+          .getIntentions();
       return result.fold(
         (failure) => throw failure,
         (intentions) => intentions,
@@ -78,9 +79,8 @@ final groupCmsEventsProvider = AsyncNotifierProvider.autoDispose
           ref
               .watch(groupEventComposerRepositoryProvider)
               .cmsEventsSource(groupId, language: language),
-          select:
-              (result) =>
-                  result.fold((failure) => throw failure, (items) => items),
+          select: (result) =>
+              result.fold((failure) => throw failure, (items) => items),
         );
       });
     });

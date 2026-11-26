@@ -37,6 +37,7 @@ class VerseOfDayCommentModel {
   final String? parentCommentId;
   final String firstName;
   final String? lastName;
+  final String? displayName;
   final String? avatarUrl;
   final String text;
   final DateTime? createdAt;
@@ -51,6 +52,7 @@ class VerseOfDayCommentModel {
     this.parentCommentId,
     required this.firstName,
     this.lastName,
+    this.displayName,
     this.avatarUrl,
     required this.text,
     this.createdAt,
@@ -72,6 +74,7 @@ class VerseOfDayCommentModel {
       parentCommentId: parentId == null || parentId.isEmpty ? null : parentId,
       firstName: userJson['first_name'] as String? ?? '',
       lastName: userJson['last_name'] as String?,
+      displayName: userJson['display_name'] as String?,
       avatarUrl: userJson['avatar_url'] as String?,
       text: json['text'] as String? ?? '',
       createdAt: _parseDateTime(json['created_at']),
@@ -90,6 +93,7 @@ class VerseOfDayCommentModel {
       user: VerseOfDayCommentUser(
         firstName: firstName,
         lastName: lastName,
+        userDisplayName: displayName,
         avatarUrl: avatarUrl,
       ),
       text: text,
@@ -149,6 +153,7 @@ class VerseOfDayLikerModel {
   final String userId;
   final String firstName;
   final String? lastName;
+  final String? displayName;
   final String? avatarUrl;
   final DateTime? createdAt;
 
@@ -156,6 +161,7 @@ class VerseOfDayLikerModel {
     required this.userId,
     required this.firstName,
     this.lastName,
+    this.displayName,
     this.avatarUrl,
     this.createdAt,
   });
@@ -165,6 +171,7 @@ class VerseOfDayLikerModel {
       userId: json['user_id'] as String? ?? '',
       firstName: json['first_name'] as String? ?? '',
       lastName: json['last_name'] as String?,
+      displayName: json['display_name'] as String?,
       avatarUrl: json['avatar_url'] as String?,
       createdAt: _parseDateTime(json['created_at']),
     );
@@ -176,6 +183,7 @@ class VerseOfDayLikerModel {
       user: VerseOfDayCommentUser(
         firstName: firstName,
         lastName: lastName,
+        userDisplayName: displayName,
         avatarUrl: avatarUrl,
       ),
       createdAt: createdAt,

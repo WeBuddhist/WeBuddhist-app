@@ -1,6 +1,5 @@
 import 'package:flutter_pecha/core/storage/storage_keys.dart';
 import 'package:flutter_pecha/features/connect/presentation/providers/connect_space_providers.dart';
-import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,18 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _a = GroupProfile(id: 'a', title: 'A');
 const _b = GroupProfile(id: 'b', title: 'B');
-
-ChatRoomDTO _room(String id, {String? groupId, int unreadCount = 0}) {
-  return ChatRoomDTO(
-    id: id,
-    createdBy: 'u9',
-    groupId: groupId,
-    kind: groupId == null ? 'direct' : 'group',
-    name: id,
-    updatedAt: '2026-09-01T10:00:00Z',
-    unreadCount: unreadCount,
-  );
-}
 
 void main() {
   group('resolveConnectSpace', () {
@@ -46,17 +33,6 @@ void main() {
     });
   });
 
-  test('only unread space rooms put a dot on their space', () {
-    expect(
-      unreadSpaceIds([
-        _room('r1', groupId: 'a', unreadCount: 2),
-        _room('r2', groupId: 'b'),
-        _room('r3', unreadCount: 5),
-      ]),
-      {'a'},
-    );
-  });
-
   group('connectLastSpaceProvider', () {
     test('reads the stored space and remembers a new one', () async {
       SharedPreferences.setMockInitialValues({
@@ -74,6 +50,46 @@ void main() {
       expect(container.read(connectLastSpaceProvider).spaceId, 'b');
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString(StorageKeys.connectLastSpaceId), 'b');
+    });
+  });
+
+  group('connectOpenedSpacesProvider', () {
+    test('reads the opened spaces and records a new one', () async {
+      SharedPreferences.setMockInitialValues({
+        StorageKeys.connectOpenedSpaceIds: ['a'],
+      });
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(connectOpenedSpacesProvider);
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(connectOpenedSpacesProvider).ids, {'a'});
+      expect(container.read(connectOpenedSpacesProvider).loaded, isTrue);
+
+      await container
+          .read(connectOpenedSpacesProvider.notifier)
+          .markOpened('b');
+      expect(container.read(connectOpenedSpacesProvider).ids, {'a', 'b'});
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getStringList(StorageKeys.connectOpenedSpaceIds),
+        unorderedEquals(['a', 'b']),
+      );
+    });
+
+    test('keeps a space marked before the stored ids were read', () async {
+      SharedPreferences.setMockInitialValues({
+        StorageKeys.connectOpenedSpaceIds: ['a'],
+      });
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await container
+          .read(connectOpenedSpacesProvider.notifier)
+          .markOpened('b');
+      await Future<void>.delayed(Duration.zero);
+      expect(container.read(connectOpenedSpacesProvider).ids, {'a', 'b'});
+      expect(container.read(connectOpenedSpacesProvider).loaded, isTrue);
     });
   });
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_pecha/features/calendar/data/datasource/personal_calendar_remote_datasource.dart';
 import 'package:flutter_pecha/features/calendar/data/models/personal_calendar_models.dart';
 import 'package:flutter_pecha/features/calendar/domain/models/calendar_event.dart';
@@ -141,29 +142,61 @@ void main() {
         language: 'bo',
         skip: 100,
         limit: 100,
+        calendarType: 'tsurphu',
       );
       final request = recorder.requests.single;
       expect(request.path, '/users/me/calendar');
       expect(request.queryParameters, {
         'from_date': '2026-02-01',
         'to_date': '2026-02-28',
+        'calendar_type': 'tsurphu',
         'language': 'bo',
         'skip': 100,
         'limit': 100,
       });
     });
 
-    test('an edit sends only the title and repeat', () async {
+    test('a new event is saved in the chosen calendar', () async {
+      // createEvent reads the device timezone over a platform channel.
+      TestWidgetsFlutterBinding.ensureInitialized();
+      const channel = MethodChannel('flutter_timezone');
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(channel, (_) async => 'Asia/Kolkata');
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final (remote, recorder) = build(eventJson);
+      await remote.createEvent(
+        title: 'Puja',
+        startDate: DateTime(2026, 2, 20),
+        repeat: PersonalRepeat.monthlyLunar,
+        calendarType: 'tsurphu',
+      );
+      final request = recorder.requests.single;
+      expect(request.method, 'POST');
+      expect(request.path, '/users/me/calendar-events');
+      final data = request.data as Map<String, dynamic>;
+      expect(data['start_date'], '2026-02-20');
+      expect(data['repeat'], 'MONTHLY_LUNAR');
+      expect(data['timezone'], 'Asia/Kolkata');
+      expect(data['calendar_type'], 'tsurphu');
+    });
+
+    test('an edit sends the title, repeat and calendar', () async {
       final (remote, recorder) = build(eventJson);
       final event = await remote.updateEvent(
         'e1',
         title: 'Puja',
         repeat: PersonalRepeat.yearlyLunar,
+        calendarType: 'tsurphu',
       );
       final request = recorder.requests.single;
       expect(request.method, 'PATCH');
       expect(request.path, '/users/me/calendar-events/e1');
-      expect(request.data, {'title': 'Puja', 'repeat': 'YEARLY_LUNAR'});
+      expect(request.data, {
+        'title': 'Puja',
+        'repeat': 'YEARLY_LUNAR',
+        'calendar_type': 'tsurphu',
+      });
       expect(event.startDate, DateTime(2026, 2, 20));
     });
 

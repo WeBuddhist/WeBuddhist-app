@@ -55,19 +55,20 @@ class _GroupEventAddVideoSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
     final raw = _controller.text.trim();
     final normalized = ConnectPostLinkUtils.normalizeUserUrl(raw);
-    final url =
-        normalized != null && ConnectPostLinkUtils.isYoutube(normalized)
-            ? normalized
-            : null;
+    final url = normalized != null && ConnectPostLinkUtils.isYoutube(normalized)
+        ? normalized
+        : null;
     final isInvalid = raw.isNotEmpty && url == null;
-    final previewAsync =
-        url == null ? null : ref.watch(chatLinkPreviewProvider(url));
+    final previewAsync = url == null
+        ? null
+        : ref.watch(chatLinkPreviewProvider(url));
     final isLoading = previewAsync?.isLoading ?? false;
     final preview = previewAsync?.valueOrNull;
     final canAdd = url != null && !isLoading;
@@ -77,16 +78,15 @@ class _GroupEventAddVideoSheetState
       footer: GroupEventSheet.primaryButton(
         context,
         label: l10n.group_event_add_video,
-        onPressed:
-            !canAdd
-                ? null
-                : () => Navigator.of(context).pop(
-                  GroupEventVideoDraft(
-                    url: url,
-                    title: preview?.title,
-                    thumbnailUrl: preview?.imageUrl,
-                  ),
+        onPressed: !canAdd
+            ? null
+            : () => Navigator.of(context).pop(
+                GroupEventVideoDraft(
+                  url: url,
+                  title: preview?.title,
+                  thumbnailUrl: preview?.imageUrl,
                 ),
+              ),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
@@ -112,10 +112,9 @@ class _GroupEventAddVideoSheetState
                       hintText: l10n.group_event_video_link_hint,
                       hintStyle: TextStyle(fontSize: 15, color: secondaryColor),
                       filled: true,
-                      fillColor:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.surfaceWhite,
+                      fillColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.surfaceWhite,
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
@@ -125,12 +124,11 @@ class _GroupEventAddVideoSheetState
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color:
-                              isInvalid
-                                  ? AppColors.danger
-                                  : (isDark
-                                      ? AppColors.textPrimaryDark
-                                      : AppColors.textPrimary),
+                          color: isInvalid
+                              ? AppColors.danger
+                              : (isDark
+                                    ? AppColors.textPrimaryDark
+                                    : AppColors.textPrimary),
                         ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
@@ -144,10 +142,9 @@ class _GroupEventAddVideoSheetState
                 OutlinedButton(
                   onPressed: _paste,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
+                    foregroundColor: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                     side: BorderSide(color: borderColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -207,8 +204,9 @@ class _VideoPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     return Container(
       padding: const EdgeInsets.all(10),
@@ -224,18 +222,16 @@ class _VideoPreview extends StatelessWidget {
             child: SizedBox(
               width: 96,
               height: 64,
-              child:
-                  thumbnailUrl == null
-                      ? ColoredBox(
-                        color:
-                            isDark ? AppColors.surfaceDark : AppColors.grey100,
-                      )
-                      : CachedNetworkImageWidget(
-                        imageUrl: thumbnailUrl,
-                        width: 96,
-                        height: 64,
-                        fit: BoxFit.cover,
-                      ),
+              child: thumbnailUrl == null
+                  ? ColoredBox(
+                      color: isDark ? AppColors.surfaceDark : AppColors.grey100,
+                    )
+                  : CachedNetworkImageWidget(
+                      imageUrl: thumbnailUrl,
+                      width: 96,
+                      height: 64,
+                      fit: BoxFit.cover,
+                    ),
             ),
           ),
           const SizedBox(width: 12),

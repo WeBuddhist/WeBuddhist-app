@@ -164,6 +164,55 @@ void main() {
     expect(personalTotal(container), 1);
   });
 
+  test(
+    'a chant counted into a given target ignores the current selection',
+    () async {
+      final container = await openSession();
+      await serverCount(container, _eventAccumulation, 0);
+
+      // Recite again was tapped with the event accumulation selected...
+      await selection(container).selectGroup(_eventAccumulation);
+      final target = chantTargetOf(container.read, _mantra);
+      expect(target, _eventAccumulation);
+
+      // ...then personal practice was picked before the Undo window closed.
+      await selection(container).selectPersonal();
+      final counted = countChantInto(
+        container.read,
+        _mantra,
+        groupAccumulatorId: target,
+      );
+      await settle();
+
+      expect(counted, isTrue);
+      expect(eventTotal(container), 1);
+      expect(personalTotal(container), 0);
+    },
+  );
+
+  test(
+    'a chant held for personal practice still counts there after a group is picked',
+    () async {
+      final container = await openSession();
+      await serverCount(container, _eventAccumulation, 0);
+      await selection(container).selectPersonal();
+      final target = chantTargetOf(container.read, _mantra);
+      expect(target, isNull);
+
+      await selection(container).selectGroup(_eventAccumulation);
+      final counted = countChantInto(
+        container.read,
+        _mantra,
+        groupAccumulatorId: target,
+      );
+      await settle();
+
+      expect(counted, isTrue);
+      expect(personalTotal(container), 1);
+      expect(eventTotal(container), 0);
+    },
+  );
+
   test('only the selected accumulation is the chant target', () async {
     final container = await openSession();
 

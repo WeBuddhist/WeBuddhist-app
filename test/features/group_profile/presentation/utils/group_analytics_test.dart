@@ -14,6 +14,39 @@ void main() {
     analytics = GroupAnalytics(service);
   });
 
+  test('a follow says how the group was joined when known', () {
+    analytics.groupFollowed(
+      groupId: 'g1',
+      groupType: GroupType.community,
+      via: 'event',
+    );
+
+    expect(service.events.single.properties, {
+      'group_id': 'g1',
+      'group_type': 'community',
+      'via': 'event',
+    });
+  });
+
+  test('join requests and accumulator joins have their own events', () {
+    analytics.groupJoinRequested(groupId: 'g1');
+    analytics.groupAccumulatorJoined(
+      accumulatorId: 'a1',
+      groupId: 'g1',
+      source: 'group_page',
+    );
+
+    expect(service.eventNames, [
+      AnalyticsEvents.groupJoinRequested,
+      AnalyticsEvents.groupAccumulatorJoined,
+    ]);
+    expect(service.events.last.properties, {
+      'accumulator_id': 'a1',
+      'group_id': 'g1',
+      'source': 'group_page',
+    });
+  });
+
   test('groupViewed carries the group and its type', () {
     analytics.groupViewed(groupId: 'g1', groupType: GroupType.page);
 

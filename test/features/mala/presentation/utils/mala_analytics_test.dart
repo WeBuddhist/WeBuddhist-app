@@ -24,7 +24,7 @@ void main() {
         mantraName: 'Chenrezig',
         mode: MalaMode.group,
         groupId: 'g1',
-        source: 'practice',
+        source: MalaOpenSource.practiceTab,
       );
 
       expect(service.eventNames, [AnalyticsEvents.malaScreenOpened]);
@@ -33,8 +33,20 @@ void main() {
         'mantra_name': 'Chenrezig',
         'mode': 'group',
         'group_id': 'g1',
-        'source': 'practice',
+        'source': 'practice_tab',
       });
+    });
+
+    test('open sources are sent in snake_case', () {
+      expect([for (final source in MalaOpenSource.values) source.key], [
+        'home',
+        'practice_tab',
+        'routine',
+        'notification',
+        'bookmarks',
+        'group_accumulation',
+        'deep_link',
+      ]);
     });
 
     test('personal events carry no group id', () {

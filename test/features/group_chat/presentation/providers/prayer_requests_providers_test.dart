@@ -332,9 +332,16 @@ class _FakeGroupChatRepository implements GroupChatRepository {
 
   final markedRead = <String>[];
 
+  /// The `message_type` of each mark-read, null for every type.
+  final markedReadTypes = <String?>[];
+
   @override
-  Future<Either<Failure, Unit>> markRoomRead(String roomId) async {
+  Future<Either<Failure, Unit>> markRoomRead(
+    String roomId, {
+    String? messageType,
+  }) async {
     markedRead.add(roomId);
+    markedReadTypes.add(messageType);
     return const Right(unit);
   }
 
@@ -969,6 +976,24 @@ void main() {
       await _settle();
       expect(notifier.state.roomStatus, PrayerRoomStatus.ready);
       expect(notifier.state.mantra, isNull);
+    });
+
+    test('the room counts as fetched only once its requests load, so a '
+        'failed list never marks the board read', () async {
+      repository =
+          _FakeGroupChatRepository(history: [_prayer('a')])
+            ..listFailure = const ServerFailure('boom');
+      container = buildContainer();
+
+      final notifier = _keepAlive(container);
+      await _settle();
+      expect(notifier.state.roomId, 'room-1');
+      expect(notifier.state.fetchedRoomId, isNull);
+
+      repository.listFailure = null;
+      await notifier.retry();
+      await _settle();
+      expect(notifier.state.fetchedRoomId, 'room-1');
     });
 
     test('send posts a PRAYER message and inserts it at the top', () async {
@@ -2200,6 +2225,7 @@ void main() {
       await _settle();
       expect(notifier.state.requests.map((r) => r.id), ['b', 'a']);
       expect(repository.markedRead, ['room-1']);
+      expect(repository.markedReadTypes, [ChatMessageDTO.typePrayer]);
 
       // A prayer on a loaded row is not a new request.
       repository.history = [_prayer('b', count: 1), _prayer('a')];
@@ -2209,6 +2235,38 @@ void main() {
       await _settle();
       expect(_byId(notifier, 'b').prayerCount, 1);
       expect(repository.markedRead, ['room-1']);
+    });
+
+    test('new requests on a space board mark only prayer requests read', () async {
+      repository = _FakeGroupChatRepository(history: [_prayer('a')]);
+      final signals = FakeRealtimeSignals();
+      container = ProviderContainer(
+        overrides: [
+          groupChatRepositoryProvider.overrideWithValue(repository),
+          prayerPacingProvider.overrideWithValue(_instant),
+          prayerTranslationLanguageProvider.overrideWithValue('EN'),
+          prayerMantraLanguageProvider.overrideWithValue('en'),
+          realtimeSignalsProvider.overrideWithValue(signals),
+          firebaseSignedInProvider.overrideWith((ref) => true),
+        ],
+      );
+      container.listen(prayerRequestsProvider(_groupScope), (_, _) {});
+      await _settle();
+      container.listen(
+        prayerRoomLiveProvider((scope: _groupScope, roomId: 'room-1')),
+        (_, _) {},
+      );
+      await _settle();
+
+      repository.history = [_prayer('b'), _prayer('a')];
+      signals.emit(SignalPaths.chatRoom('room-1'), {
+        'prayers_changed_at': DateTime.utc(2026, 10, 29),
+      });
+      await _settle();
+
+      // The space's chat shares the room and keeps its own unread count.
+      expect(repository.markedRead, ['room-1']);
+      expect(repository.markedReadTypes, [ChatMessageDTO.typePrayer]);
     });
 
     test('a request added past the end under oldest can be paged to', () async {

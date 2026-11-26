@@ -18,10 +18,9 @@ class GroupEventComposerRemoteDatasource {
     try {
       final response = await dio.get('/cms/intentions');
       final data = response.data;
-      final list =
-          data is Map<String, dynamic>
-              ? (data['intentions'] as List<dynamic>? ?? const [])
-              : (data as List<dynamic>? ?? const []);
+      final list = data is Map<String, dynamic>
+          ? (data['intentions'] as List<dynamic>? ?? const [])
+          : (data as List<dynamic>? ?? const []);
       final intentions = <GroupEventIntention>[];
       for (final item in list.whereType<Map<String, dynamic>>()) {
         final id = item['id'] as String? ?? '';
@@ -100,17 +99,15 @@ class GroupEventComposerRemoteDatasource {
       );
       final data = response.data;
       if (data is! Map<String, dynamic>) break;
-      final items =
-          (data['items'] as List<dynamic>? ?? const [])
-              .whereType<Map<String, dynamic>>()
-              .toList();
+      final items = (data['items'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .toList();
       for (final item in items) {
         final id = item['id'] as String? ?? '';
         if (id.isEmpty) continue;
-        final kind =
-            (item['type'] as String? ?? '').toLowerCase() == 'series'
-                ? GroupEventPracticeKind.series
-                : GroupEventPracticeKind.plan;
+        final kind = (item['type'] as String? ?? '').toLowerCase() == 'series'
+            ? GroupEventPracticeKind.series
+            : GroupEventPracticeKind.plan;
         picks.add(
           GroupEventPracticePick(
             id: id,
@@ -121,10 +118,9 @@ class GroupEventComposerRemoteDatasource {
         );
       }
       final pagination = data['pagination'];
-      final totalPages =
-          pagination is Map<String, dynamic>
-              ? (pagination['total_pages'] as num?)?.toInt() ?? 1
-              : 1;
+      final totalPages = pagination is Map<String, dynamic>
+          ? (pagination['total_pages'] as num?)?.toInt() ?? 1
+          : 1;
       if (items.isEmpty || page >= totalPages) break;
     }
     return picks;
@@ -135,9 +131,8 @@ class GroupEventComposerRemoteDatasource {
     await _paginate('/cms/author/groups/$groupId/recitation-collections', (
       data,
     ) {
-      final items =
-          (data['collections'] as List<dynamic>? ?? const [])
-              .whereType<Map<String, dynamic>>();
+      final items = (data['collections'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>();
       for (final item in items) {
         final id = item['id'] as String? ?? '';
         if (id.isEmpty) continue;
@@ -160,9 +155,8 @@ class GroupEventComposerRemoteDatasource {
   ) async {
     final picks = <GroupEventPracticePick>[];
     await _paginate('/cms/groups/$groupId/accumulators', (data) {
-      final items =
-          (data['accumulators'] as List<dynamic>? ?? const [])
-              .whereType<Map<String, dynamic>>();
+      final items = (data['accumulators'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>();
       for (final item in items) {
         final id = item['id'] as String? ?? '';
         if (id.isEmpty) continue;
@@ -208,12 +202,11 @@ class GroupEventComposerRemoteDatasource {
     final title = (item['title'] as String?)?.trim();
     if (title != null && title.isNotEmpty) return title;
     final metadata = item['metadata'];
-    final rows =
-        metadata is List
-            ? metadata.whereType<Map<String, dynamic>>().toList()
-            : metadata is Map<String, dynamic>
-            ? [metadata]
-            : const <Map<String, dynamic>>[];
+    final rows = metadata is List
+        ? metadata.whereType<Map<String, dynamic>>().toList()
+        : metadata is Map<String, dynamic>
+        ? [metadata]
+        : const <Map<String, dynamic>>[];
     for (final row in rows) {
       final value = (row['title'] as String?)?.trim();
       if (value != null && value.isNotEmpty) return value;
@@ -241,7 +234,10 @@ class GroupEventComposerRemoteDatasource {
     String groupId, {
     required String language,
   }) async {
-    return parseCmsEvents(await fetchCmsEventsJson(groupId), language: language);
+    return parseCmsEvents(
+      await fetchCmsEventsJson(groupId),
+      language: language,
+    );
   }
 
   static List<GroupEventCmsItem> parseCmsEvents(
@@ -269,10 +265,9 @@ class GroupEventComposerRemoteDatasource {
         );
         final data = response.data;
         if (data is! Map<String, dynamic>) break;
-        final page =
-            (data['events'] as List<dynamic>? ?? const [])
-                .whereType<Map<String, dynamic>>()
-                .toList();
+        final page = (data['events'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
         items.addAll(page);
         final total = (data['total'] as num?)?.toInt() ?? items.length;
         skip += page.length;
@@ -295,10 +290,9 @@ class GroupEventComposerRemoteDatasource {
     try {
       final response = await dio.put(
         '/cms/events/$eventId',
-        data:
-            original != null
-                ? request.toUpdateJson(original)
-                : (request.toJson()..remove('group_id')),
+        data: original != null
+            ? request.toUpdateJson(original)
+            : (request.toJson()..remove('group_id')),
       );
       final data = response.data;
       if (data is! Map<String, dynamic> ||
@@ -424,8 +418,8 @@ class GroupEventComposerRemoteDatasource {
   /// the event's manual in-person accumulation itself.
   static Map<String, dynamic> _accumulationParam(String eventAccumulationId) =>
       eventAccumulationId.isEmpty
-          ? const {}
-          : {'event_accumulation_id': eventAccumulationId};
+      ? const {}
+      : {'event_accumulation_id': eventAccumulationId};
 
   static GroupEventInPersonCountModel _inPersonCount(Object? data) {
     if (data is! Map<String, dynamic> ||
@@ -451,8 +445,9 @@ class GroupEventComposerRemoteDatasource {
     if (status == 429) return const RateLimitException('Too many requests');
     // Validation errors carry the reason; keep it for the snackbar.
     final body = e.response?.data;
-    final detail =
-        body is Map<String, dynamic> ? body['detail'] ?? body['message'] : null;
+    final detail = body is Map<String, dynamic>
+        ? body['detail'] ?? body['message']
+        : null;
     return ServerException(
       detail is String && detail.isNotEmpty ? detail : '$label: $status',
     );

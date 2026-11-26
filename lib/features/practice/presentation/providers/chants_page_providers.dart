@@ -5,6 +5,7 @@ import 'package:flutter_pecha/core/di/core_providers.dart';
 import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
+import 'package:flutter_pecha/features/library/presentation/providers/library_providers.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/space_chant_books_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/text_requests_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/data/repositories/chants_page_repository_impl.dart';
@@ -23,6 +24,7 @@ final chantsPageRepositoryProvider = Provider<ChantsPageRepository>((ref) {
     collections: ref.watch(myRecitationCollectionsRemoteDatasourceProvider),
     spaces: SpaceChantBooksRemoteDatasource(dio: dio),
     textRequests: TextRequestsRemoteDatasource(dio: dio),
+    hasRecordings: ref.watch(libraryRepositoryProvider).hasChantRecordings,
   );
 });
 
@@ -231,10 +233,14 @@ class MyChantBooksPagedNotifier extends StateNotifier<MyChantBooksPagedState> {
   Future<void> refresh() => loadInitial();
 }
 
-final myChantBooksPagedProvider = StateNotifierProvider.autoDispose<
-  MyChantBooksPagedNotifier,
-  MyChantBooksPagedState
->((ref) => MyChantBooksPagedNotifier(ref.watch(chantsPageRepositoryProvider)));
+final myChantBooksPagedProvider =
+    StateNotifierProvider.autoDispose<
+      MyChantBooksPagedNotifier,
+      MyChantBooksPagedState
+    >(
+      (ref) =>
+          MyChantBooksPagedNotifier(ref.watch(chantsPageRepositoryProvider)),
+    );
 
 /// Chant books matching a search: the user's own (searched on the server),
 /// then books from their spaces, then other spaces (matched against the
@@ -248,12 +254,11 @@ final chantBookSearchProvider = FutureProvider.autoDispose
       final signedIn = auth.isLoggedIn && !auth.isGuest;
       const noBooks = Right<Failure, ChantBooksPage>(ChantBooksPage.empty);
       // 50 is the endpoint's largest page.
-      final mineFuture =
-          signedIn
-              ? ref
-                  .read(chantsPageRepositoryProvider)
-                  .getMyChantBooks(search: trimmed, limit: 50)
-              : Future.value(noBooks);
+      final mineFuture = signedIn
+          ? ref
+                .read(chantsPageRepositoryProvider)
+                .getMyChantBooks(search: trimmed, limit: 50)
+          : Future.value(noBooks);
       final spaces = await ref.watch(spaceChantBooksProvider.future);
       final mine = await mineFuture;
 
@@ -266,12 +271,11 @@ final chantBookSearchProvider = FutureProvider.autoDispose
         name: (b) => b.name,
         subtitle: (b) => b.subtitle,
       );
-      final books =
-          [
-            ...myBooks,
-            ...match(space.yours),
-            ...match(space.others),
-          ].where((b) => seen.add('${b.source.name}:${b.id}')).toList();
+      final books = [
+        ...myBooks,
+        ...match(space.yours),
+        ...match(space.others),
+      ].where((b) => seen.add('${b.source.name}:${b.id}')).toList();
       // What one source found is shown even if the other failed; with
       // nothing found, a failure is reported, so search can offer a retry
       // instead of "Can't find".

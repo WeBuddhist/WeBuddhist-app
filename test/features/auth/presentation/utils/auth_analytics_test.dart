@@ -192,14 +192,49 @@ void main() {
 
   test('login prompt events carry the feature that asked for login', () {
     analytics.loginPromptShown(feature: 'home-group-event');
-    analytics.loginPromptDismissed(feature: 'home-group-event');
+    analytics.loginPromptDismissed(
+      feature: 'home-group-event',
+      loginAttempted: false,
+    );
 
     expect(service.eventNames, [
       AnalyticsEvents.loginPromptShown,
       AnalyticsEvents.loginPromptDismissed,
     ]);
-    for (final event in service.events) {
-      expect(event.properties, {'feature': 'home-group-event'});
-    }
+    expect(service.events.first.properties, {'feature': 'home-group-event'});
+    expect(service.events.last.properties, {
+      'feature': 'home-group-event',
+      'login_attempted': false,
+    });
+  });
+
+  test('a dismissal says whether a login was started from the prompt', () {
+    analytics.loginPromptDismissed(feature: 'mala', loginAttempted: true);
+
+    expect(service.events.single.properties, {
+      'feature': 'mala',
+      'login_attempted': true,
+    });
+  });
+
+  test('a login says whether the account is new when that is known', () {
+    analytics.loginSucceeded(method: 'google-oauth2', isNewUser: true);
+
+    expect(service.events.single.properties, {
+      'method': 'google-oauth2',
+      'source': null,
+      'is_new_user': true,
+      r'$set_once': {'signup_method': 'google-oauth2'},
+    });
+  });
+
+  test('logout and account deletion have their own events', () {
+    analytics.loggedOut();
+    analytics.accountDeleted();
+
+    expect(service.eventNames, [
+      AnalyticsEvents.authLogout,
+      AnalyticsEvents.accountDeleted,
+    ]);
   });
 }

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter_pecha/shared/domain/visible_name.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart';
 
@@ -152,16 +153,25 @@ class GroupAccumulatorUserContribution extends Equatable {
   final String? imageUrl;
   final String fullname;
 
+  /// The name the user picked in Edit profile (`display_name`).
+  final String? userDisplayName;
+
   const GroupAccumulatorUserContribution({
     this.totalCount = 0,
     this.todayCount = 0,
     this.username = '',
     this.imageUrl,
     this.fullname = '',
+    this.userDisplayName,
   });
 
-  String get displayName =>
-      fullname.trim().isNotEmpty ? fullname.trim() : username;
+  /// Name shown in the UI: the display name, then the full name, then the
+  /// username.
+  String get displayName => visibleUserName(
+    displayName: userDisplayName,
+    fullname: fullname,
+    username: username,
+  );
 
   @override
   List<Object?> get props => [
@@ -170,6 +180,7 @@ class GroupAccumulatorUserContribution extends Equatable {
     username,
     imageUrl,
     fullname,
+    userDisplayName,
   ];
 }
 
@@ -182,6 +193,9 @@ class GroupAccumulatorMember extends Equatable {
   final int totalCount;
   final int todayCount;
 
+  /// The name the user picked in Edit profile (`display_name`).
+  final String? userDisplayName;
+
   const GroupAccumulatorMember({
     required this.userId,
     required this.username,
@@ -190,10 +204,16 @@ class GroupAccumulatorMember extends Equatable {
     this.joinedAt,
     this.totalCount = 0,
     this.todayCount = 0,
+    this.userDisplayName,
   });
 
-  String get displayName =>
-      fullname.trim().isNotEmpty ? fullname.trim() : username;
+  /// Name shown in the UI: the display name, then the full name, then the
+  /// username.
+  String get displayName => visibleUserName(
+    displayName: userDisplayName,
+    fullname: fullname,
+    username: username,
+  );
 
   @override
   List<Object?> get props => [
@@ -204,6 +224,7 @@ class GroupAccumulatorMember extends Equatable {
     joinedAt,
     totalCount,
     todayCount,
+    userDisplayName,
   ];
 }
 

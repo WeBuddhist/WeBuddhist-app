@@ -299,6 +299,7 @@ class CachedNetworkImageWidget extends StatelessWidget {
   }
 
   Widget _buildErrorWidget(BuildContext context) {
+    if (errorWidget != null) return errorWidget!;
     return Container(
       width: width,
       height: height,

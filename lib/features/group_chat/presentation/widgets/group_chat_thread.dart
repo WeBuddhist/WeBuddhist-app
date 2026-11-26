@@ -342,6 +342,8 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
   }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        // An action would otherwise keep it up indefinitely.
+        persist: false,
         content: Text(message),
         action: SnackBarAction(
           label: actionLabel,

@@ -169,7 +169,7 @@ class _ConnectPostCommentTileState
 
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'post_comment_like');
       return;
     }
 

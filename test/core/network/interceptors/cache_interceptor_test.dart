@@ -121,4 +121,17 @@ void main() {
     verify(handler.next(any)).called(1);
     verifyNever(handler.resolve(any));
   });
+
+  test('user-specific paths on a newer API version are never cached', () {
+    const path = '/../v2/users/me/mantras/m1/appearance';
+    prime(request(path, authed: true), 'appearance');
+
+    final handler = MockRequestInterceptorHandler();
+    interceptor.onRequest(request(path, authed: true), handler);
+    verify(handler.next(any)).called(1);
+    verifyNever(handler.resolve(any));
+
+    expect(CacheInterceptor.isUserSpecificPath('/../v2/mala-skins'), isFalse);
+    expect(CacheInterceptor.isUserSpecificPath('/../v2/users/info'), isTrue);
+  });
 }

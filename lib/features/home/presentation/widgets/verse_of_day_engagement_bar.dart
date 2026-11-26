@@ -15,16 +15,26 @@ class VerseOfDayEngagementBar extends ConsumerWidget {
     required this.verseId,
     required this.onCommentTap,
     required this.trailing,
+    this.foregroundColor,
+    this.trailingAtEnd = true,
   });
 
   final String verseId;
   final VoidCallback onCommentTap;
   final Widget trailing;
 
+  /// Icon and count colour; the theme's secondary text colour when null.
+  /// A liked heart stays red either way.
+  final Color? foregroundColor;
+
+  /// Pushes [trailing] to the far right; when false it follows the comment
+  /// button.
+  final bool trailingAtEnd;
+
   Future<void> _toggleLike(BuildContext context, WidgetRef ref) async {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'verse_like');
       return;
     }
 
@@ -40,7 +50,7 @@ class VerseOfDayEngagementBar extends ConsumerWidget {
   void _showLikers(BuildContext context, WidgetRef ref) {
     final authState = ref.read(authProvider);
     if (authState.isGuest || !authState.isLoggedIn) {
-      LoginDrawer.show(context, ref);
+      LoginDrawer.show(context, ref, feature: 'verse_likers');
       return;
     }
 
@@ -51,7 +61,8 @@ class VerseOfDayEngagementBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final defaultColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+        foregroundColor ??
+        (isDark ? AppColors.textSecondaryDark : AppColors.textSecondary);
     final likes = ref.watch(verseOfDayLikesProvider(verseId));
     // Only the count matters here, so posting or paging comments does not
     // rebuild the bar.
@@ -73,7 +84,8 @@ class VerseOfDayEngagementBar extends ConsumerWidget {
           onTap: () => _toggleLike(context, ref),
           onCountTap: () => _showLikers(context, ref),
         ),
-        const SizedBox(width: 16),
+        // Inline share (the image card) packs the buttons tighter.
+        SizedBox(width: trailingAtEnd ? 16 : 4),
         _ActionButton(
           icon: AppAssets.chatCircle,
           iconColor: defaultColor,
@@ -81,7 +93,7 @@ class VerseOfDayEngagementBar extends ConsumerWidget {
           count: commentCount,
           onTap: onCommentTap,
         ),
-        const Spacer(),
+        if (trailingAtEnd) const Spacer() else const SizedBox(width: 4),
         trailing,
       ],
     );

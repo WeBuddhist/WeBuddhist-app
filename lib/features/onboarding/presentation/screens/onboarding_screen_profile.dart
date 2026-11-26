@@ -20,8 +20,9 @@ final _logger = AppLogger('OnboardingScreenProfile');
 
 /// Onboarding screen for phone accounts: choose a display name and username.
 ///
-/// Auth0 creates phone accounts with a generated display name and username,
-/// so this step replaces both. Continue saves the username first
+/// A phone account is created with a placeholder name and a generated
+/// username; this step lets the person choose both. The display name also
+/// replaces the placeholder first and last name (`UserNotifier.saveProfile`). Continue saves the username first
 /// (PATCH /users/username) because it is the one the backend can refuse, then
 /// the display name (POST /users/info).
 ///
@@ -64,7 +65,7 @@ class _OnboardingScreenProfileState
   bool _isSaving = false;
   String? _saveError;
 
-  /// Auth0 `sub` of the signed-in account, which scopes the saved record.
+  /// Backend id of the signed-in account, which scopes the saved record.
   String? _userId;
 
   @override

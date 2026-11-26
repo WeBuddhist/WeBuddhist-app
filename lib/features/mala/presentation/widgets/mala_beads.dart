@@ -456,29 +456,8 @@ class _MalaBeadsPainter extends CustomPainter {
 
   /// Gradient fallback bead — shown while the image loads, and whenever there
   /// is no bead image (no URL / load failed).
-  void _drawDrawnBead(Canvas canvas, Offset center, double radius) {
-    final base = beadColor;
-    final gradient = RadialGradient(
-      center: const Alignment(-0.4, -0.5),
-      colors: [
-        Color.lerp(base, Colors.white, 0.45)!,
-        base,
-        Color.lerp(base, Colors.black, 0.30)!,
-      ],
-      stops: const [0.0, 0.55, 1.0],
-    );
-    final rect = Rect.fromCircle(center: center, radius: radius);
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()..shader = gradient.createShader(rect),
-    );
-    canvas.drawCircle(
-      center.translate(-radius * 0.32, -radius * 0.38),
-      radius * 0.22,
-      Paint()..color = Colors.white.withValues(alpha: 0.55),
-    );
-  }
+  void _drawDrawnBead(Canvas canvas, Offset center, double radius) =>
+      paintDrawnMalaBead(canvas, center, radius, beadColor);
 
   @override
   bool shouldRepaint(covariant _MalaBeadsPainter old) =>
@@ -488,4 +467,95 @@ class _MalaBeadsPainter extends CustomPainter {
       old.beadImage != beadImage ||
       old.imagePending != imagePending ||
       old.mirrored != mirrored;
+}
+
+/// Fill of the drawn bead when no bead artwork is available.
+const Color kMalaDefaultBeadColor = Color(0xFF8D6E63);
+
+/// A shaded sphere in [color]: the bead drawn when there is no bead artwork.
+void paintDrawnMalaBead(
+  Canvas canvas,
+  Offset center,
+  double radius,
+  Color color,
+) {
+  final gradient = RadialGradient(
+    center: const Alignment(-0.4, -0.5),
+    colors: [
+      Color.lerp(color, Colors.white, 0.45)!,
+      color,
+      Color.lerp(color, Colors.black, 0.30)!,
+    ],
+    stops: const [0.0, 0.55, 1.0],
+  );
+  final rect = Rect.fromCircle(center: center, radius: radius);
+  canvas.drawCircle(
+    center,
+    radius,
+    Paint()..shader = gradient.createShader(rect),
+  );
+  canvas.drawCircle(
+    center.translate(-radius * 0.32, -radius * 0.38),
+    radius * 0.22,
+    Paint()..color = Colors.white.withValues(alpha: 0.55),
+  );
+}
+
+/// One bead on its own, for pickers: [imageBytes] clipped to a circle, or the
+/// drawn bead when there are none.
+class MalaBeadPreview extends StatelessWidget {
+  const MalaBeadPreview({
+    super.key,
+    this.color = kMalaDefaultBeadColor,
+    this.imageBytes,
+    this.size = 48,
+  });
+
+  final Color color;
+  final Uint8List? imageBytes;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = imageBytes;
+    if (bytes != null && bytes.isNotEmpty) {
+      return ClipOval(
+        child: Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          errorBuilder: (_, __, ___) => _drawn(),
+        ),
+      );
+    }
+    return _drawn();
+  }
+
+  Widget _drawn() =>
+      CustomPaint(size: Size.square(size), painter: _DrawnBeadPainter(color));
+}
+
+class _DrawnBeadPainter extends CustomPainter {
+  const _DrawnBeadPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = size.shortestSide / 2;
+    final center = size.center(Offset.zero);
+    canvas.drawCircle(
+      center.translate(0, radius * 0.12),
+      radius * 0.96,
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.16)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    paintDrawnMalaBead(canvas, center, radius * 0.96, color);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DrawnBeadPainter old) => old.color != color;
 }

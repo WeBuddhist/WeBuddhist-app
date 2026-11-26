@@ -38,16 +38,15 @@ class LibraryAlignmentPage implements LibraryPage<LibraryAlignment> {
   factory LibraryAlignmentPage.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'] as List<dynamic>? ?? const [];
     return LibraryAlignmentPage(
-      items:
-          rawItems
-              .whereType<Map<String, dynamic>>()
-              .where(
-                (p) =>
-                    p['source_segment'] is Map<String, dynamic> &&
-                    p['target_segment'] is Map<String, dynamic>,
-              )
-              .map(LibraryAlignment.fromJson)
-              .toList(growable: false),
+      items: rawItems
+          .whereType<Map<String, dynamic>>()
+          .where(
+            (p) =>
+                p['source_segment'] is Map<String, dynamic> &&
+                p['target_segment'] is Map<String, dynamic>,
+          )
+          .map(LibraryAlignment.fromJson)
+          .toList(growable: false),
       hasMore: json['has_more'] as bool? ?? false,
       offset: json['offset'] as int? ?? 0,
       limit: json['limit'] as int? ?? rawItems.length,

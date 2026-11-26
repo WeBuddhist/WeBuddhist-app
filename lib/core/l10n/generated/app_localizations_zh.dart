@@ -70,6 +70,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String home_practices_sessions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get home_shortcut_plans => '計劃';
 
   @override
@@ -159,12 +169,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mala_settings_section => 'Mala settings';
 
   @override
-  String get mala_others_section => 'Others';
-
-  @override
-  String get mala_mantra_speed => 'Mantra speed';
-
-  @override
   String get mala_speed_normal => 'Normal';
 
   @override
@@ -179,7 +183,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get mala_group_accumulations => '加入持誦計數';
 
   @override
-  String get mala_groups_section => 'Groups';
+  String get mala_groups_section => '社群';
 
   @override
   String get mala_group_untitled => '未命名社群';
@@ -370,16 +374,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recitations_no_content => '沒有可用的持誦';
 
   @override
-  String get my_recitation_collection_new_title => '新持誦集';
+  String get chant_book_new_title => '新持誦集';
 
   @override
   String get my_recitation_collection_next => '下一步';
 
   @override
   String get my_recitation_collection_create => '建立';
-
-  @override
-  String get my_recitation_collection_create_button => '建立持誦集';
 
   @override
   String get my_recitation_collection_change_title => '變更標題';
@@ -394,22 +395,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get my_recitation_collection_search_chants => '搜尋持誦';
 
   @override
-  String get my_recitation_collection_add_to_collection => '加入持誦集';
+  String get chant_book_add_to => '加入持誦集';
 
   @override
-  String get my_recitation_collection_edit => '編輯持誦集';
+  String get chant_book_edit => '編輯持誦集';
 
   @override
-  String get my_recitation_collection_delete => '刪除持誦集';
+  String get chant_book_delete => '刪除持誦集';
 
   @override
-  String get my_recitation_collection_delete_title => '要刪除持誦集嗎？';
+  String get chant_book_delete_title => '要刪除持誦集嗎？';
 
   @override
-  String get my_recitation_collection_delete_message => '此持誦集將被永久刪除';
+  String get chant_book_delete_message => '此持誦集將被永久刪除';
 
   @override
-  String get my_recitation_collection_fallback_title => '持誦集';
+  String get chant_book_fallback_title => '持誦集';
 
   @override
   String get my_recitation_collection_unavailable => '已無法使用';
@@ -439,10 +440,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title => '尚無加入書籤的法本';
+  String get chant_book_bookmarks_empty_title => '尚無加入書籤的持誦集';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle => '將法本加入書籤，，即可收藏於此';
+  String get chant_book_bookmarks_empty_subtitle => '將持誦集加入書籤，即可收藏於此';
 
   @override
   String get notification_allow_title => '允許通知';
@@ -1086,6 +1087,71 @@ class AppLocalizationsZh extends AppLocalizations {
   String get continueWithPhone => '使用電話繼續';
 
   @override
+  String get login_last_used => '上次使用';
+
+  @override
+  String get phone_login_title => '輸入您的電話號碼';
+
+  @override
+  String get phone_login_subtitle => '我們會以簡訊傳送驗證碼給您，以確認您的身分。';
+
+  @override
+  String get phone_login_number_hint => '電話號碼';
+
+  @override
+  String get phone_login_country_search => '搜尋國家或地區';
+
+  @override
+  String get phone_login_send_code => '傳送驗證碼';
+
+  @override
+  String get phone_login_code_title => '輸入驗證碼';
+
+  @override
+  String phone_login_code_subtitle(String phoneNumber) {
+    return '我們已將 6 位數驗證碼傳送至 $phoneNumber。';
+  }
+
+  @override
+  String get phone_login_code_hint => '6 位數驗證碼';
+
+  @override
+  String get phone_login_verify => '驗證';
+
+  @override
+  String get phone_login_resend => '重新傳送驗證碼';
+
+  @override
+  String phone_login_resend_in(int seconds) {
+    return '$seconds 秒後可重新傳送驗證碼';
+  }
+
+  @override
+  String get phone_login_change_number => '更改號碼';
+
+  @override
+  String get login_error_invalid_phone => '請輸入有效的電話號碼。';
+
+  @override
+  String get login_error_invalid_code => '驗證碼不正確，請檢查後再試一次。';
+
+  @override
+  String get login_error_code_expired => '驗證碼已過期，請重新取得驗證碼。';
+
+  @override
+  String get login_error_too_many_requests => '嘗試次數過多，請稍後再試。';
+
+  @override
+  String get login_error_network => '請檢查您的網路連線後再試一次。';
+
+  @override
+  String get login_error_email_not_verified =>
+      '此帳號的電子郵件地址尚未驗證。請先向您的服務提供者完成驗證，然後再試一次。';
+
+  @override
+  String get login_error_generic => '無法登入，請再試一次。';
+
+  @override
   String get exploreAsGuest => '以訪客身份探索';
 
   @override
@@ -1508,67 +1574,115 @@ class AppLocalizationsZh extends AppLocalizations {
   String get calendar_title => '日曆';
 
   @override
-  String get calendar_today => 'Today';
+  String get calendar_choose_calendar => '選擇日曆';
 
   @override
-  String get calendar_no_events => 'No events';
+  String get settings_calendar_row => 'Calendar';
 
   @override
-  String get calendar_source_lunar => 'Lunar calendar';
+  String get calendar_tradition_vajrayana => '金剛乘';
 
   @override
-  String get calendar_add_event => 'Add event';
+  String get calendar_tradition_theravada => '上座部';
 
   @override
-  String get calendar_event_name => 'Event name';
+  String get calendar_tradition_mahayana => '大乘';
 
   @override
-  String get calendar_event_name_hint => 'Add an event to your calendar';
+  String get calendar_type_phugpa => '藏曆（浦派）';
 
   @override
-  String get calendar_repeat => 'Repeat';
+  String get calendar_type_tsurphu => '藏曆（楚布派）';
 
   @override
-  String get calendar_does_not_repeat => 'Does not repeat';
+  String get calendar_type_nyingmapa => '寧瑪派';
 
   @override
-  String get calendar_repeat_weekly => 'Weekly';
+  String get calendar_type_sinhalese => '僧伽羅曆';
 
   @override
-  String get calendar_repeat_monthly => 'Monthly';
+  String get calendar_type_thai => '泰曆';
 
   @override
-  String get calendar_repeat_yearly => 'Yearly';
+  String get calendar_type_burmese => '緬甸曆';
+
+  @override
+  String get calendar_type_lao => '寮國曆';
+
+  @override
+  String get calendar_type_chinese => '農曆';
+
+  @override
+  String get calendar_type_vietnamese => '越南曆';
+
+  @override
+  String get calendar_type_korean => '韓國曆';
+
+  @override
+  String get calendar_type_japanese => '日本曆';
+
+  @override
+  String get calendar_today => '今天';
+
+  @override
+  String get calendar_no_events => '沒有活動';
+
+  @override
+  String get calendar_source_lunar => '陰曆';
+
+  @override
+  String get calendar_add_event => '新增活動';
+
+  @override
+  String get calendar_event_name => '活動名稱';
+
+  @override
+  String get calendar_event_name_hint => '在日曆中新增活動';
+
+  @override
+  String get calendar_repeat => '重複';
+
+  @override
+  String get calendar_does_not_repeat => '不重複';
+
+  @override
+  String get calendar_repeat_weekly => '每週';
+
+  @override
+  String get calendar_repeat_monthly => '每月';
+
+  @override
+  String get calendar_repeat_yearly => '每年';
 
   @override
   String calendar_repeat_monthly_lunar(String day) {
-    return 'Monthly ($day lunar)';
+    return '每月（陰曆$day日）';
   }
 
   @override
-  String get calendar_repeat_yearly_lunar => 'Yearly (lunar date)';
+  String get calendar_repeat_yearly_lunar => '每年（陰曆日期）';
 
   @override
-  String get calendar_delete_event => 'Delete event';
+  String get calendar_delete_event => '刪除活動';
 
   @override
-  String get calendar_delete_event_title => 'Delete event?';
+  String get calendar_delete_event_title => '刪除活動？';
 
   @override
   String calendar_delete_event_body(String title) {
-    return '\"$title\" will be removed from your calendar. This can’t be undone.';
+    return '「$title」將從你的日曆中移除。此操作無法復原。';
   }
 
   @override
-  String get calendar_delete_repeating_title => 'Delete repeating event?';
+  String get calendar_delete_repeating_title => '刪除重複活動？';
 
   @override
   String calendar_delete_repeating_body(String title, String repeat) {
-    return 'Every date of \"$title\" ($repeat) will be removed from your calendar. This can’t be undone.';
+    return '「$title」（$repeat）的所有日期都將從你的日曆中移除。此操作無法復原。';
   }
 
   @override
-  String get calendar_event_deleted => 'Event deleted';
+  String get calendar_event_deleted => '已刪除活動';
 
   @override
   String get calendar_upcoming_events => '近期活動';
@@ -1802,11 +1916,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get group_remove_member_title => '要從社群中移除嗎？';
+  String group_remove_member_title(String name) {
+    return '移除 $name';
+  }
 
   @override
-  String group_remove_member_message(String name) {
-    return '$name 將被移出此社群，且在禁令解除前無法重新加入';
+  String group_remove_member_message(String duration) {
+    return '對方將被移出此社群，並在 $duration 內無法重新加入。';
   }
 
   @override
@@ -1972,6 +2088,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get group_accumulator_finish_session => '結束此次持誦';
 
   @override
+  String get group_accumulator_completed_recitations =>
+      'You completed recitations';
+
+  @override
+  String get group_accumulator_recite_again => 'Recite again';
+
+  @override
+  String get group_accumulator_finish_and_count => 'Finish and count';
+
+  @override
+  String get group_accumulator_finish_without_counting =>
+      'Finish without counting';
+
+  @override
+  String group_accumulator_recitations_counted(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recitations counted',
+      one: '1 recitation counted',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String group_accumulator_recitation_count_badge(int count) {
+    return '×$count';
+  }
+
+  @override
+  String get undo => 'Undo';
+
+  @override
   String get group_accumulator_offline_recitation => '線下持誦';
 
   @override
@@ -2032,7 +2181,7 @@ class AppLocalizationsZh extends AppLocalizations {
       'By this merit, may all beings\nbe free from suffering';
 
   @override
-  String get share_this_quote => '分享這句話';
+  String get share_this_verse => '分享這段偈頌';
 
   @override
   String get shared_from => '分享自';
@@ -2619,7 +2768,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get group_post_updated => '您的變更已儲存';
 
   @override
-  String get practice_collection_already_added => '此持誦集已在您的修持中';
+  String get chant_book_already_in_practices => '此持誦集已在您的修持中';
 
   @override
   String get practice_group_accumulator_already_added => '此共修計數已在您的修持中';
@@ -3399,7 +3548,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get group_event_practice_filter_content => 'Plans & series';
 
   @override
-  String get group_event_practice_filter_collections => 'Chant collections';
+  String get group_event_practice_filter_collections => 'Chant books';
 
   @override
   String get group_event_practice_filter_accumulators => 'Accumulations';
@@ -3814,7 +3963,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chant_collection_reload_error =>
-      'Unable to reload collection to reorder';
+      'Unable to reload chant book to reorder';
 
   @override
   String get chant_collection_reorder_error => 'Unable to reorder chants';
@@ -3880,10 +4029,10 @@ class AppLocalizationsZh extends AppLocalizations {
       'A timer with this duration, sound, and title already exists.';
 
   @override
-  String get splash_tagline_1 => 'We Buddhists practice together';
+  String get splash_tagline_1 => '我們佛弟子一起修持';
 
   @override
-  String get splash_tagline_2 => 'We Buddhists practice daily';
+  String get splash_tagline_2 => '我們佛弟子每日修持';
 
   @override
   String get timer_create_custom => 'Create a custom timer';
@@ -3899,6 +4048,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get timer_duration_sec => 'sec';
+
+  @override
+  String get timer_resume => 'Resume';
+
+  @override
+  String get timer_paused_caption => 'Paused · tap to resume';
+
+  @override
+  String get timer_discard_title => 'Discard this session?';
+
+  @override
+  String timer_discard_message(String elapsed) {
+    return 'Your $elapsed of practice won’t be saved';
+  }
+
+  @override
+  String get timer_save_session => 'Save session';
+
+  @override
+  String get timer_session_saved => 'Session saved';
+
+  @override
+  String get timer_session_complete => 'Session complete';
+
+  @override
+  String timer_saved_to_practice(String elapsed) {
+    return '$elapsed · saved to your practice';
+  }
 
   @override
   String get reader_display_title => '顯示';
@@ -4012,7 +4189,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chants_filter_single_chants => '單篇持誦';
 
   @override
-  String get chants_my_chant_books => '我的持誦集';
+  String get chants_my_chant_books_title => '我的持誦集';
 
   @override
   String get chants_text_only => '純文字持誦';
@@ -4036,7 +4213,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chants_other_spaces => '其他社群';
 
   @override
-  String get chants_search_hint => '搜尋持誦與持誦集';
+  String get chants_search_hint_chant_books => '搜尋持誦與持誦集';
 
   @override
   String get chants_cant_find => '找不到你要的經文嗎？';
@@ -4064,6 +4241,123 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reader_no_resources_subtitle => '我們會定期新增文本，請稍後再來查看';
+
+  @override
+  String get mala_section_practice => '修持';
+
+  @override
+  String get mala_section_appearance => '外觀';
+
+  @override
+  String get mala_section_save_share => '儲存與分享';
+
+  @override
+  String get mala_mantra_animation => '咒語動畫';
+
+  @override
+  String get mala_play_animation => '播放動畫';
+
+  @override
+  String get mala_speed => '速度';
+
+  @override
+  String get mala_animation_off => '關閉';
+
+  @override
+  String get mala_bead_style => '念珠款式';
+
+  @override
+  String get mala_bead_default => '預設';
+
+  @override
+  String get mala_use_this_style => '使用此款式';
+
+  @override
+  String get mala_bead_style_updated => '念珠款式已更新';
+
+  @override
+  String get mala_change_image => '更換圖片';
+
+  @override
+  String get mala_use_image => '使用';
+
+  @override
+  String get mala_restore_default_image => '恢復預設';
+
+  @override
+  String get mala_image_updated => '圖片已更新';
+
+  @override
+  String get mala_images_empty => '沒有可用的圖片';
+
+  @override
+  String get mala_images_load_error => '無法載入圖片';
+
+  @override
+  String get mala_bookmarked => '已加入書籤';
+
+  @override
+  String get mala_beads_load_error => '無法載入念珠款式';
+
+  @override
+  String get mala_appearance_save_failed => '無法儲存。請再試一次';
+
+  @override
+  String get session_search_plans_hint => '搜尋計劃';
+
+  @override
+  String get session_search_chants_hint => '搜尋持誦';
+
+  @override
+  String get session_search_malas_hint => '搜尋念珠';
+
+  @override
+  String get session_search_timers_hint => '依名稱或時長搜尋計時';
+
+  @override
+  String search_min_query_length(int count) {
+    return '請至少輸入 $count 個字元以搜尋';
+  }
+
+  @override
+  String get practice_next_session => '下一堂課程';
+
+  @override
+  String practice_more_in_session(int count) {
+    return '此課程還有 $count 項';
+  }
+
+  @override
+  String get practice_from_your_spaces => '來自你的社群';
+
+  @override
+  String get practice_discover_more => '探索更多';
+
+  @override
+  String get practice_space_accumulations => '社群持誦計數';
+
+  @override
+  String get practice_no_space_accumulations => '目前沒有其他社群的持誦計數';
+
+  @override
+  String get practice_search_hint => '搜尋修持';
+
+  @override
+  String get practice_search_recent => '最近';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '找不到「$query」的結果';
+  }
+
+  @override
+  String get practice_popular_practices => '熱門修持';
+
+  @override
+  String get practice_start_routine => '開始日常修持';
+
+  @override
+  String get practice_start_routine_hint => '或點選一項修持，選擇「加入我的修持」。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -4129,6 +4423,16 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   @override
   String home_recitation_count(int count) {
     return '$count 持诵';
+  }
+
+  @override
+  String home_practices_sessions(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4219,12 +4523,6 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get mala_settings_section => '念珠设置';
-
-  @override
-  String get mala_others_section => '其他';
-
-  @override
-  String get mala_mantra_speed => '咒语速度';
 
   @override
   String get mala_speed_normal => '正常';
@@ -4432,16 +4730,13 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get recitations_no_content => '没有可用的持诵';
 
   @override
-  String get my_recitation_collection_new_title => '新持诵集';
+  String get chant_book_new_title => '新持诵集';
 
   @override
   String get my_recitation_collection_next => '下一步';
 
   @override
   String get my_recitation_collection_create => '创建';
-
-  @override
-  String get my_recitation_collection_create_button => '创建持诵集';
 
   @override
   String get my_recitation_collection_change_title => '变更标题';
@@ -4456,22 +4751,22 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get my_recitation_collection_search_chants => '搜索持诵';
 
   @override
-  String get my_recitation_collection_add_to_collection => '加入持诵集';
+  String get chant_book_add_to => '加入持诵集';
 
   @override
-  String get my_recitation_collection_edit => '编辑持诵集';
+  String get chant_book_edit => '编辑持诵集';
 
   @override
-  String get my_recitation_collection_delete => '删除持诵集';
+  String get chant_book_delete => '删除持诵集';
 
   @override
-  String get my_recitation_collection_delete_title => '要删除持诵集吗？';
+  String get chant_book_delete_title => '要删除持诵集吗？';
 
   @override
-  String get my_recitation_collection_delete_message => '此持诵集将被永久删除';
+  String get chant_book_delete_message => '此持诵集将被永久删除';
 
   @override
-  String get my_recitation_collection_fallback_title => '持诵集';
+  String get chant_book_fallback_title => '持诵集';
 
   @override
   String get my_recitation_collection_unavailable => '已无法使用';
@@ -4501,10 +4796,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   }
 
   @override
-  String get bookmarks_empty_chant_collections_title => '尚无加入书签的法本';
+  String get chant_book_bookmarks_empty_title => '尚无加入书签的持诵集';
 
   @override
-  String get bookmarks_empty_chant_collections_subtitle => '将法本加入书签，即可收藏于此';
+  String get chant_book_bookmarks_empty_subtitle => '将持诵集加入书签，即可收藏于此';
 
   @override
   String get notification_allow_title => '允许通知';
@@ -5136,6 +5431,71 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get continueWithPhone => '使用电话继续';
 
   @override
+  String get login_last_used => '上次使用';
+
+  @override
+  String get phone_login_title => '输入您的电话号码';
+
+  @override
+  String get phone_login_subtitle => '我们会通过短信向您发送验证码，以确认您的身份。';
+
+  @override
+  String get phone_login_number_hint => '电话号码';
+
+  @override
+  String get phone_login_country_search => '搜索国家或地区';
+
+  @override
+  String get phone_login_send_code => '发送验证码';
+
+  @override
+  String get phone_login_code_title => '输入验证码';
+
+  @override
+  String phone_login_code_subtitle(String phoneNumber) {
+    return '我们已将 6 位验证码发送至 $phoneNumber。';
+  }
+
+  @override
+  String get phone_login_code_hint => '6 位验证码';
+
+  @override
+  String get phone_login_verify => '验证';
+
+  @override
+  String get phone_login_resend => '重新发送验证码';
+
+  @override
+  String phone_login_resend_in(int seconds) {
+    return '$seconds 秒后可重新发送验证码';
+  }
+
+  @override
+  String get phone_login_change_number => '更换号码';
+
+  @override
+  String get login_error_invalid_phone => '请输入有效的电话号码。';
+
+  @override
+  String get login_error_invalid_code => '验证码不正确，请检查后重试。';
+
+  @override
+  String get login_error_code_expired => '验证码已过期，请重新获取验证码。';
+
+  @override
+  String get login_error_too_many_requests => '尝试次数过多，请稍后再试。';
+
+  @override
+  String get login_error_network => '请检查网络连接后重试。';
+
+  @override
+  String get login_error_email_not_verified =>
+      '此账号的电子邮件地址尚未验证。请先在您的服务提供商处完成验证，然后重试。';
+
+  @override
+  String get login_error_generic => '无法登录，请重试。';
+
+  @override
   String get exploreAsGuest => '以访客身份探索';
 
   @override
@@ -5543,6 +5903,114 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get calendar_title => '日历';
 
   @override
+  String get calendar_choose_calendar => '选择日历';
+
+  @override
+  String get calendar_tradition_vajrayana => '金刚乘';
+
+  @override
+  String get calendar_tradition_theravada => '上座部';
+
+  @override
+  String get calendar_tradition_mahayana => '大乘';
+
+  @override
+  String get calendar_type_phugpa => '藏历（浦派）';
+
+  @override
+  String get calendar_type_tsurphu => '藏历（楚布派）';
+
+  @override
+  String get calendar_type_nyingmapa => '宁玛派';
+
+  @override
+  String get calendar_type_sinhalese => '僧伽罗历';
+
+  @override
+  String get calendar_type_thai => '泰历';
+
+  @override
+  String get calendar_type_burmese => '缅甸历';
+
+  @override
+  String get calendar_type_lao => '老挝历';
+
+  @override
+  String get calendar_type_chinese => '农历';
+
+  @override
+  String get calendar_type_vietnamese => '越南历';
+
+  @override
+  String get calendar_type_korean => '韩国历';
+
+  @override
+  String get calendar_type_japanese => '日本历';
+
+  @override
+  String get calendar_today => '今天';
+
+  @override
+  String get calendar_no_events => '没有活动';
+
+  @override
+  String get calendar_source_lunar => '阴历';
+
+  @override
+  String get calendar_add_event => '添加活动';
+
+  @override
+  String get calendar_event_name => '活动名称';
+
+  @override
+  String get calendar_event_name_hint => '在日历中添加活动';
+
+  @override
+  String get calendar_repeat => '重复';
+
+  @override
+  String get calendar_does_not_repeat => '不重复';
+
+  @override
+  String get calendar_repeat_weekly => '每周';
+
+  @override
+  String get calendar_repeat_monthly => '每月';
+
+  @override
+  String get calendar_repeat_yearly => '每年';
+
+  @override
+  String calendar_repeat_monthly_lunar(String day) {
+    return '每月（阴历$day日）';
+  }
+
+  @override
+  String get calendar_repeat_yearly_lunar => '每年（阴历日期）';
+
+  @override
+  String get calendar_delete_event => '删除活动';
+
+  @override
+  String get calendar_delete_event_title => '删除活动？';
+
+  @override
+  String calendar_delete_event_body(String title) {
+    return '“$title”将从你的日历中移除。此操作无法撤销。';
+  }
+
+  @override
+  String get calendar_delete_repeating_title => '删除重复活动？';
+
+  @override
+  String calendar_delete_repeating_body(String title, String repeat) {
+    return '“$title”（$repeat）的所有日期都将从你的日历中移除。此操作无法撤销。';
+  }
+
+  @override
+  String get calendar_event_deleted => '活动已删除';
+
+  @override
   String get calendar_upcoming_events => '近期活动';
 
   @override
@@ -5774,15 +6242,17 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   }
 
   @override
-  String get group_remove_member_title => '要从社群中移除吗？';
-
-  @override
-  String group_remove_member_message(String name) {
-    return '$name 将被移出此社群，且在禁令解除前无法重新加入';
+  String group_remove_member_title(String name) {
+    return '移除 $name';
   }
 
   @override
-  String get group_remove_member_blocked_for => '封锁期间：';
+  String group_remove_member_message(String duration) {
+    return '对方将被移出此社群，并在 $duration 内无法重新加入。';
+  }
+
+  @override
+  String get group_remove_member_blocked_for => '无法重新加入的期限';
 
   @override
   String get group_remove_member_duration_day => '1 天';
@@ -5799,10 +6269,10 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get group_remove_member_reason_label => '原因（选填）';
 
   @override
-  String get group_remove_member_reason_hint => '其他...';
+  String get group_remove_member_reason_hint => '您为什么要移除这位成员？';
 
   @override
-  String get group_remove_member_action => '移除';
+  String get group_remove_member_action => '移除成员';
 
   @override
   String group_remove_member_success(String name) {
@@ -5818,7 +6288,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   }
 
   @override
-  String get group_join_banned => '您已被移出此社群，在禁令解除前无法重新加入';
+  String get group_join_banned => '您已被移出此社群，暂时无法重新加入';
 
   @override
   String get group_removed_title => '您已被移出此社群';
@@ -5830,7 +6300,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String group_removed_message_no_date(String group) {
-    return '$group 的管理员已将您移出此社群。您将无法查看其中的贴文、活动和修持，也无法要求重新加入';
+    return '$group 的管理员已将您移出此社群。在管理员允许之前，您将无法重新加入';
   }
 
   @override
@@ -5993,7 +6463,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get group_recitation_collection_dedication => '愿以此功德，令一切众生\n远离痛苦';
 
   @override
-  String get share_this_quote => '分享这句话';
+  String get share_this_verse => '分享这段偈颂';
 
   @override
   String get shared_from => '分享自';
@@ -6576,7 +7046,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get group_post_updated => '您的变更已保存';
 
   @override
-  String get practice_collection_already_added => '此持诵集已在您的修持中';
+  String get chant_book_already_in_practices => '此持诵集已在您的修持中';
 
   @override
   String get practice_group_accumulator_already_added => '此共修计数已在您的修持中';
@@ -7826,7 +8296,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get chants_filter_single_chants => '单篇持诵';
 
   @override
-  String get chants_my_chant_books => '我的持诵集';
+  String get chants_my_chant_books_title => '我的持诵集';
 
   @override
   String get chants_text_only => '纯文字持诵';
@@ -7850,7 +8320,7 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get chants_other_spaces => '其他社群';
 
   @override
-  String get chants_search_hint => '搜索持诵与持诵集';
+  String get chants_search_hint_chant_books => '搜索持诵与持诵集';
 
   @override
   String get chants_cant_find => '找不到你要的经文吗？';
@@ -7878,4 +8348,121 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get reader_no_resources_subtitle => '我们会定期新增文本，请稍后再来查看';
+
+  @override
+  String get mala_section_practice => '修持';
+
+  @override
+  String get mala_section_appearance => '外观';
+
+  @override
+  String get mala_section_save_share => '保存与分享';
+
+  @override
+  String get mala_mantra_animation => '咒语动画';
+
+  @override
+  String get mala_play_animation => '播放动画';
+
+  @override
+  String get mala_speed => '速度';
+
+  @override
+  String get mala_animation_off => '关闭';
+
+  @override
+  String get mala_bead_style => '念珠款式';
+
+  @override
+  String get mala_bead_default => '默认';
+
+  @override
+  String get mala_use_this_style => '使用此款式';
+
+  @override
+  String get mala_bead_style_updated => '念珠款式已更新';
+
+  @override
+  String get mala_change_image => '更换图片';
+
+  @override
+  String get mala_use_image => '使用';
+
+  @override
+  String get mala_restore_default_image => '恢复默认';
+
+  @override
+  String get mala_image_updated => '图片已更新';
+
+  @override
+  String get mala_images_empty => '没有可用的图片';
+
+  @override
+  String get mala_images_load_error => '无法加载图片';
+
+  @override
+  String get mala_bookmarked => '已加入书签';
+
+  @override
+  String get mala_beads_load_error => '无法加载念珠款式';
+
+  @override
+  String get mala_appearance_save_failed => '无法保存。请再试一次';
+
+  @override
+  String get session_search_plans_hint => '搜索计划';
+
+  @override
+  String get session_search_chants_hint => '搜索持诵';
+
+  @override
+  String get session_search_malas_hint => '搜索念珠';
+
+  @override
+  String get session_search_timers_hint => '按名称或时长搜索计时';
+
+  @override
+  String search_min_query_length(int count) {
+    return '请至少输入 $count 个字符以搜索';
+  }
+
+  @override
+  String get practice_next_session => '下一堂课程';
+
+  @override
+  String practice_more_in_session(int count) {
+    return '此课程还有 $count 项';
+  }
+
+  @override
+  String get practice_from_your_spaces => '来自你的社群';
+
+  @override
+  String get practice_discover_more => '探索更多';
+
+  @override
+  String get practice_space_accumulations => '社群持诵计数';
+
+  @override
+  String get practice_no_space_accumulations => '目前没有其他社群的持诵计数';
+
+  @override
+  String get practice_search_hint => '搜索修持';
+
+  @override
+  String get practice_search_recent => '最近';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '找不到“$query”的结果';
+  }
+
+  @override
+  String get practice_popular_practices => '热门修持';
+
+  @override
+  String get practice_start_routine => '开始日常修持';
+
+  @override
+  String get practice_start_routine_hint => '或点选一项修持，选择“加入我的修持”。';
 }

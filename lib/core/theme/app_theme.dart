@@ -14,7 +14,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_config.dart';
-import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'app_colors.dart';
 import 'font_config.dart';
@@ -23,9 +22,6 @@ class AppTheme {
   static ThemeData lightTheme([Locale? locale]) {
     final fontConfig = _getFontConfiguration(locale, Brightness.light);
     final systemFontFamily = fontConfig.fontFamily;
-    final contentFontFamily = getFontFamily(
-      locale?.languageCode ?? AppConfig.englishLanguageCode,
-    );
     final buttonTextStyle = _buttonTextStyle(locale, 14, FontWeight.w500);
     final baseTheme = ThemeData(
       useMaterial3: true,
@@ -90,10 +86,9 @@ class AppTheme {
 
       // Input fields with rounded corners
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(
-          color: AppColors.textSecondary,
-          fontFamily: contentFontFamily,
-        ),
+        // No fontFamily: hints inherit the field's system (sans) font so
+        // placeholder and typed text match (#1140).
+        hintStyle: const TextStyle(color: AppColors.textSecondary),
         prefixIconColor: AppColors.greyMedium,
         fillColor: AppColors.primarySurface,
         filled: true,
@@ -223,9 +218,6 @@ class AppTheme {
   static ThemeData darkTheme([Locale? locale]) {
     final fontConfig = _getFontConfiguration(locale, Brightness.dark);
     final systemFontFamily = fontConfig.fontFamily;
-    final contentFontFamily = getFontFamily(
-      locale?.languageCode ?? AppConfig.englishLanguageCode,
-    );
     final buttonTextStyle = _buttonTextStyle(locale, 14, FontWeight.w500);
     final baseTheme = ThemeData(
       useMaterial3: true,
@@ -291,10 +283,9 @@ class AppTheme {
 
       // Input fields with dark background
       inputDecorationTheme: InputDecorationTheme(
-        hintStyle: TextStyle(
-          color: AppColors.textSubtleDark,
-          fontFamily: contentFontFamily,
-        ),
+        // No fontFamily: hints inherit the field's system (sans) font so
+        // placeholder and typed text match (#1140).
+        hintStyle: const TextStyle(color: AppColors.textSubtleDark),
         prefixIconColor: AppColors.grey600,
         fillColor: AppColors.surfaceVariantDark,
         filled: true,

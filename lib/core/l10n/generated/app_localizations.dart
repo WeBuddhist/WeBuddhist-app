@@ -227,6 +227,12 @@ abstract class AppLocalizations {
   /// **'{count} chants'**
   String home_recitation_count(int count);
 
+  /// No description provided for @home_practices_sessions.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural,\n=1 {1 session}\nother {{count} sessions}\n}'**
+  String home_practices_sessions(int count);
+
   /// No description provided for @home_shortcut_plans.
   ///
   /// In en, this message translates to:
@@ -371,18 +377,6 @@ abstract class AppLocalizations {
   /// **'Mala settings'**
   String get mala_settings_section;
 
-  /// No description provided for @mala_others_section.
-  ///
-  /// In en, this message translates to:
-  /// **'Others'**
-  String get mala_others_section;
-
-  /// No description provided for @mala_mantra_speed.
-  ///
-  /// In en, this message translates to:
-  /// **'Mantra speed'**
-  String get mala_mantra_speed;
-
   /// No description provided for @mala_speed_normal.
   ///
   /// In en, this message translates to:
@@ -410,7 +404,7 @@ abstract class AppLocalizations {
   /// No description provided for @mala_groups_section.
   ///
   /// In en, this message translates to:
-  /// **'Events'**
+  /// **'Groups'**
   String get mala_groups_section;
 
   /// No description provided for @mala_group_untitled.
@@ -773,11 +767,11 @@ abstract class AppLocalizations {
   /// **'No recitations available'**
   String get recitations_no_content;
 
-  /// No description provided for @my_recitation_collection_new_title.
+  /// No description provided for @chant_book_new_title.
   ///
   /// In en, this message translates to:
-  /// **'New Collection'**
-  String get my_recitation_collection_new_title;
+  /// **'New chant book'**
+  String get chant_book_new_title;
 
   /// No description provided for @my_recitation_collection_next.
   ///
@@ -790,12 +784,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create'**
   String get my_recitation_collection_create;
-
-  /// No description provided for @my_recitation_collection_create_button.
-  ///
-  /// In en, this message translates to:
-  /// **'Create collection'**
-  String get my_recitation_collection_create_button;
 
   /// No description provided for @my_recitation_collection_change_title.
   ///
@@ -821,41 +809,41 @@ abstract class AppLocalizations {
   /// **'Search chants'**
   String get my_recitation_collection_search_chants;
 
-  /// No description provided for @my_recitation_collection_add_to_collection.
+  /// No description provided for @chant_book_add_to.
   ///
   /// In en, this message translates to:
-  /// **'Add to collection'**
-  String get my_recitation_collection_add_to_collection;
+  /// **'Add to chant book'**
+  String get chant_book_add_to;
 
-  /// No description provided for @my_recitation_collection_edit.
+  /// No description provided for @chant_book_edit.
   ///
   /// In en, this message translates to:
-  /// **'Edit collection'**
-  String get my_recitation_collection_edit;
+  /// **'Edit chant book'**
+  String get chant_book_edit;
 
-  /// No description provided for @my_recitation_collection_delete.
+  /// No description provided for @chant_book_delete.
   ///
   /// In en, this message translates to:
-  /// **'Delete collection'**
-  String get my_recitation_collection_delete;
+  /// **'Delete chant book'**
+  String get chant_book_delete;
 
-  /// No description provided for @my_recitation_collection_delete_title.
+  /// No description provided for @chant_book_delete_title.
   ///
   /// In en, this message translates to:
-  /// **'Delete collection?'**
-  String get my_recitation_collection_delete_title;
+  /// **'Delete chant book?'**
+  String get chant_book_delete_title;
 
-  /// No description provided for @my_recitation_collection_delete_message.
+  /// No description provided for @chant_book_delete_message.
   ///
   /// In en, this message translates to:
-  /// **'This collection will be permanently removed'**
-  String get my_recitation_collection_delete_message;
+  /// **'This chant book will be permanently removed'**
+  String get chant_book_delete_message;
 
-  /// No description provided for @my_recitation_collection_fallback_title.
+  /// No description provided for @chant_book_fallback_title.
   ///
   /// In en, this message translates to:
-  /// **'Chant collection'**
-  String get my_recitation_collection_fallback_title;
+  /// **'Chant book'**
+  String get chant_book_fallback_title;
 
   /// No description provided for @my_recitation_collection_unavailable.
   ///
@@ -875,17 +863,17 @@ abstract class AppLocalizations {
   /// **'{count, plural,\n=0 {0 chants • me}\n=1 {1 chant • me}\nother {{count} chants • me}\n}'**
   String my_recitation_collection_chant_count_owner(int count);
 
-  /// No description provided for @bookmarks_empty_chant_collections_title.
+  /// No description provided for @chant_book_bookmarks_empty_title.
   ///
   /// In en, this message translates to:
-  /// **'No chant collections bookmarked yet'**
-  String get bookmarks_empty_chant_collections_title;
+  /// **'No chant books bookmarked yet'**
+  String get chant_book_bookmarks_empty_title;
 
-  /// No description provided for @bookmarks_empty_chant_collections_subtitle.
+  /// No description provided for @chant_book_bookmarks_empty_subtitle.
   ///
   /// In en, this message translates to:
   /// **'Bookmark one to save it here'**
-  String get bookmarks_empty_chant_collections_subtitle;
+  String get chant_book_bookmarks_empty_subtitle;
 
   /// No description provided for @notification_allow_title.
   ///
@@ -2087,6 +2075,126 @@ abstract class AppLocalizations {
   /// **'Continue with phone'**
   String get continueWithPhone;
 
+  /// Small tag on the sign-in button for the method this phone last signed in with
+  ///
+  /// In en, this message translates to:
+  /// **'Last used'**
+  String get login_last_used;
+
+  /// No description provided for @phone_login_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get phone_login_title;
+
+  /// No description provided for @phone_login_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll text you a code to confirm it\'s you.'**
+  String get phone_login_subtitle;
+
+  /// No description provided for @phone_login_number_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get phone_login_number_hint;
+
+  /// No description provided for @phone_login_country_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search country'**
+  String get phone_login_country_search;
+
+  /// No description provided for @phone_login_send_code.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get phone_login_send_code;
+
+  /// No description provided for @phone_login_code_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code'**
+  String get phone_login_code_title;
+
+  /// No description provided for @phone_login_code_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {phoneNumber}.'**
+  String phone_login_code_subtitle(String phoneNumber);
+
+  /// No description provided for @phone_login_code_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'6-digit code'**
+  String get phone_login_code_hint;
+
+  /// No description provided for @phone_login_verify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify'**
+  String get phone_login_verify;
+
+  /// No description provided for @phone_login_resend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get phone_login_resend;
+
+  /// No description provided for @phone_login_resend_in.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code in {seconds}s'**
+  String phone_login_resend_in(int seconds);
+
+  /// No description provided for @phone_login_change_number.
+  ///
+  /// In en, this message translates to:
+  /// **'Change number'**
+  String get phone_login_change_number;
+
+  /// No description provided for @login_error_invalid_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number.'**
+  String get login_error_invalid_phone;
+
+  /// No description provided for @login_error_invalid_code.
+  ///
+  /// In en, this message translates to:
+  /// **'That code isn\'t right. Check it and try again.'**
+  String get login_error_invalid_code;
+
+  /// No description provided for @login_error_code_expired.
+  ///
+  /// In en, this message translates to:
+  /// **'That code has expired. Request a new one.'**
+  String get login_error_code_expired;
+
+  /// No description provided for @login_error_too_many_requests.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please try again later.'**
+  String get login_error_too_many_requests;
+
+  /// No description provided for @login_error_network.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your internet connection and try again.'**
+  String get login_error_network;
+
+  /// No description provided for @login_error_email_not_verified.
+  ///
+  /// In en, this message translates to:
+  /// **'This account\'s email address isn\'t verified yet. Verify it with your provider and try again.'**
+  String get login_error_email_not_verified;
+
+  /// No description provided for @login_error_generic.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t sign you in. Please try again.'**
+  String get login_error_generic;
+
   /// No description provided for @exploreAsGuest.
   ///
   /// In en, this message translates to:
@@ -2873,6 +2981,102 @@ abstract class AppLocalizations {
   /// **'Calendar'**
   String get calendar_title;
 
+  /// No description provided for @calendar_choose_calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose calendar'**
+  String get calendar_choose_calendar;
+
+  /// No description provided for @settings_calendar_row.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get settings_calendar_row;
+
+  /// No description provided for @calendar_tradition_vajrayana.
+  ///
+  /// In en, this message translates to:
+  /// **'Vajrayana'**
+  String get calendar_tradition_vajrayana;
+
+  /// No description provided for @calendar_tradition_theravada.
+  ///
+  /// In en, this message translates to:
+  /// **'Theravada'**
+  String get calendar_tradition_theravada;
+
+  /// No description provided for @calendar_tradition_mahayana.
+  ///
+  /// In en, this message translates to:
+  /// **'Mahayana'**
+  String get calendar_tradition_mahayana;
+
+  /// No description provided for @calendar_type_phugpa.
+  ///
+  /// In en, this message translates to:
+  /// **'Tibetan (Phugpa)'**
+  String get calendar_type_phugpa;
+
+  /// No description provided for @calendar_type_tsurphu.
+  ///
+  /// In en, this message translates to:
+  /// **'Tibetan (Tsurphu)'**
+  String get calendar_type_tsurphu;
+
+  /// No description provided for @calendar_type_nyingmapa.
+  ///
+  /// In en, this message translates to:
+  /// **'Nyingma'**
+  String get calendar_type_nyingmapa;
+
+  /// No description provided for @calendar_type_sinhalese.
+  ///
+  /// In en, this message translates to:
+  /// **'Sinhalese'**
+  String get calendar_type_sinhalese;
+
+  /// No description provided for @calendar_type_thai.
+  ///
+  /// In en, this message translates to:
+  /// **'Thai'**
+  String get calendar_type_thai;
+
+  /// No description provided for @calendar_type_burmese.
+  ///
+  /// In en, this message translates to:
+  /// **'Burmese'**
+  String get calendar_type_burmese;
+
+  /// No description provided for @calendar_type_lao.
+  ///
+  /// In en, this message translates to:
+  /// **'Lao'**
+  String get calendar_type_lao;
+
+  /// No description provided for @calendar_type_chinese.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese'**
+  String get calendar_type_chinese;
+
+  /// No description provided for @calendar_type_vietnamese.
+  ///
+  /// In en, this message translates to:
+  /// **'Vietnamese'**
+  String get calendar_type_vietnamese;
+
+  /// No description provided for @calendar_type_korean.
+  ///
+  /// In en, this message translates to:
+  /// **'Korean'**
+  String get calendar_type_korean;
+
+  /// No description provided for @calendar_type_japanese.
+  ///
+  /// In en, this message translates to:
+  /// **'Japanese'**
+  String get calendar_type_japanese;
+
   /// No description provided for @calendar_today.
   ///
   /// In en, this message translates to:
@@ -3422,19 +3626,19 @@ abstract class AppLocalizations {
   /// No description provided for @group_remove_member_title.
   ///
   /// In en, this message translates to:
-  /// **'Remove from space?'**
-  String get group_remove_member_title;
+  /// **'Remove {name}'**
+  String group_remove_member_title(String name);
 
   /// No description provided for @group_remove_member_message.
   ///
   /// In en, this message translates to:
-  /// **'{name} will be removed from this space and unable to rejoin it until the ban is lifted'**
-  String group_remove_member_message(String name);
+  /// **'They\'ll be removed from this space and can\'t rejoin for {duration}.'**
+  String group_remove_member_message(String duration);
 
   /// No description provided for @group_remove_member_blocked_for.
   ///
   /// In en, this message translates to:
-  /// **'Blocked for:'**
+  /// **'Can\'t rejoin for'**
   String get group_remove_member_blocked_for;
 
   /// No description provided for @group_remove_member_duration_day.
@@ -3464,13 +3668,13 @@ abstract class AppLocalizations {
   /// No description provided for @group_remove_member_reason_hint.
   ///
   /// In en, this message translates to:
-  /// **'Something else...'**
+  /// **'Why are you removing this member?'**
   String get group_remove_member_reason_hint;
 
   /// No description provided for @group_remove_member_action.
   ///
   /// In en, this message translates to:
-  /// **'Remove'**
+  /// **'Remove member'**
   String get group_remove_member_action;
 
   /// No description provided for @group_remove_member_success.
@@ -3494,7 +3698,7 @@ abstract class AppLocalizations {
   /// No description provided for @group_join_banned.
   ///
   /// In en, this message translates to:
-  /// **'You were removed from this space and can\'t rejoin until the ban is lifted'**
+  /// **'You were removed from this space and can’t rejoin yet'**
   String get group_join_banned;
 
   /// No description provided for @group_removed_title.
@@ -3512,13 +3716,13 @@ abstract class AppLocalizations {
   /// No description provided for @group_removed_message_no_date.
   ///
   /// In en, this message translates to:
-  /// **'An admin from {group} removed you from this space. You won\'t be able to view its posts, events and practices, or ask to rejoin'**
+  /// **'An admin from {group} removed you from this space. You won\'t be able to rejoin until an admin allows it'**
   String group_removed_message_no_date(String group);
 
   /// No description provided for @group_removed_rejoin_label.
   ///
   /// In en, this message translates to:
-  /// **'You can ask to join to this space on'**
+  /// **'You can ask to join this space on'**
   String get group_removed_rejoin_label;
 
   /// No description provided for @group_removed_rejoin_value.
@@ -3713,6 +3917,48 @@ abstract class AppLocalizations {
   /// **'Finish session'**
   String get group_accumulator_finish_session;
 
+  /// Label above the big number of recitations at the end of a group chant
+  ///
+  /// In en, this message translates to:
+  /// **'You completed recitations'**
+  String get group_accumulator_completed_recitations;
+
+  /// Counts the recitation just finished and jumps back to the start of the chant
+  ///
+  /// In en, this message translates to:
+  /// **'Recite again'**
+  String get group_accumulator_recite_again;
+
+  /// Counts the recitation just finished and ends the chant session
+  ///
+  /// In en, this message translates to:
+  /// **'Finish and count'**
+  String get group_accumulator_finish_and_count;
+
+  /// Ends the chant session without counting the recitation just finished
+  ///
+  /// In en, this message translates to:
+  /// **'Finish without counting'**
+  String get group_accumulator_finish_without_counting;
+
+  /// Toast after Recite again; count is the recitations counted so far in this visit
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural,\n=1 {1 recitation counted}\nother {{count} recitations counted}\n}'**
+  String group_accumulator_recitations_counted(int count);
+
+  /// Running recitation count on the reader's section chip
+  ///
+  /// In en, this message translates to:
+  /// **'×{count}'**
+  String group_accumulator_recitation_count_badge(int count);
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
+
   /// No description provided for @group_accumulator_offline_recitation.
   ///
   /// In en, this message translates to:
@@ -3771,7 +4017,7 @@ abstract class AppLocalizations {
   /// No description provided for @group_recitation_collection_share_message.
   ///
   /// In en, this message translates to:
-  /// **'Check out \"{collection}\", a recitation collection by {group} on WeBuddhist. Join us in practice!'**
+  /// **'Check out \"{collection}\", a chant book from {group} on WeBuddhist. Join us in practice!'**
   String group_recitation_collection_share_message(
     String collection,
     String group,
@@ -3780,7 +4026,7 @@ abstract class AppLocalizations {
   /// No description provided for @group_recitation_collection_share_message_no_group.
   ///
   /// In en, this message translates to:
-  /// **'Check out the recitation collection \"{collection}\" on WeBuddhist. Join us in practice!'**
+  /// **'Check out the chant book \"{collection}\" on WeBuddhist. Join us in practice!'**
   String group_recitation_collection_share_message_no_group(String collection);
 
   /// No description provided for @group_recitation_collection_completed_title.
@@ -3795,11 +4041,11 @@ abstract class AppLocalizations {
   /// **'By this merit, may all beings\nbe free from suffering'**
   String get group_recitation_collection_dedication;
 
-  /// No description provided for @share_this_quote.
+  /// No description provided for @share_this_verse.
   ///
   /// In en, this message translates to:
-  /// **'Share this quote'**
-  String get share_this_quote;
+  /// **'Share this verse'**
+  String get share_this_verse;
 
   /// No description provided for @shared_from.
   ///
@@ -4833,11 +5079,11 @@ abstract class AppLocalizations {
   /// **'Your changes are saved'**
   String get group_post_updated;
 
-  /// No description provided for @practice_collection_already_added.
+  /// No description provided for @chant_book_already_in_practices.
   ///
   /// In en, this message translates to:
-  /// **'This collection is already in your practices'**
-  String get practice_collection_already_added;
+  /// **'This chant book is already in your practices'**
+  String get chant_book_already_in_practices;
 
   /// No description provided for @practice_group_accumulator_already_added.
   ///
@@ -6204,7 +6450,7 @@ abstract class AppLocalizations {
   /// No description provided for @group_event_practice_filter_collections.
   ///
   /// In en, this message translates to:
-  /// **'Chant collections'**
+  /// **'Chant books'**
   String get group_event_practice_filter_collections;
 
   /// No description provided for @group_event_practice_filter_accumulators.
@@ -6892,7 +7138,7 @@ abstract class AppLocalizations {
   /// No description provided for @chant_collection_reload_error.
   ///
   /// In en, this message translates to:
-  /// **'Unable to reload collection to reorder'**
+  /// **'Unable to reload chant book to reorder'**
   String get chant_collection_reload_error;
 
   /// No description provided for @chant_collection_reorder_error.
@@ -7056,6 +7302,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'sec'**
   String get timer_duration_sec;
+
+  /// No description provided for @timer_resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get timer_resume;
+
+  /// No description provided for @timer_paused_caption.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused · tap to resume'**
+  String get timer_paused_caption;
+
+  /// No description provided for @timer_discard_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard this session?'**
+  String get timer_discard_title;
+
+  /// No description provided for @timer_discard_message.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {elapsed} of practice won’t be saved'**
+  String timer_discard_message(String elapsed);
+
+  /// No description provided for @timer_save_session.
+  ///
+  /// In en, this message translates to:
+  /// **'Save session'**
+  String get timer_save_session;
+
+  /// No description provided for @timer_session_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Session saved'**
+  String get timer_session_saved;
+
+  /// No description provided for @timer_session_complete.
+  ///
+  /// In en, this message translates to:
+  /// **'Session complete'**
+  String get timer_session_complete;
+
+  /// No description provided for @timer_saved_to_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'{elapsed} · saved to your practice'**
+  String timer_saved_to_practice(String elapsed);
 
   /// No description provided for @reader_display_title.
   ///
@@ -7255,11 +7549,11 @@ abstract class AppLocalizations {
   /// **'Single chants'**
   String get chants_filter_single_chants;
 
-  /// No description provided for @chants_my_chant_books.
+  /// No description provided for @chants_my_chant_books_title.
   ///
   /// In en, this message translates to:
-  /// **'My chantbooks'**
-  String get chants_my_chant_books;
+  /// **'My chant books'**
+  String get chants_my_chant_books_title;
 
   /// No description provided for @chants_text_only.
   ///
@@ -7303,11 +7597,11 @@ abstract class AppLocalizations {
   /// **'Other spaces'**
   String get chants_other_spaces;
 
-  /// No description provided for @chants_search_hint.
+  /// No description provided for @chants_search_hint_chant_books.
   ///
   /// In en, this message translates to:
-  /// **'Search chants and chantbooks'**
-  String get chants_search_hint;
+  /// **'Search chants and chant books'**
+  String get chants_search_hint_chant_books;
 
   /// No description provided for @chants_cant_find.
   ///
@@ -7362,6 +7656,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We add new texts regularly; check back soon'**
   String get reader_no_resources_subtitle;
+
+  /// No description provided for @mala_section_practice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practice'**
+  String get mala_section_practice;
+
+  /// No description provided for @mala_section_appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get mala_section_appearance;
+
+  /// No description provided for @mala_section_save_share.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & share'**
+  String get mala_section_save_share;
+
+  /// No description provided for @mala_mantra_animation.
+  ///
+  /// In en, this message translates to:
+  /// **'Mantra animation'**
+  String get mala_mantra_animation;
+
+  /// No description provided for @mala_play_animation.
+  ///
+  /// In en, this message translates to:
+  /// **'Play animation'**
+  String get mala_play_animation;
+
+  /// No description provided for @mala_speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get mala_speed;
+
+  /// No description provided for @mala_animation_off.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get mala_animation_off;
+
+  /// No description provided for @mala_bead_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Bead style'**
+  String get mala_bead_style;
+
+  /// No description provided for @mala_bead_default.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get mala_bead_default;
+
+  /// No description provided for @mala_use_this_style.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this style'**
+  String get mala_use_this_style;
+
+  /// No description provided for @mala_bead_style_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Bead style updated'**
+  String get mala_bead_style_updated;
+
+  /// No description provided for @mala_change_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Change image'**
+  String get mala_change_image;
+
+  /// No description provided for @mala_use_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get mala_use_image;
+
+  /// No description provided for @mala_restore_default_image.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore default'**
+  String get mala_restore_default_image;
+
+  /// No description provided for @mala_image_updated.
+  ///
+  /// In en, this message translates to:
+  /// **'Image updated'**
+  String get mala_image_updated;
+
+  /// No description provided for @mala_images_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No images available'**
+  String get mala_images_empty;
+
+  /// No description provided for @mala_images_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load images'**
+  String get mala_images_load_error;
+
+  /// No description provided for @mala_bookmarked.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarked'**
+  String get mala_bookmarked;
+
+  /// No description provided for @mala_beads_load_error.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load bead styles'**
+  String get mala_beads_load_error;
+
+  /// No description provided for @mala_appearance_save_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save. Please try again'**
+  String get mala_appearance_save_failed;
+
+  /// Search field hint on the Plans tab of Add to session.
+  ///
+  /// In en, this message translates to:
+  /// **'Search plans'**
+  String get session_search_plans_hint;
+
+  /// Search field hint on the Chants tab of Add to session.
+  ///
+  /// In en, this message translates to:
+  /// **'Search chants'**
+  String get session_search_chants_hint;
+
+  /// Search field hint on the Malas tab of Add to session.
+  ///
+  /// In en, this message translates to:
+  /// **'Search malas'**
+  String get session_search_malas_hint;
+
+  /// Search field hint on the Timers tab of Add to session; timers match by name or by duration such as '10 min'.
+  ///
+  /// In en, this message translates to:
+  /// **'Search timers by name or length'**
+  String get session_search_timers_hint;
+
+  /// Shown instead of results while a search query is shorter than the minimum the server accepts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Type at least 1 character to search} other{Type at least {count} characters to search}}'**
+  String search_min_query_length(int count);
+
+  /// No description provided for @practice_next_session.
+  ///
+  /// In en, this message translates to:
+  /// **'Next session'**
+  String get practice_next_session;
+
+  /// No description provided for @practice_more_in_session.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more in this session'**
+  String practice_more_in_session(int count);
+
+  /// No description provided for @practice_from_your_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'From your spaces'**
+  String get practice_from_your_spaces;
+
+  /// No description provided for @practice_discover_more.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover more'**
+  String get practice_discover_more;
+
+  /// No description provided for @practice_space_accumulations.
+  ///
+  /// In en, this message translates to:
+  /// **'Space accumulations'**
+  String get practice_space_accumulations;
+
+  /// No description provided for @practice_no_space_accumulations.
+  ///
+  /// In en, this message translates to:
+  /// **'No accumulations from other spaces right now'**
+  String get practice_no_space_accumulations;
+
+  /// No description provided for @practice_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search practices'**
+  String get practice_search_hint;
+
+  /// No description provided for @practice_search_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get practice_search_recent;
+
+  /// No description provided for @practice_search_no_results.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String practice_search_no_results(String query);
+
+  /// No description provided for @practice_popular_practices.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular practices'**
+  String get practice_popular_practices;
+
+  /// Label on the My practices pill when the routine is empty; tap opens Edit routine.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a routine'**
+  String get practice_start_routine;
+
+  /// Helper line under the Start a routine pill on the Practice tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Or tap a practice and choose Add to my practices.'**
+  String get practice_start_routine_hint;
 }
 
 class _AppLocalizationsDelegate

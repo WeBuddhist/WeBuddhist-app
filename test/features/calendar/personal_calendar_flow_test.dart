@@ -224,7 +224,7 @@ void main() {
         GoRoute(
           path: '/home/events/:id',
           builder: (context, state) {
-            onPush?.call(state.uri.path);
+            onPush?.call(state.uri.toString());
             return const Scaffold(body: Text('event page'));
           },
         ),
@@ -454,7 +454,7 @@ void main() {
     expect(find.text('20 February 2026 · 7:00 am'), findsOneWidget);
     await tester.tap(find.text('Morning puja'));
     await tester.pumpAndSettle();
-    expect(pushed, '/home/events/evt-1');
+    expect(pushed, '/home/events/evt-1?from=calendar');
   });
 
   testWidgets('a lunar card does not open anything', (tester) async {

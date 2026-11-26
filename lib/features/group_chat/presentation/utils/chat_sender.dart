@@ -38,14 +38,6 @@ bool isChatViewerKnown({String? currentUserId, String? currentUserEmail}) {
   return (currentUserEmail?.trim() ?? '').isNotEmpty;
 }
 
-String? joinChatName(String? firstname, String? lastname) {
-  final parts = [
-    firstname?.trim() ?? '',
-    lastname?.trim() ?? '',
-  ].where((part) => part.isNotEmpty);
-  return parts.isEmpty ? null : parts.join(' ');
-}
-
 /// Message name → email local part → null, in that order. The caller
 /// substitutes `group_chat_unknown_sender` for null so the fallback string
 /// stays localized.

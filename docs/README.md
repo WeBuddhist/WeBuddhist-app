@@ -33,8 +33,8 @@ status.
 - **[Task completion tracking](./implementation/TASK_COMPLETION_TRACKING.md)** —
   plan task/subtask progress and its offline queue.
 - **[Authentication implementation](./architecture/AUTH_IMPLEMENTATION.md)** —
-  current design (Auth0 access tokens, Dio interceptors, credentials-manager
-  refresh). Feature-level reference:
+  current design (Firebase sign-in exchanged for the backend's own tokens,
+  Dio interceptors, single-flight refresh). Feature-level reference:
   [`lib/features/auth/doc/README.md`](../lib/features/auth/doc/README.md).
 
 ## Historical docs (read with care)
@@ -43,9 +43,9 @@ The documents below describe earlier implementations. File paths and APIs in
 them may no longer exist; check the code or the feature doc first.
 
 - [Token refresh flow](./architecture/TOKEN_REFRESH_FLOW.md) — describes the
-  former **ID-token**, `ApiClient`-based design. The app now sends Auth0
-  **access tokens** through Dio interceptors, and the Auth0 credentials
-  manager is the single refresh path (`AuthService.getValidAccessToken()` /
+  former **ID-token**, `ApiClient`-based Auth0 design. The app now signs in
+  with Firebase and sends the backend's own **access token** through Dio
+  interceptors; `AuthService` is the single refresh path (`getValidAccessToken()` /
   `forceRefreshAccessToken()`).
 - [Plan search and pagination](./implementation/PLAN_SEARCH_PAGINATION.md) —
   partly historical; plan search now lives in `lib/features/practice`.

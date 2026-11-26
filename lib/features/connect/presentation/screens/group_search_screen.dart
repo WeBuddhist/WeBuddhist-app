@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_pecha/core/analytics/search_analytics.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_pecha/features/connect/presentation/widgets/connect_disc
 import 'package:flutter_pecha/features/connect/presentation/widgets/group_search_result_card.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_profile_tab_skeleton.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class GroupSearchScreen extends ConsumerStatefulWidget {
   const GroupSearchScreen({super.key});
@@ -255,7 +257,22 @@ class _GroupSearchScreenState extends ConsumerState<GroupSearchScreen> {
           if (index == state.results.length - 1 && state.hasMore) {
             _onLastResultBuilt();
           }
-          return GroupSearchResultCard(group: state.results[index]);
+          final group = state.results[index];
+          return GroupSearchResultCard(
+            group: group,
+            onTap: () {
+              ref
+                  .read(searchAnalyticsProvider)
+                  .resultOpened(
+                    surface: SearchSurface.groups,
+                    position: index,
+                    itemType: 'group',
+                    itemId: group.id,
+                  );
+              // The card's own default route.
+              context.push('/home/group/${group.id}');
+            },
+          );
         },
       ),
       if (state.isLoadingMore)

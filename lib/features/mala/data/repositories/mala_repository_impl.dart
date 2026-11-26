@@ -9,6 +9,7 @@ import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/mala/data/datasources/mala_local_datasource.dart';
 import 'package:flutter_pecha/features/mala/data/datasources/mala_remote_datasource.dart';
 import 'package:flutter_pecha/features/mala/data/models/accumulator_group_model.dart';
+import 'package:flutter_pecha/features/mala/data/models/accumulator_model.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/accumulator_group.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mala_count.dart';
 import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
@@ -77,51 +78,87 @@ class MalaRepositoryImpl implements MalaRepository {
   Future<Either<Failure, List<Mantra>>> getCatalogue({
     String? language,
     String? search,
+    String? userId,
   }) async {
     final cacheLanguage = language ?? 'en';
-    final canUseLocal = search == null || search.trim().isEmpty;
-    final cached = canUseLocal ? local?.readCatalogue(cacheLanguage) : null;
+    final cacheUser =
+        (search == null || search.trim().isEmpty) &&
+                userId != null &&
+                userId.isNotEmpty
+            ? userId
+            : null;
+    final cached =
+        cacheUser == null
+            ? null
+            : local?.readCatalogue(cacheUser, cacheLanguage);
     if (cached != null) {
-      unawaited(_refreshCatalogue(cacheLanguage));
+      unawaited(refreshCatalogue(userId: cacheUser!, language: cacheLanguage));
       return Right(cached.map((preset) => preset.toEntity()).toList());
     }
 
     try {
-      final presets = await remote.fetchPresets(
-        language: language,
-        search: search,
-      );
-      if (canUseLocal) {
-        await local?.writeCatalogue(cacheLanguage, presets);
-      }
+      final presets =
+          cacheUser == null
+              ? await remote.fetchPresets(language: language, search: search)
+              : await _fetchAndStore(cacheUser, cacheLanguage);
       return Right(presets.map((p) => p.toEntity()).toList());
     } on AppException catch (e) {
-      return _legacyCatalogueOr(canUseLocal, cacheLanguage, _toFailure(e));
+      return _legacyCatalogueOr(cacheUser, cacheLanguage, _toFailure(e));
     } catch (e) {
       return _legacyCatalogueOr(
-        canUseLocal,
+        cacheUser,
         cacheLanguage,
         UnknownFailure('Failed to load catalogue: $e'),
       );
     }
   }
 
-  /// Offline right after the cache-key bump: serve the pre-v2 cache (no deity
-  /// images) rather than an error. The next online load replaces it.
+  /// Offline right after the cache-key bump: serve a pre-v3 cache (no usage
+  /// times) rather than an error. The next online load replaces it.
   Either<Failure, List<Mantra>> _legacyCatalogueOr(
-    bool canUseLocal,
+    String? userId,
     String language,
     Failure failure,
   ) {
     final legacy =
-        canUseLocal ? local?.readCatalogue(language, allowLegacy: true) : null;
+        userId == null
+            ? null
+            : local?.readCatalogue(userId, language, allowLegacy: true);
     if (legacy == null) return Left(failure);
     return Right(legacy.map((preset) => preset.toEntity()).toList());
   }
 
-  Future<void> _refreshCatalogue(String language) async {
-    final presets = await remote.fetchPresets(language: language);
-    await local?.writeCatalogue(language, presets);
+  /// In-flight catalogue fetches by account and language. The first load
+  /// and the mala screen's refresh on entry often start together; they
+  /// share one download of every page instead of making two.
+  final _catalogueFetches = <String, Future<List<PresetAccumulatorModel>>>{};
+
+  Future<List<PresetAccumulatorModel>> _fetchAndStore(
+    String userId,
+    String language,
+  ) {
+    final key = '$userId:$language';
+    return _catalogueFetches[key] ??= () async {
+      try {
+        final presets = await remote.fetchPresets(language: language);
+        await local?.writeCatalogue(userId, language, presets);
+        return presets;
+      } finally {
+        _catalogueFetches.remove(key);
+      }
+    }();
+  }
+
+  @override
+  Future<void> refreshCatalogue({
+    required String userId,
+    String? language,
+  }) async {
+    try {
+      await _fetchAndStore(userId, language ?? 'en');
+    } catch (_) {
+      // Offline or failed: the cached catalogue stays until the next one.
+    }
   }
 
   @override

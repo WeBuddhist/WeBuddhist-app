@@ -19,12 +19,14 @@ class PersonalCalendarRemoteDatasource {
     required String language,
     required int skip,
     required int limit,
+    required String calendarType,
   }) async {
     final response = await dio.get(
       '/users/me/calendar',
       queryParameters: {
         'from_date': formatApiDate(from),
         'to_date': formatApiDate(to),
+        'calendar_type': calendarType,
         'language': language,
         'skip': skip,
         'limit': limit,
@@ -39,11 +41,13 @@ class PersonalCalendarRemoteDatasource {
     return personalEventFromJson(response.data as Map<String, dynamic>);
   }
 
-  /// Saved without a start time, which makes it all day.
+  /// Saved without a start time, which makes it all day. A lunar repeat is
+  /// kept in [calendarType], the calendar the viewer chose its day in.
   Future<PersonalCalendarEvent> createEvent({
     required String title,
     required DateTime startDate,
     required PersonalRepeat repeat,
+    required String calendarType,
   }) async {
     final response = await dio.post(
       _eventsPath,
@@ -52,6 +56,7 @@ class PersonalCalendarRemoteDatasource {
         'start_date': formatApiDate(startDate),
         'timezone': await IanaTimezone.resolve(),
         'repeat': repeat.apiValue,
+        'calendar_type': calendarType,
       },
     );
     return personalEventFromJson(response.data as Map<String, dynamic>);
@@ -62,10 +67,15 @@ class PersonalCalendarRemoteDatasource {
     String id, {
     required String title,
     required PersonalRepeat repeat,
+    required String calendarType,
   }) async {
     final response = await dio.patch(
       '$_eventsPath/$id',
-      data: {'title': title, 'repeat': repeat.apiValue},
+      data: {
+        'title': title,
+        'repeat': repeat.apiValue,
+        'calendar_type': calendarType,
+      },
     );
     return personalEventFromJson(response.data as Map<String, dynamic>);
   }
@@ -74,10 +84,16 @@ class PersonalCalendarRemoteDatasource {
     await dio.delete('$_eventsPath/$id');
   }
 
-  Future<List<PersonalRepeatOption>> fetchRepeatOptions(DateTime date) async {
+  Future<List<PersonalRepeatOption>> fetchRepeatOptions(
+    DateTime date, {
+    required String calendarType,
+  }) async {
     final response = await dio.get(
       '$_eventsPath/repeat-options',
-      queryParameters: {'date': formatApiDate(date)},
+      queryParameters: {
+        'date': formatApiDate(date),
+        'calendar_type': calendarType,
+      },
       options: _noCache,
     );
     return repeatOptionsFromJson(response.data as Map<String, dynamic>);

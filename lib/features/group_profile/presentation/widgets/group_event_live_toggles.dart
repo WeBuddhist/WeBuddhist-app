@@ -84,12 +84,16 @@ class _PillSegments extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final trackColor = isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
+    final trackColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
     final thumbColor = isDark ? AppColors.grey800 : AppColors.surfaceWhite;
-    final activeColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final inactiveColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final activeColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final inactiveColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Container(
       height: 34,
@@ -115,31 +119,27 @@ class _PillSegments extends StatelessWidget {
                     color: i == selectedIndex ? thumbColor : Colors.transparent,
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child:
-                      segments[i].icon != null
-                          ? Icon(
-                            segments[i].icon,
-                            size: 18,
-                            color:
-                                i == selectedIndex
-                                    ? activeColor
-                                    : inactiveColor,
-                          )
-                          : Text(
-                            segments[i].label ?? '',
-                            style: TextStyle(
-                              fontSize: 13,
-                              height: 1.2,
-                              fontWeight:
-                                  i == selectedIndex
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
-                              color:
-                                  i == selectedIndex
-                                      ? activeColor
-                                      : inactiveColor,
-                            ),
+                  child: segments[i].icon != null
+                      ? Icon(
+                          segments[i].icon,
+                          size: 18,
+                          color: i == selectedIndex
+                              ? activeColor
+                              : inactiveColor,
+                        )
+                      : Text(
+                          segments[i].label ?? '',
+                          style: TextStyle(
+                            fontSize: 13,
+                            height: 1.2,
+                            fontWeight: i == selectedIndex
+                                ? FontWeight.w700
+                                : FontWeight.w500,
+                            color: i == selectedIndex
+                                ? activeColor
+                                : inactiveColor,
                           ),
+                        ),
                 ),
               ),
             ),

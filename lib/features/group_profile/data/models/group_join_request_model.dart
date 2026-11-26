@@ -32,17 +32,17 @@ class GroupJoinRequestModel {
       id: json['id'] as String? ?? '',
       userId: json['user_id'] as String? ?? '',
       userName: json['user_name'] as String? ?? '',
-      userAvatarUrl:
-          trimmedAvatar == null || trimmedAvatar.isEmpty ? null : trimmedAvatar,
+      userAvatarUrl: trimmedAvatar == null || trimmedAvatar.isEmpty
+          ? null
+          : trimmedAvatar,
       email: (json['email'] as String?)?.trim() ?? '',
       message: json['message'] as String? ?? '',
       status:
           GroupJoinRequestStatus.fromApi(json['status'] as String?) ??
           GroupJoinRequestStatus.pending,
-      createdAt:
-          createdRaw == null || createdRaw.isEmpty
-              ? null
-              : DateTime.tryParse(createdRaw),
+      createdAt: createdRaw == null || createdRaw.isEmpty
+          ? null
+          : DateTime.tryParse(createdRaw),
     );
   }
 

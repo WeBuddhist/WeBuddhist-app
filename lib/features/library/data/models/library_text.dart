@@ -13,6 +13,9 @@ class LibraryText {
   final List<String> commentaries;
   final List<String> tagIds;
 
+  /// Performances of this text (`/v2/texts/{id}/audios` lists them).
+  final List<String> audioIds;
+
   const LibraryText({
     required this.id,
     required this.title,
@@ -24,6 +27,7 @@ class LibraryText {
     this.translations = const [],
     this.commentaries = const [],
     this.tagIds = const [],
+    this.audioIds = const [],
   });
 
   factory LibraryText.fromJson(Map<String, dynamic> json) {
@@ -38,6 +42,7 @@ class LibraryText {
       translations: stringListFromJson(json['translations']),
       commentaries: stringListFromJson(json['commentaries']),
       tagIds: stringListFromJson(json['tag_ids']),
+      audioIds: stringListFromJson(json['audios']),
     );
   }
 
@@ -78,11 +83,10 @@ class LibraryTextPage {
   factory LibraryTextPage.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'] as List<dynamic>? ?? const [];
     return LibraryTextPage(
-      items:
-          rawItems
-              .whereType<Map<String, dynamic>>()
-              .map(LibraryText.fromJson)
-              .toList(growable: false),
+      items: rawItems
+          .whereType<Map<String, dynamic>>()
+          .map(LibraryText.fromJson)
+          .toList(growable: false),
       hasMore: json['has_more'] as bool? ?? false,
       offset: json['offset'] as int? ?? 0,
       limit: json['limit'] as int? ?? rawItems.length,

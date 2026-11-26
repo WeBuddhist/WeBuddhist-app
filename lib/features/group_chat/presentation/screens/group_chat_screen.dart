@@ -11,6 +11,7 @@ import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.d
 import 'package:flutter_pecha/features/group_chat/domain/usecases/resolve_group_chat_room.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/chat_send_error.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/chat_room_live_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/providers/chat_rooms_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_thread_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
@@ -343,11 +344,20 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
         );
   }
 
-  /// Best-effort: a failed read receipt never surfaces to the user.
+  /// Best-effort: a failed read receipt never surfaces to the user. Marks
+  /// only the chat read: the room's prayer requests are not shown here. A
+  /// successful one clears the chat's unread badge at once.
   Future<void> _markRoomRead() async {
     final roomId = _roomId;
     if (_disposed || roomId == null) return;
-    await _providers.read(groupChatRepositoryProvider).markRoomRead(roomId);
+    final result = await _providers
+        .read(groupChatRepositoryProvider)
+        .markRoomRead(roomId, messageType: ChatMessageDTO.typeText);
+    if (result.isRight() && _providers.exists(chatRoomsProvider)) {
+      _providers
+          .read(chatRoomsProvider.notifier)
+          .markReadLocally(roomId, messageType: ChatMessageDTO.typeText);
+    }
   }
 
   Future<void> _persistRoomId(String roomId) async {

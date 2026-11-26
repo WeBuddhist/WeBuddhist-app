@@ -99,13 +99,12 @@ class GroupProfilePostsTab extends ConsumerWidget {
                 ),
                 sliver: SliverList.separated(
                   itemCount: itemCount,
-                  separatorBuilder:
-                      (context, _) => ColoredBox(
-                        color: ConnectFeedCardLayout.listGapColor(isDark),
-                        child: const SizedBox(
-                          height: ConnectFeedCardLayout.listItemGap,
-                        ),
-                      ),
+                  separatorBuilder: (context, _) => ColoredBox(
+                    color: ConnectFeedCardLayout.listGapColor(isDark),
+                    child: const SizedBox(
+                      height: ConnectFeedCardLayout.listItemGap,
+                    ),
+                  ),
                   itemBuilder: (context, index) {
                     if (index >= state.posts.length) {
                       return const Padding(
@@ -127,10 +126,9 @@ class GroupProfilePostsTab extends ConsumerWidget {
                         visitId: postViewVisitId,
                       ),
                       onEdit: canPost ? () => onEditPost(post) : null,
-                      onDelete:
-                          canPost
-                              ? () => _confirmDelete(context, ref, post)
-                              : null,
+                      onDelete: canPost
+                          ? () => _confirmDelete(context, ref, post)
+                          : null,
                     );
                   },
                 ),
@@ -158,10 +156,8 @@ class GroupProfilePostsTab extends ConsumerWidget {
       context,
       title: l10n.group_post_delete_title,
       message: l10n.group_post_delete_message,
-      onConfirmed:
-          () => ref
-              .read(groupPostsProvider(groupId).notifier)
-              .deletePost(post.id),
+      onConfirmed: () =>
+          ref.read(groupPostsProvider(groupId).notifier).deletePost(post.id),
     );
 
     if (success != false || !context.mounted) return;
@@ -188,10 +184,12 @@ class _EmptyPosts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Center(
       child: Padding(
@@ -224,10 +222,12 @@ class _EmptyPosts extends StatelessWidget {
               ElevatedButton(
                 onPressed: onCreatePost,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                  foregroundColor:
-                      isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                  backgroundColor: isDark
+                      ? AppColors.surfaceWhite
+                      : AppColors.textPrimary,
+                  foregroundColor: isDark
+                      ? AppColors.textPrimary
+                      : AppColors.surfaceWhite,
                   minimumSize: const Size(0, 44),
                   padding: const EdgeInsets.symmetric(horizontal: 28),
                   shape: const StadiumBorder(),

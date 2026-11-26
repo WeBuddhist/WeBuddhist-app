@@ -14,6 +14,21 @@ void main() {
     analytics = GroupChatAnalytics(service);
   });
 
+  test('direct chats have their own events, without a group', () {
+    analytics.directChatOpened(roomId: 'r1');
+    analytics.directMessageSent(roomId: 'r1', messageId: 'm1', isReply: false);
+
+    expect(service.eventNames, [
+      AnalyticsEvents.directChatOpened,
+      AnalyticsEvents.directMessageSent,
+    ]);
+    expect(service.events.last.properties, {
+      'room_id': 'r1',
+      'message_id': 'm1',
+      'is_reply': false,
+    });
+  });
+
   group('chatReactionActionFor', () {
     test('a plain POST is an add', () {
       expect(
