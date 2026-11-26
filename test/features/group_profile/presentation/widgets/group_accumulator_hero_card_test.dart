@@ -13,7 +13,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fpdart/fpdart.dart';
 
-GroupAccumulatorDetail _detail({String? textId, String? mantraId}) {
+GroupAccumulatorDetail _detail({
+  String? textId,
+  String? mantraId,
+  DateTime? endDate,
+}) {
   return GroupAccumulatorDetail(
     id: 'acc-1',
     presetAccumulatorId: 'preset-1',
@@ -24,6 +28,7 @@ GroupAccumulatorDetail _detail({String? textId, String? mantraId}) {
     memberCount: 12,
     targetCount: 100000,
     totalCount: 5000,
+    endDate: endDate,
   );
 }
 
@@ -52,7 +57,10 @@ ReaderResponse _reader(String title) {
 Future<void> _pump(
   WidgetTester tester, {
   required GroupAccumulatorDetail detail,
+  bool hasJoined = true,
   VoidCallback? onTextTap,
+  VoidCallback? onActionTap,
+  VoidCallback? onJoinTap,
   List<Override> overrides = const [],
 }) async {
   await tester.pumpWidget(
@@ -65,9 +73,11 @@ Future<void> _pump(
         home: Scaffold(
           body: GroupAccumulatorHeroCard(
             detail: detail,
-            hasJoined: true,
+            hasJoined: hasJoined,
             isDark: false,
             onTextTap: onTextTap,
+            onActionTap: onActionTap,
+            onJoinTap: onJoinTap,
           ),
         ),
       ),
@@ -183,4 +193,78 @@ void main() {
       expect(find.text('Om Akshobhya Hum'), findsOneWidget);
     },
   );
+
+  group('action button', () {
+    // A mantra accumulation with no catalogue entry keeps the source row empty,
+    // so only the button is under test.
+    final overrides = [
+      malaCatalogueProvider.overrideWith(
+        () => ScreenCacheNotifier.fixed(const Right(<Mantra>[])),
+      ),
+    ];
+    final past = DateTime.now().subtract(const Duration(days: 1));
+    final future = DateTime.now().add(const Duration(days: 1));
+
+    testWidgets('a member sees Recite now before the end date', (tester) async {
+      var taps = 0;
+      await _pump(
+        tester,
+        detail: _detail(mantraId: 'mantra-1', endDate: future),
+        onActionTap: () => taps++,
+        overrides: overrides,
+      );
+
+      await tester.tap(find.text('Recite now'));
+      await tester.pump();
+      expect(taps, 1);
+    });
+
+    testWidgets('a member sees Recite now when there is no end date', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        detail: _detail(mantraId: 'mantra-1'),
+        overrides: overrides,
+      );
+
+      expect(find.text('Recite now'), findsOneWidget);
+    });
+
+    testWidgets('a member sees no button after the end date', (tester) async {
+      await _pump(
+        tester,
+        detail: _detail(mantraId: 'mantra-1', endDate: past),
+        onActionTap: () {},
+        overrides: overrides,
+      );
+
+      expect(find.text('Recite now'), findsNothing);
+      expect(find.text('View practice'), findsNothing);
+      expect(find.text('Join to contribute'), findsNothing);
+    });
+
+    for (final (label, endDate) in [
+      ('before the end date', future),
+      ('after the end date', past),
+    ]) {
+      testWidgets('a non-member sees Join to contribute $label', (
+        tester,
+      ) async {
+        var taps = 0;
+        await _pump(
+          tester,
+          detail: _detail(mantraId: 'mantra-1', endDate: endDate),
+          hasJoined: false,
+          onJoinTap: () => taps++,
+          overrides: overrides,
+        );
+
+        expect(find.text('Recite now'), findsNothing);
+        await tester.tap(find.text('Join to contribute'));
+        await tester.pump();
+        expect(taps, 1);
+      });
+    }
+  });
 }
