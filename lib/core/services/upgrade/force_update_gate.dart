@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pecha/core/services/upgrade/force_update_dialog.dart';
@@ -67,8 +66,11 @@ class _ForceUpdateGateState extends ConsumerState<ForceUpdateGate>
 
   @override
   Widget build(BuildContext context) {
-    // Only enforce on Android/iOS; skip macOS and other platforms.
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    // Only enforce on Android/iOS; skip web, macOS and other platforms.
+    // `defaultTargetPlatform` (not dart:io `Platform`) so tests can override it.
+    if (kIsWeb ||
+        (defaultTargetPlatform != TargetPlatform.android &&
+            defaultTargetPlatform != TargetPlatform.iOS)) {
       return widget.child;
     }
 
