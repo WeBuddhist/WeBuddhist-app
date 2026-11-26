@@ -202,6 +202,17 @@ jobs:
             echo "Crashlytics symbol-upload build phase neutralized for the CI archive."
           fi
 
+      # A flavor xcconfig that sets FLUTTER_TARGET overrides the `-t` below
+      # in release builds (Xcode compiles the Dart itself), so the app would
+      # run another lib/main_*.dart and load another server's .env file.
+      - name: 🎯 Check no iOS flavor pins the entry file
+        run: |
+          # Any form Xcode accepts: spaces around =, indentation, [sdk=...] conditions.
+          if grep -nE '^[[:space:]]*FLUTTER_TARGET[[:space:]]*(\[[^]]*\])?[[:space:]]*=' ios/Flutter/*-debug.xcconfig ios/Flutter/*-release.xcconfig; then
+            echo "::error::An iOS flavor xcconfig sets FLUTTER_TARGET; remove it so -t decides the entry file."
+            exit 1
+          fi
+
       - name: 🏗️ Build IPA (${{ inputs.server }} server)
         env:
           AIRBRIDGE_SDK_TOKEN: ${{ secrets.AIRBRIDGE_SDK_TOKEN }}
@@ -214,6 +225,24 @@ jobs:
             --flavor "$FLAVOR" -t "lib/main_${SERVER}.dart" \
             --build-name "$VERSION_NAME" --build-number "$BUILD_NUMBER" \
             --export-options-plist=ios/ExportOptions.plist
+
+      # Generated.xcconfig only holds what -t asked for; a flavor xcconfig
+      # loaded after it could still override it. Ask Xcode for the value it
+      # resolved for the Runner target, which is what the release build used.
+      - name: 🎯 Check the entry file Xcode built
+        env:
+          SERVER: ${{ inputs.server }}
+        run: |
+          set -euo pipefail
+          CONFIG="$(printf '%s' "${FLAVOR:0:1}" | tr '[:lower:]' '[:upper:]')${FLAVOR:1}-Release"
+          BUILT=$(xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace \
+              -scheme "$FLAVOR" -configuration "$CONFIG" -disableAutomaticPackageResolution 2>/dev/null \
+            | awk '/Build settings for action .* and target Runner:/{r=1} r && $1=="FLUTTER_TARGET"{print $3; exit}')
+          echo "Xcode FLUTTER_TARGET for Runner ($CONFIG): ${BUILT:-<none>}"
+          case "$BUILT" in
+            */lib/main_${SERVER}.dart|lib/main_${SERVER}.dart) ;;
+            *) echo "::error::Xcode built ${BUILT:-nothing}, expected lib/main_${SERVER}.dart"; exit 1 ;;
+          esac
 
       - name: ⬆️ Upload IPA artifact
         uses: actions/upload-artifact@v4
