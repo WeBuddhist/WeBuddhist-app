@@ -98,10 +98,9 @@ abstract final class GroupEventLinkUtils {
     final uri = Uri.tryParse(url.trim());
     if (uri == null || uri.host.isEmpty) return url.trim();
     final host = _stripWww(uri.host);
-    final path =
-        uri.path.endsWith('/')
-            ? uri.path.substring(0, uri.path.length - 1)
-            : uri.path;
+    final path = uri.path.endsWith('/')
+        ? uri.path.substring(0, uri.path.length - 1)
+        : uri.path;
     return '$host$path';
   }
 

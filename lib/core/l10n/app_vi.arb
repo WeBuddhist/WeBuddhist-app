@@ -1202,5 +1202,15 @@
   "session_search_chants_hint": "Tìm kiếm bài tụng",
   "session_search_malas_hint": "Tìm kiếm chuỗi hạt",
   "session_search_timers_hint": "Tìm hẹn giờ theo tên hoặc thời lượng",
-  "search_min_query_length": "Nhập ít nhất {count} ký tự để tìm kiếm"
+  "search_min_query_length": "Nhập ít nhất {count} ký tự để tìm kiếm",
+  "practice_next_session": "Buổi tu tiếp theo",
+  "practice_more_in_session": "+{count} mục khác trong buổi này",
+  "practice_from_your_spaces": "Từ các nhóm của bạn",
+  "practice_discover_more": "Khám phá thêm",
+  "practice_space_accumulations": "Tích lũy của nhóm",
+  "practice_no_space_accumulations": "Hiện chưa có tích lũy nào từ các nhóm khác",
+  "practice_search_hint": "Tìm thực hành",
+  "practice_search_recent": "Gần đây",
+  "practice_search_no_results": "Không có kết quả cho \"{query}\"",
+  "practice_popular_practices": "Thực hành phổ biến"
 }

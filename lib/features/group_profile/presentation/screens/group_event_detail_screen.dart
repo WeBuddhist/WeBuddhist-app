@@ -177,8 +177,9 @@ class _GroupEventDetailScreenState
     );
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.scaffoldBackgroundDark : AppColors.surfaceLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldBackgroundDark
+          : AppColors.surfaceLight,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -188,10 +189,8 @@ class _GroupEventDetailScreenState
               child: ScreenCacheBuilder<GroupEvent>(
                 value: eventAsync,
                 skeleton: const Center(child: CircularProgressIndicator()),
-                onRetry:
-                    () => ref.invalidate(
-                      groupEventDetailProvider(widget.eventId),
-                    ),
+                onRetry: () =>
+                    ref.invalidate(groupEventDetailProvider(widget.eventId)),
                 data: (event) => _buildContent(context, event, isDark),
               ),
             ),
@@ -204,22 +203,22 @@ class _GroupEventDetailScreenState
   Widget _buildAppBar(BuildContext context, bool isDark, GroupEvent? event) {
     final menuEvent =
         event != null &&
-                showsGroupEventMenu(
-                  isAttending: _attendingOverride ?? event.isJoined,
-                  isPast: isGroupEventPast(event),
-                )
-            ? event
-            : null;
+            showsGroupEventMenu(
+              isAttending: _attendingOverride ?? event.isJoined,
+              isPast: isGroupEventPast(event),
+            )
+        ? event
+        : null;
     // Group admins manage the event whether or not they attend it.
     final manageEvent =
         event != null &&
-                (ref
-                        .watch(groupMyPermissionProvider(event.groupId))
-                        .valueOrNull
-                        ?.isGroupAdmin ??
-                    false)
-            ? event
-            : null;
+            (ref
+                    .watch(groupMyPermissionProvider(event.groupId))
+                    .valueOrNull
+                    ?.isGroupAdmin ??
+                false)
+        ? event
+        : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -257,20 +256,17 @@ class _GroupEventDetailScreenState
                   iconSize: 22,
                   // Leaving mid-entry would still navigate into the left
                   // event.
-                  onPressed:
-                      _isSubmitting || _isOpeningPuja
-                          ? null
-                          : () => showGroupEventMoreSheet(
-                            context,
-                            onManage:
-                                manageEvent == null
-                                    ? null
-                                    : () => _openManage(manageEvent),
-                            onLeave:
-                                menuEvent == null
-                                    ? null
-                                    : () => _confirmLeave(menuEvent),
-                          ),
+                  onPressed: _isSubmitting || _isOpeningPuja
+                      ? null
+                      : () => showGroupEventMoreSheet(
+                          context,
+                          onManage: manageEvent == null
+                              ? null
+                              : () => _openManage(manageEvent),
+                          onLeave: menuEvent == null
+                              ? null
+                              : () => _confirmLeave(menuEvent),
+                        ),
                 ),
             ],
           ),
@@ -328,16 +324,14 @@ class _GroupEventDetailScreenState
     ];
     // Newcomers start on About; returning participants (`is_joined`, the same
     // rows `participant_count` counts) go straight to the accumulation.
-    _openingTab ??=
-        event.isJoined && accumulations.isNotEmpty
-            ? _EventTab.accumulations
-            : _EventTab.about;
-    final selectedTab =
-        tabs.contains(_selectedTab)
-            ? _selectedTab!
-            : tabs.contains(_openingTab)
-            ? _openingTab!
-            : _EventTab.about;
+    _openingTab ??= event.isJoined && accumulations.isNotEmpty
+        ? _EventTab.accumulations
+        : _EventTab.about;
+    final selectedTab = tabs.contains(_selectedTab)
+        ? _selectedTab!
+        : tabs.contains(_openingTab)
+        ? _openingTab!
+        : _EventTab.about;
     final isPast = isGroupEventPast(event);
     final actions = groupEventActionsFor(
       event,
@@ -507,10 +501,9 @@ class _GroupEventDetailScreenState
 
     // A hybrid attendee re-joins with the picked format, which also enters;
     // a single-format attendee has nothing to pick.
-    Future<void> practice(GroupEventParticipationType participation) =>
-        isHybrid
-            ? _attendEvent(event, participation: participation)
-            : _enterPuja(event);
+    Future<void> practice(GroupEventParticipationType participation) => isHybrid
+        ? _attendEvent(event, participation: participation)
+        : _enterPuja(event);
 
     Widget button(GroupEventAction action) {
       final (String label, Future<void> Function() run) = switch (action) {
@@ -820,13 +813,12 @@ class _GroupEventDetailScreenState
     }
 
     _collectionCompletion?.close();
-    _collectionCompletion =
-        readOnly
-            ? null
-            : ref.listenManual(
-              groupRecitationCollectionCompletionProvider(key),
-              (_, _) {},
-            );
+    _collectionCompletion = readOnly
+        ? null
+        : ref.listenManual(
+            groupRecitationCollectionCompletionProvider(key),
+            (_, _) {},
+          );
     final navigationContext = groupEventCollectionNavigationContext(
       eventId: event.id,
       key: key,
@@ -885,10 +877,9 @@ class _GroupEventDetailScreenState
       final enrollments = await ref.read(userSeriesEnrollmentsProvider.future);
       if (!mounted) return false;
       if (!enrollments.contains(seriesId)) {
-        final ok =
-            await ref
-                .read(seriesEnrollmentProvider(seriesId).notifier)
-                .enroll();
+        final ok = await ref
+            .read(seriesEnrollmentProvider(seriesId).notifier)
+            .enroll();
         if (!mounted) return false;
         if (!ok) {
           final state = ref.read(seriesEnrollmentProvider(seriesId));
@@ -903,12 +894,11 @@ class _GroupEventDetailScreenState
     }
 
     // Prefer the enrolled plan so flexible plans keep their saved start date.
-    final enrolled =
-        ref
-            .read(myPlansPaginatedProvider)
-            .plans
-            .where((p) => p.id == plan.id)
-            .firstOrNull;
+    final enrolled = ref
+        .read(myPlansPaginatedProvider)
+        .plans
+        .where((p) => p.id == plan.id)
+        .firstOrNull;
     final userPlan = enrolled ?? userPlanFromCatalogPlan(plan);
     final startDate = userPlan.effectiveStartDate;
     context.push(
@@ -1006,10 +996,9 @@ class _GroupEventDetailScreenState
   /// and accumulator membership stay, as the API leaves them.
   Future<void> _confirmLeave(GroupEvent event) async {
     final l10n = context.l10n;
-    final title =
-        event.title.trim().isNotEmpty
-            ? event.title.trim()
-            : l10n.connect_event_fallback_title;
+    final title = event.title.trim().isNotEmpty
+        ? event.title.trim()
+        : l10n.connect_event_fallback_title;
     String? error;
     final left = await showDestructiveConfirmationDialog(
       context,
@@ -1057,8 +1046,9 @@ class _GroupEventDetailScreenState
   }
 
   Future<void> _shareEvent() async {
-    final longUrl =
-        DeepLinkUrlBuilder.eventLink(eventId: widget.eventId).toString();
+    final longUrl = DeepLinkUrlBuilder.eventLink(
+      eventId: widget.eventId,
+    ).toString();
     final shareUrl = await resolveShareUrlRef(ref, longUrl);
     if (!mounted) return;
 
@@ -1103,17 +1093,15 @@ class _EventEndedBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastDay = (event.endDate ?? event.startDate)?.toLocal();
-    final dateText =
-        lastDay == null
-            ? null
-            : DateFormat(
-              'd MMM y',
-              intlFormatLocaleOf(context),
-            ).format(lastDay);
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
-    final dateColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final dateText = lastDay == null
+        ? null
+        : DateFormat('d MMM y', intlFormatLocaleOf(context)).format(lastDay);
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
+    final dateColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Container(
       width: double.infinity,
@@ -1168,14 +1156,12 @@ class _EventActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final background =
-        secondary
-            ? (isDark ? AppColors.surfaceVariantDark : AppColors.grey100)
-            : (isDark ? AppColors.surfaceWhite : AppColors.textPrimary);
-    final foreground =
-        secondary
-            ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
-            : (isDark ? AppColors.textPrimary : AppColors.surfaceWhite);
+    final background = secondary
+        ? (isDark ? AppColors.surfaceVariantDark : AppColors.grey100)
+        : (isDark ? AppColors.surfaceWhite : AppColors.textPrimary);
+    final foreground = secondary
+        ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
+        : (isDark ? AppColors.textPrimary : AppColors.surfaceWhite);
 
     return ElevatedButton(
       onPressed: onPressed,
@@ -1190,17 +1176,16 @@ class _EventActionButton extends StatelessWidget {
         textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         shape: const StadiumBorder(),
       ),
-      child:
-          isPending
-              ? SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: foreground,
-                ),
-              )
-              : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      child: isPending
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: foreground,
+              ),
+            )
+          : Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 }
@@ -1213,12 +1198,12 @@ class _EventHeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
-    final title =
-        event.title.trim().isNotEmpty
-            ? event.title.trim()
-            : context.l10n.connect_event_fallback_title;
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
+    final title = event.title.trim().isNotEmpty
+        ? event.title.trim()
+        : context.l10n.connect_event_fallback_title;
 
     return Material(
       color: cardColor,
@@ -1232,23 +1217,18 @@ class _EventHeroCard extends StatelessWidget {
           SizedBox(
             height: 190,
             width: double.infinity,
-            child:
-                event.image != null && !event.image!.isEmpty
-                    ? ResponsiveCoverImage(
-                      image: event.image,
-                      fit: BoxFit.cover,
-                    )
-                    : ColoredBox(
-                      color:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.grey100,
-                      child: Icon(
-                        AppAssets.calendarDots,
-                        size: 42,
-                        color: isDark ? AppColors.grey500 : AppColors.grey600,
-                      ),
+            child: event.image != null && !event.image!.isEmpty
+                ? ResponsiveCoverImage(image: event.image, fit: BoxFit.cover)
+                : ColoredBox(
+                    color: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.grey100,
+                    child: Icon(
+                      AppAssets.calendarDots,
+                      size: 42,
+                      color: isDark ? AppColors.grey500 : AppColors.grey600,
                     ),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
@@ -1287,8 +1267,9 @@ class _AttendeesRow extends StatelessWidget {
     }
 
     final shown = participants.take(3).toList();
-    final textColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final textColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     final double avatarSize = 28.0;
     final double overlap = 18.0;
@@ -1316,13 +1297,12 @@ class _AttendeesRow extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap:
-          () => GroupEventParticipantsDrawer.show(
-            context,
-            eventId: eventId,
-            totalAttending: totalAttending,
-            isPast: isPast,
-          ),
+      onTap: () => GroupEventParticipantsDrawer.show(
+        context,
+        eventId: eventId,
+        totalAttending: totalAttending,
+        isPast: isPast,
+      ),
       child: Row(
         children: [
           for (var i = 0; i < stacked.length; i++)
@@ -1333,11 +1313,11 @@ class _AttendeesRow extends StatelessWidget {
             child: Text(
               isPast
                   ? context.l10n.connect_event_participants_attended(
-                    totalAttending,
-                  )
+                      totalAttending,
+                    )
                   : context.l10n.connect_event_participants_attending(
-                    totalAttending,
-                  ),
+                      totalAttending,
+                    ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -1373,25 +1353,23 @@ class _ParticipantAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color:
-              isDark
-                  ? AppColors.scaffoldBackgroundDark
-                  : AppColors.surfaceLight,
+          color: isDark
+              ? AppColors.scaffoldBackgroundDark
+              : AppColors.surfaceLight,
           width: 2,
         ),
       ),
       child: ClipOval(
-        child:
-            avatarUrl != null && avatarUrl.isNotEmpty
-                ? CachedNetworkImageWidget(
-                  imageUrl: avatarUrl,
-                  fit: BoxFit.cover,
-                  errorWidget: AvatarFallback(
-                    isDark: isDark,
-                    iconSize: size * 0.5,
-                  ),
-                )
-                : AvatarFallback(isDark: isDark, iconSize: size * 0.5),
+        child: avatarUrl != null && avatarUrl.isNotEmpty
+            ? CachedNetworkImageWidget(
+                imageUrl: avatarUrl,
+                fit: BoxFit.cover,
+                errorWidget: AvatarFallback(
+                  isDark: isDark,
+                  iconSize: size * 0.5,
+                ),
+              )
+            : AvatarFallback(isDark: isDark, iconSize: size * 0.5),
       ),
     );
   }
@@ -1420,10 +1398,12 @@ class _EventGroupRow extends ConsumerWidget {
     // Heading and card share one visibility so the label never stands alone.
     if (title.isEmpty) return const SizedBox.shrink();
 
-    final subtitleColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
+    final subtitleColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
 
     final card = Material(
       color: cardColor,
@@ -1437,22 +1417,22 @@ class _EventGroupRow extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundColor:
-                    isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-                backgroundImage:
-                    avatarUrl.isNotEmpty
-                        ? avatarUrl.cachedNetworkImageProvider
-                        : null,
-                onBackgroundImageError:
-                    avatarUrl.isNotEmpty ? reportImageLoadError : null,
-                child:
-                    avatarUrl.isEmpty
-                        ? Icon(
-                          AppAssets.usersThree,
-                          size: 20,
-                          color: isDark ? AppColors.grey500 : AppColors.grey600,
-                        )
-                        : null,
+                backgroundColor: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.grey100,
+                backgroundImage: avatarUrl.isNotEmpty
+                    ? avatarUrl.cachedNetworkImageProvider
+                    : null,
+                onBackgroundImageError: avatarUrl.isNotEmpty
+                    ? reportImageLoadError
+                    : null,
+                child: avatarUrl.isEmpty
+                    ? Icon(
+                        AppAssets.usersThree,
+                        size: 20,
+                        color: isDark ? AppColors.grey500 : AppColors.grey600,
+                      )
+                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1499,12 +1479,15 @@ class _EventInfoCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final iconColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final iconColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
     final linkColor = isDark ? AppColors.blueDark : AppColors.blue;
     final dateText = _formatDateText(context, event);
     final recurrenceText = _formatRecurrenceText(context, event);
@@ -1567,19 +1550,18 @@ class _EventInfoCard extends ConsumerWidget {
             // when the event has one.
             GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap:
-                  meetingLink == null
-                      ? null
-                      : () {
-                        ref
-                            .read(groupEventAnalyticsProvider)
-                            .eventLinkOpened(
-                              eventId: event.id,
-                              groupId: event.groupId,
-                              kind: GroupEventLinkKind.meeting,
-                            );
-                        _openLink(meetingLink.url);
-                      },
+              onTap: meetingLink == null
+                  ? null
+                  : () {
+                      ref
+                          .read(groupEventAnalyticsProvider)
+                          .eventLinkOpened(
+                            eventId: event.id,
+                            groupId: event.groupId,
+                            kind: GroupEventLinkKind.meeting,
+                          );
+                      _openLink(meetingLink.url);
+                    },
               child: _EventInfoRow(
                 icon: AppAssets.globe,
                 text: context.l10n.connect_online,
@@ -1606,16 +1588,15 @@ class _EventInfoCard extends ConsumerWidget {
     final endDate = end;
     // Single-day labels still drop the year when it is this year. A multi-day
     // range always keeps the year, once at the end unless the years differ.
-    final dates =
-        endDate != null && !DateUtils.isSameDay(start, endDate)
-            ? formatGroupEventDayRange(start, endDate, locale, separator: ' – ')
-            : DateFormat(
-              start.year != now.year ||
-                      (endDate != null && endDate.year != now.year)
-                  ? 'd MMM y'
-                  : 'd MMM',
-              locale,
-            ).format(start);
+    final dates = endDate != null && !DateUtils.isSameDay(start, endDate)
+        ? formatGroupEventDayRange(start, endDate, locale, separator: ' – ')
+        : DateFormat(
+            start.year != now.year ||
+                    (endDate != null && endDate.year != now.year)
+                ? 'd MMM y'
+                : 'd MMM',
+            locale,
+          ).format(start);
     if (end == null || end.isAtSameMomentAs(start)) {
       return '$dates · ${time(start)} · $startZone';
     }
@@ -1666,16 +1647,16 @@ class _EventLinksCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
-    final links =
-        event.links
-            .where(
-              (link) =>
-                  link.url.isNotEmpty &&
-                  GroupEventLinkUtils.kindOf(link) != GroupEventLinkKind.video,
-            )
-            .toList();
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
+    final links = event.links
+        .where(
+          (link) =>
+              link.url.isNotEmpty &&
+              GroupEventLinkUtils.kindOf(link) != GroupEventLinkKind.video,
+        )
+        .toList();
     if (links.isEmpty) return const SizedBox.shrink();
 
     return Container(
@@ -1800,8 +1781,9 @@ class _EventLinkText extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isMeeting =
         GroupEventLinkUtils.kindOf(link) == GroupEventLinkKind.meeting;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final brandIcon = _brandIcon();
 
     return GestureDetector(
@@ -1818,10 +1800,9 @@ class _EventLinkText extends ConsumerWidget {
       },
       child: _EventInfoRow(
         icon: isMeeting ? AppAssets.videoCamera : AppAssets.globe,
-        leading:
-            brandIcon == null
-                ? null
-                : Image.asset(brandIcon, width: 16, height: 16),
+        leading: brandIcon == null
+            ? null
+            : Image.asset(brandIcon, width: 16, height: 16),
         text: GroupEventLinkUtils.shortUrl(link.url),
         iconColor: secondaryColor,
         textColor: isDark ? AppColors.blueDark : AppColors.blue,
@@ -1892,17 +1873,15 @@ class _EventAccumulatorPanelState
     void retry() => ref.invalidate(groupAccumulatorDetailProvider(primaryId));
 
     return detailAsync.when(
-      loading:
-          () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: CircularProgressIndicator()),
-          ),
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: CircularProgressIndicator()),
+      ),
       error: (error, _) => ErrorStateWidget(error: error, onRetry: retry),
-      data:
-          (either) => either.fold(
-            (failure) => ErrorStateWidget(error: failure, onRetry: retry),
-            (detail) => _buildDetail(context, detail),
-          ),
+      data: (either) => either.fold(
+        (failure) => ErrorStateWidget(error: failure, onRetry: retry),
+        (detail) => _buildDetail(context, detail),
+      ),
     );
   }
 
@@ -1915,10 +1894,12 @@ class _EventAccumulatorPanelState
       detail,
       localJoinedIds: localJoinedIds,
     );
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     // Keep the counts notifier alive while the panel is visible so an offline
     // add is not racing its own dispose during sync.
     if (detail.presetAccumulatorId.isNotEmpty) {
@@ -1965,75 +1946,66 @@ class _EventAccumulatorPanelState
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
-            child:
-                hasJoined && widget.isAttending
-                    ? OutlinedButton.icon(
-                      onPressed: () => _addRecitations(detail),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 50),
-                        backgroundColor:
-                            isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.grey100,
-                        foregroundColor: primaryColor,
-                        side: BorderSide(
-                          color: isDark ? AppColors.grey800 : AppColors.grey300,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
+            child: hasJoined && widget.isAttending
+                ? OutlinedButton.icon(
+                    onPressed: () => _addRecitations(detail),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 50),
+                      backgroundColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.grey100,
+                      foregroundColor: primaryColor,
+                      side: BorderSide(
+                        color: isDark ? AppColors.grey800 : AppColors.grey300,
                       ),
-                      icon: const Icon(AppAssets.plusCircle, size: 20),
-                      label: Text(
-                        context.l10n.connect_event_add_recitations,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
                       ),
-                    )
-                    : ElevatedButton(
-                      onPressed:
-                          !widget.isAttending || _isJoining
-                              ? null
-                              : () => _join(detail),
-                      style: ElevatedButton.styleFrom(
-                        elevation: 0,
-                        minimumSize: const Size(0, 50),
-                        backgroundColor:
-                            isDark
-                                ? AppColors.surfaceWhite
-                                : AppColors.textPrimary,
-                        foregroundColor:
-                            isDark
-                                ? AppColors.textPrimary
-                                : AppColors.surfaceWhite,
-                        disabledBackgroundColor:
-                            isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.grey100,
-                        disabledForegroundColor: secondaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                      child:
-                          _isJoining
-                              ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                              : Text(
-                                context.l10n.group_join_to_contribute,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
                     ),
+                    icon: const Icon(AppAssets.plusCircle, size: 20),
+                    label: Text(
+                      context.l10n.connect_event_add_recitations,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
+                : ElevatedButton(
+                    onPressed: !widget.isAttending || _isJoining
+                        ? null
+                        : () => _join(detail),
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0,
+                      minimumSize: const Size(0, 50),
+                      backgroundColor: isDark
+                          ? AppColors.surfaceWhite
+                          : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimary
+                          : AppColors.surfaceWhite,
+                      disabledBackgroundColor: isDark
+                          ? AppColors.surfaceVariantDark
+                          : AppColors.grey100,
+                      disabledForegroundColor: secondaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    child: _isJoining
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(
+                            context.l10n.group_join_to_contribute,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
           ),
         ] else
           GroupAccumulatorLeaderboardList(
@@ -2224,20 +2196,21 @@ class _AccumulationProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final countStyle = TextStyle(fontSize: 13, color: secondaryColor);
     final numberFormat = NumberFormat.decimalPattern(
       intlFormatLocaleOf(context),
     );
     final counts = accumulator;
     final label = formatLabel;
-    final progressText =
-        counts == null
-            ? ''
-            : '${numberFormat.format(counts.totalCount)} / ${numberFormat.format(counts.targetCount)}';
+    final progressText = counts == null
+        ? ''
+        : '${numberFormat.format(counts.totalCount)} / ${numberFormat.format(counts.targetCount)}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2285,8 +2258,9 @@ class _AccumulationProgress extends StatelessWidget {
           child: LinearProgressIndicator(
             value: counts?.progressFraction ?? 0,
             minHeight: 6,
-            backgroundColor:
-                isDark ? AppColors.cardBorderDark : AppColors.grey300,
+            backgroundColor: isDark
+                ? AppColors.cardBorderDark
+                : AppColors.grey300,
             color: AppColors.primary,
           ),
         ),
@@ -2337,10 +2311,12 @@ class _EventSubTabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final inactiveColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final activeColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final inactiveColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -2363,10 +2339,9 @@ class _EventSubTabButton extends StatelessWidget {
           ),
           Container(
             height: 2,
-            color:
-                selected
-                    ? activeColor
-                    : (isDark ? AppColors.cardBorderDark : AppColors.grey300),
+            color: selected
+                ? activeColor
+                : (isDark ? AppColors.cardBorderDark : AppColors.grey300),
           ),
         ],
       ),
@@ -2389,10 +2364,9 @@ class _EventTabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor =
-        selected
-            ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
-            : (isDark ? AppColors.textTertiaryDark : AppColors.textSecondary);
+    final textColor = selected
+        ? (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary)
+        : (isDark ? AppColors.textTertiaryDark : AppColors.textSecondary);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -2507,8 +2481,9 @@ class _VideoLinkCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final videoId = YoutubePlayer.convertUrlToId(link.url);
-    final placeholderColor =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
+    final placeholderColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
     final label = link.label?.trim() ?? '';
 
     return GestureDetector(
@@ -2598,11 +2573,10 @@ class _VideoLinkCard extends ConsumerWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         settings: const RouteSettings(name: 'video-player'),
-        builder:
-            (_) => YoutubeVideoPlayer(
-              videoUrl: link.url,
-              title: link.label?.trim() ?? '',
-            ),
+        builder: (_) => YoutubeVideoPlayer(
+          videoUrl: link.url,
+          title: link.label?.trim() ?? '',
+        ),
       ),
     );
   }
@@ -2616,8 +2590,9 @@ class _AboutPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
     final description = event.description?.trim();
 
     return Column(
@@ -2631,21 +2606,19 @@ class _AboutPanel extends StatelessWidget {
             color: cardColor,
             borderRadius: BorderRadius.circular(12),
           ),
-          child:
-              description != null && description.isNotEmpty
-                  ? PlanInlineMarkdownView(
-                    content: description,
-                    fontSize: getLocalizedFontSize(AppTextSize.body),
-                  )
-                  : Text(
-                    context.l10n.connect_event_about_empty,
-                    style: TextStyle(
-                      color:
-                          isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textSecondary,
-                    ),
+          child: description != null && description.isNotEmpty
+              ? PlanInlineMarkdownView(
+                  content: description,
+                  fontSize: getLocalizedFontSize(AppTextSize.body),
+                )
+              : Text(
+                  context.l10n.connect_event_about_empty,
+                  style: TextStyle(
+                    color: isDark
+                        ? AppColors.textTertiaryDark
+                        : AppColors.textSecondary,
                   ),
+                ),
         ),
       ],
     );

@@ -44,10 +44,12 @@ class GroupAccumulatorChantFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondary;
+    final textColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondary;
     final countEnabled = canCount && !isFinishing;
 
     return Padding(
@@ -76,17 +78,20 @@ class GroupAccumulatorChantFooter extends StatelessWidget {
           const SizedBox(height: 24),
           _ChantActionButton(
             label: l10n.group_accumulator_recite_again,
-            backgroundColor:
-                isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-            foregroundColor:
-                isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+            backgroundColor: isDark
+                ? AppColors.surfaceWhite
+                : AppColors.textPrimary,
+            foregroundColor: isDark
+                ? AppColors.textPrimary
+                : AppColors.surfaceWhite,
             onTap: countEnabled ? onReciteAgain : null,
           ),
           const SizedBox(height: 12),
           _ChantActionButton(
             label: l10n.group_accumulator_finish_and_count,
-            backgroundColor:
-                isDark ? AppColors.cardBorderDark : AppColors.grey100,
+            backgroundColor: isDark
+                ? AppColors.cardBorderDark
+                : AppColors.grey100,
             foregroundColor: textColor,
             onTap: countEnabled ? onFinishAndCount : null,
           ),

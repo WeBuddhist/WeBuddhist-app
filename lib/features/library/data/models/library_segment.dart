@@ -41,11 +41,10 @@ class LibrarySegment {
       id: json['id'] as String,
       type: json['type'] as String? ?? '',
       reference: json['reference']?.toString() ?? '',
-      lines:
-          rawLines
-              .whereType<Map<String, dynamic>>()
-              .map(LibraryLineSpan.fromJson)
-              .toList(growable: false),
+      lines: rawLines
+          .whereType<Map<String, dynamic>>()
+          .map(LibraryLineSpan.fromJson)
+          .toList(growable: false),
       segmentationId: json['segmentation_id'] as String?,
       editionId: json['edition_id'] as String?,
       textId: json['text_id'] as String?,
@@ -81,11 +80,10 @@ class LibrarySegmentPage implements LibraryPage<LibrarySegment> {
   factory LibrarySegmentPage.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'] as List<dynamic>? ?? const [];
     return LibrarySegmentPage(
-      items:
-          rawItems
-              .whereType<Map<String, dynamic>>()
-              .map(LibrarySegment.fromJson)
-              .toList(growable: false),
+      items: rawItems
+          .whereType<Map<String, dynamic>>()
+          .map(LibrarySegment.fromJson)
+          .toList(growable: false),
       hasMore: json['has_more'] as bool? ?? false,
       offset: json['offset'] as int? ?? 0,
       limit: json['limit'] as int? ?? rawItems.length,

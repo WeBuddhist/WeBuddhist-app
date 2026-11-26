@@ -61,10 +61,10 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
         language: language,
         params: [groupId],
       ),
-      fetchJson: () => remote.fetchGroupProfileJson(groupId, language: language),
-      fromJson:
-          (json) =>
-              GroupProfileModel.fromJson(json as Map<String, dynamic>).toEntity(),
+      fetchJson: () =>
+          remote.fetchGroupProfileJson(groupId, language: language),
+      fromJson: (json) =>
+          GroupProfileModel.fromJson(json as Map<String, dynamic>).toEntity(),
       failureMessage: 'Failed to load group profile',
     );
   }
@@ -102,9 +102,8 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
       language: language,
       params: [groupId],
       fetchJson: () => remote.fetchGroupEventsJson(groupId, language: language),
-      parse:
-          (json) =>
-              GroupEventsPageModel.fromJson(json, language: language).toEntity(),
+      parse: (json) =>
+          GroupEventsPageModel.fromJson(json, language: language).toEntity(),
       failureMessage: 'Failed to load group events',
     );
   }
@@ -141,8 +140,8 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
       'group_event',
       language: language,
       params: [eventId],
-      fetchJson:
-          () => remote.fetchGroupEventDetailJson(eventId, language: language),
+      fetchJson: () =>
+          remote.fetchGroupEventDetailJson(eventId, language: language),
       parse: (json) => GroupEventModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group event',
     );
@@ -173,16 +172,14 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
   }
 
   @override
-  ScreenCacheSource<GroupRecitationCollection> recitationCollectionDetailSource({
-    required String collectionId,
-  }) {
+  ScreenCacheSource<GroupRecitationCollection>
+  recitationCollectionDetailSource({required String collectionId}) {
     return _userSource(
       'group_recitation_collection',
       params: [collectionId],
-      fetchJson:
-          () => remote.fetchRecitationCollectionDetailJson(
-            collectionId: collectionId,
-          ),
+      fetchJson: () => remote.fetchRecitationCollectionDetailJson(
+        collectionId: collectionId,
+      ),
       parse: (json) => GroupRecitationCollectionModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load recitation collection',
     );
@@ -203,14 +200,13 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
       'group_practices',
       language: language,
       params: [groupId],
-      fetchJson:
-          () => remote.fetchPracticesJson(
-            groupId: groupId,
-            includeUnfollowed: true,
-            language: language,
-            skip: 0,
-            limit: limit,
-          ),
+      fetchJson: () => remote.fetchPracticesJson(
+        groupId: groupId,
+        includeUnfollowed: true,
+        language: language,
+        skip: 0,
+        limit: limit,
+      ),
       parse: (json) => GroupPracticesPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group practices',
     );
@@ -223,8 +219,8 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
     return _userSource(
       'group_members',
       params: [groupId],
-      fetchJson:
-          () => remote.fetchGroupMembersJson(groupId, skip: 0, limit: limit),
+      fetchJson: () =>
+          remote.fetchGroupMembersJson(groupId, skip: 0, limit: limit),
       parse: (json) => GroupMembersPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group members',
     );
@@ -237,14 +233,13 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
     return _userSource(
       'group_event_participants',
       params: [eventId],
-      fetchJson:
-          () => remote.fetchGroupEventParticipantsJson(
-            eventId,
-            skip: 0,
-            limit: limit,
-          ),
-      parse:
-          (json) => GroupEventParticipantsPageModel.fromJson(json).toEntity(),
+      fetchJson: () => remote.fetchGroupEventParticipantsJson(
+        eventId,
+        skip: 0,
+        limit: limit,
+      ),
+      parse: (json) =>
+          GroupEventParticipantsPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group event participants',
     );
   }
@@ -256,12 +251,8 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
     return _userSource(
       'group_join_requests',
       params: [groupId],
-      fetchJson:
-          () => remote.fetchGroupJoinRequestsJson(
-            groupId,
-            skip: 0,
-            limit: limit,
-          ),
+      fetchJson: () =>
+          remote.fetchGroupJoinRequestsJson(groupId, skip: 0, limit: limit),
       parse: (json) => GroupJoinRequestsPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load join requests',
     );
@@ -274,13 +265,12 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
     return _userSource(
       'group_reports',
       params: [groupId],
-      fetchJson:
-          () => remote.fetchGroupReportsJson(
-            groupId,
-            resolved: false,
-            skip: 0,
-            limit: limit,
-          ),
+      fetchJson: () => remote.fetchGroupReportsJson(
+        groupId,
+        resolved: false,
+        skip: 0,
+        limit: limit,
+      ),
       parse: (json) => GroupReportsPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load reports',
     );
@@ -307,16 +297,12 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
   }
 
   @override
-  GroupEventParticipantsPage? readStoredGroupEventParticipants(
-    String eventId,
-  ) {
+  GroupEventParticipantsPage? readStoredGroupEventParticipants(String eventId) {
     return _participantsSource(eventId, limit: _firstPageLimit).read();
   }
 
   @override
-  GroupJoinRequestsPage? readStoredGroupJoinRequests(
-    String groupId,
-  ) {
+  GroupJoinRequestsPage? readStoredGroupJoinRequests(String groupId) {
     return _joinRequestsSource(groupId, limit: _firstPageLimit).read();
   }
 
@@ -355,15 +341,13 @@ class GroupProfileRepositoryImpl implements GroupProfileRepositoryInterface {
     return _userSource(
       'group_follow_status',
       params: [groupType.isPage ? 'page' : 'community', groupId],
-      fetchJson:
-          () async => {
-            'is_following': await remote.checkFollowStatus(groupId, groupType),
-          },
+      fetchJson: () async => {
+        'is_following': await remote.checkFollowStatus(groupId, groupType),
+      },
       parse: (json) => json['is_following'] == true,
-      failureMessage:
-          groupType.isPage
-              ? 'Failed to check follow status'
-              : 'Failed to check join status',
+      failureMessage: groupType.isPage
+          ? 'Failed to check follow status'
+          : 'Failed to check join status',
     );
   }
 

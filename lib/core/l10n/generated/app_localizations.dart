@@ -7806,6 +7806,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Type at least 1 character to search} other{Type at least {count} characters to search}}'**
   String search_min_query_length(int count);
+
+  /// No description provided for @practice_next_session.
+  ///
+  /// In en, this message translates to:
+  /// **'Next session'**
+  String get practice_next_session;
+
+  /// No description provided for @practice_more_in_session.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count} more in this session'**
+  String practice_more_in_session(int count);
+
+  /// No description provided for @practice_from_your_spaces.
+  ///
+  /// In en, this message translates to:
+  /// **'From your spaces'**
+  String get practice_from_your_spaces;
+
+  /// No description provided for @practice_discover_more.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover more'**
+  String get practice_discover_more;
+
+  /// No description provided for @practice_space_accumulations.
+  ///
+  /// In en, this message translates to:
+  /// **'Space accumulations'**
+  String get practice_space_accumulations;
+
+  /// No description provided for @practice_no_space_accumulations.
+  ///
+  /// In en, this message translates to:
+  /// **'No accumulations from other spaces right now'**
+  String get practice_no_space_accumulations;
+
+  /// No description provided for @practice_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search practices'**
+  String get practice_search_hint;
+
+  /// No description provided for @practice_search_recent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get practice_search_recent;
+
+  /// No description provided for @practice_search_no_results.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for \"{query}\"'**
+  String practice_search_no_results(String query);
+
+  /// No description provided for @practice_popular_practices.
+  ///
+  /// In en, this message translates to:
+  /// **'Popular practices'**
+  String get practice_popular_practices;
 }
 
 class _AppLocalizationsDelegate

@@ -1579,5 +1579,29 @@
   "session_search_chants_hint": "搜索持诵",
   "session_search_malas_hint": "搜索念珠",
   "session_search_timers_hint": "按名称或时长搜索计时",
-  "search_min_query_length": "请至少输入 {count} 个字符以搜索"
+  "search_min_query_length": "请至少输入 {count} 个字符以搜索",
+  "practice_next_session": "下一堂课程",
+  "practice_more_in_session": "此课程还有 {count} 项",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "来自你的社群",
+  "practice_discover_more": "探索更多",
+  "practice_space_accumulations": "社群持诵计数",
+  "practice_no_space_accumulations": "目前没有其他社群的持诵计数",
+  "practice_search_hint": "搜索修持",
+  "practice_search_recent": "最近",
+  "practice_search_no_results": "找不到“{query}”的结果",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "热门修持"
 }

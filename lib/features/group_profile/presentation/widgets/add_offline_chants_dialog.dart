@@ -26,7 +26,8 @@ class _AddOfflineChantsDialog extends StatefulWidget {
   const _AddOfflineChantsDialog({this.title, this.message});
 
   @override
-  State<_AddOfflineChantsDialog> createState() => _AddOfflineChantsDialogState();
+  State<_AddOfflineChantsDialog> createState() =>
+      _AddOfflineChantsDialogState();
 }
 
 class _AddOfflineChantsDialogState extends State<_AddOfflineChantsDialog> {
@@ -57,8 +58,9 @@ class _AddOfflineChantsDialogState extends State<_AddOfflineChantsDialog> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final backgroundColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.goldLight;
+    final backgroundColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.goldLight;
 
     return Dialog(
       backgroundColor: backgroundColor,
@@ -98,12 +100,14 @@ class _AddOfflineChantsDialogState extends State<_AddOfflineChantsDialog> {
                   height: 48,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color:
-                        isDark ? AppColors.surfaceDark : AppColors.surfaceWhite,
+                    color: isDark
+                        ? AppColors.surfaceDark
+                        : AppColors.surfaceWhite,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color:
-                          isDark ? AppColors.cardBorderDark : AppColors.grey300,
+                      color: isDark
+                          ? AppColors.cardBorderDark
+                          : AppColors.grey300,
                     ),
                   ),
                   child: Text(
@@ -124,13 +128,16 @@ class _AddOfflineChantsDialogState extends State<_AddOfflineChantsDialog> {
             FilledButton(
               onPressed: _chants > 0 ? _confirm : null,
               style: FilledButton.styleFrom(
-                backgroundColor:
-                    isDark ? AppColors.textPrimaryDark : Colors.black,
+                backgroundColor: isDark
+                    ? AppColors.textPrimaryDark
+                    : Colors.black,
                 foregroundColor: isDark ? AppColors.textPrimary : Colors.white,
-                disabledBackgroundColor:
-                    isDark ? AppColors.grey600 : AppColors.grey300,
-                disabledForegroundColor:
-                    isDark ? AppColors.grey500 : AppColors.grey600,
+                disabledBackgroundColor: isDark
+                    ? AppColors.grey600
+                    : AppColors.grey300,
+                disabledForegroundColor: isDark
+                    ? AppColors.grey500
+                    : AppColors.grey600,
                 minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
@@ -140,10 +147,9 @@ class _AddOfflineChantsDialogState extends State<_AddOfflineChantsDialog> {
                 l10n.ai_confirm,
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color:
-                      _chants > 0
-                          ? (isDark ? AppColors.textPrimary : Colors.white)
-                          : null,
+                  color: _chants > 0
+                      ? (isDark ? AppColors.textPrimary : Colors.white)
+                      : null,
                 ),
               ),
             ),

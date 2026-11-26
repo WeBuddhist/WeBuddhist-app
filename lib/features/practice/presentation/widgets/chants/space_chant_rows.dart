@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
+import 'package:flutter_pecha/features/library/presentation/providers/library_providers.dart';
 import 'package:flutter_pecha/features/practice/domain/entities/space_chant.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/chant_display.dart';
 import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_actions.dart';
 import 'package:flutter_pecha/features/practice/presentation/widgets/chants/chant_rows.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// A space chant with recordings as an [AudioChantRow]: the row opens the
-/// chant, the button opens it playing the first recording.
-class SpaceAudioChantRow extends StatelessWidget {
+/// chant, the button opens it playing the first recording. The line under
+/// the title is that library recording's title once it has loaded.
+class SpaceAudioChantRow extends ConsumerWidget {
   const SpaceAudioChantRow({super.key, required this.chant, this.onOpened});
 
   final SpaceChant chant;
@@ -16,19 +19,25 @@ class SpaceAudioChantRow extends StatelessWidget {
   final VoidCallback? onOpened;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final item = chant.item;
-    final audio = item.audio.isEmpty ? null : item.audio.first;
+    final textId = item.textId.trim();
+    final recordings = textId.isEmpty
+        ? null
+        : ref.watch(chantRecordingsProvider(textId)).valueOrNull;
+    final first = recordings == null || recordings.isEmpty
+        ? null
+        : recordings.first;
     return AudioChantRow(
       title: item.title,
       language: item.language,
       playLabel: context.l10n.player_play,
       reciterLine: chantReciterLine(
-        reciterName: audio?.reciterName,
-        audioTitle: audio?.title,
+        audioTitle: first?.titleIn(
+          Localizations.localeOf(context).languageCode,
+        ),
       ),
       imageUrl: chantArtworkUrl(
-        audioImageUrl: audio?.imageUrl,
         collectionImageUrl: chant.collection.imageUrl,
         groupAvatarUrl: chant.groupAvatarUrl,
       ),

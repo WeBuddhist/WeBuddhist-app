@@ -16,7 +16,7 @@ Group/community profile pages: follow, events (attend, live stream, composer, ad
 - Event detail (`group_event_detail_screen.dart`): attend/leave (hybrid events ask online vs in-person via `group_event_participation_dialog.dart`), participants drawer, videos/about/accumulations tabs, "enter puja" (auto-enrolls in the event's series or previews its plan), live YouTube player with language switch (`group_event_live_player.dart` → `GroupEventLiveHeader` / `GroupEventLivePlayer`, also embedded in `plans/.../plan_details.dart`), add offline recitations to an event accumulation
 - Event admin: `group_event_manage_screen.dart` (edit → composer, in-person counts → `group_event_in_person_counts_screen.dart`)
 - **Group accumulators** — collective chant counters (integrates with mala); leaderboard + my contributions; session-complete share sheet
-- **Recitation collections** — daily chant checklist with completion tracking; chants with audio get a play button that opens the reader with the first recording auto-playing (`group_recitation_audio_sheet.dart`, `collectionAudioTracksFor`)
+- **Recitation collections** — daily chant checklist with completion tracking; chants whose text has library recordings (`chantRecordingsProvider`) get a play button that opens the reader with `autoPlay`, which starts the first recording once loaded (`group_recitation_audio_sheet.dart` lists them). Item `audio` from the main API is no longer read
 - Admin queues: join requests (`group_join_requests_screen.dart`), reported chat messages (`group_reports_screen.dart`), remove/ban member (`group_remove_member_sheet.dart`)
 - Deep links and share support
 

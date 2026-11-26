@@ -38,12 +38,11 @@ class GroupEventParticipantsDrawer extends ConsumerStatefulWidget {
       isDismissible: true,
       enableDrag: true,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder:
-          (_) => GroupEventParticipantsDrawer(
-            eventId: eventId,
-            totalAttending: totalAttending,
-            isPast: isPast,
-          ),
+      builder: (_) => GroupEventParticipantsDrawer(
+        eventId: eventId,
+        totalAttending: totalAttending,
+        isPast: isPast,
+      ),
     );
   }
 
@@ -109,11 +108,11 @@ class _GroupEventParticipantsDrawerState
                   child: Text(
                     widget.isPast
                         ? context.l10n.connect_event_participants_attended(
-                          widget.totalAttending,
-                        )
+                            widget.totalAttending,
+                          )
                         : context.l10n.connect_event_participants_attending(
-                          widget.totalAttending,
-                        ),
+                            widget.totalAttending,
+                          ),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -155,13 +154,9 @@ class _GroupEventParticipantsDrawerState
       return Center(
         child: ErrorStateWidget(
           error: participantsState.error!,
-          onRetry:
-              () =>
-                  ref
-                      .read(
-                        groupEventParticipantsProvider(widget.eventId).notifier,
-                      )
-                      .retry(),
+          onRetry: () => ref
+              .read(groupEventParticipantsProvider(widget.eventId).notifier)
+              .retry(),
         ),
       );
     }
@@ -211,8 +206,9 @@ class _ParticipantsList extends StatelessWidget {
           child: Text(
             context.l10n.connect_event_participants_empty,
             style: TextStyle(
-              color:
-                  isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textSecondary,
             ),
           ),
         ),
@@ -287,10 +283,9 @@ class _ParticipantTile extends StatelessWidget {
                   Text(
                     '@$username',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color:
-                          isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -309,10 +304,9 @@ class _ParticipantTile extends StatelessWidget {
                   context.l10n.connect_events_filter_in_person,
               },
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color:
-                    isDark
-                        ? AppColors.textTertiaryDark
-                        : AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.textTertiaryDark
+                    : AppColors.textSecondary,
               ),
             ),
           ],
@@ -335,20 +329,19 @@ class _ParticipantAvatar extends StatelessWidget {
     final avatarUrl = participant.avatarUrl;
 
     return ClipOval(
-      child:
-          avatarUrl != null && avatarUrl.isNotEmpty
-              ? CachedNetworkImageWidget(
-                imageUrl: avatarUrl,
-                width: _size,
-                height: _size,
-                fit: BoxFit.cover,
-                errorWidget: AvatarFallback(
-                  isDark: isDark,
-                  size: _size,
-                  iconSize: 22,
-                ),
-              )
-              : AvatarFallback(isDark: isDark, size: _size, iconSize: 22),
+      child: avatarUrl != null && avatarUrl.isNotEmpty
+          ? CachedNetworkImageWidget(
+              imageUrl: avatarUrl,
+              width: _size,
+              height: _size,
+              fit: BoxFit.cover,
+              errorWidget: AvatarFallback(
+                isDark: isDark,
+                size: _size,
+                iconSize: 22,
+              ),
+            )
+          : AvatarFallback(isDark: isDark, size: _size, iconSize: 22),
     );
   }
 }

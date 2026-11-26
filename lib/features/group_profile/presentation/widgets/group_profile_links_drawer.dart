@@ -54,9 +54,9 @@ class GroupProfileLinksDrawer extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     context.l10n.group_links_title,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -69,16 +69,18 @@ class GroupProfileLinksDrawer extends StatelessWidget {
                   shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: ordered.length,
-                  separatorBuilder:
-                      (_, __) => Divider(
-                        height: 1,
-                        color:
-                            isDark ? AppColors.cardBorderDark : AppColors.grey100,
-                      ),
+                  separatorBuilder: (_, __) => Divider(
+                    height: 1,
+                    color: isDark
+                        ? AppColors.cardBorderDark
+                        : AppColors.grey100,
+                  ),
                   itemBuilder: (context, index) {
                     final link = ordered[index];
                     return _LinkTile(
-                      icon: GroupProfileLinkUtils.iconForPlatform(link.platform),
+                      icon: GroupProfileLinkUtils.iconForPlatform(
+                        link.platform,
+                      ),
                       title: GroupProfileLinkUtils.labelForPlatform(
                         link.platform,
                         context,
@@ -156,10 +158,9 @@ class _LinkTile extends StatelessWidget {
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color:
-                          isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textSecondary,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

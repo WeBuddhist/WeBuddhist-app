@@ -55,12 +55,12 @@ class GroupEventPublishedView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final name =
-        event.title.trim().isNotEmpty
-            ? event.title.trim()
-            : GroupEventReviewStep.eventName(draft);
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final name = event.title.trim().isNotEmpty
+        ? event.title.trim()
+        : GroupEventReviewStep.eventName(draft);
     final cover = draft.cover;
 
     return Column(
@@ -137,14 +137,12 @@ class GroupEventPublishedView extends ConsumerWidget {
                   child: ElevatedButton(
                     onPressed: onViewEvent,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isDark
-                              ? AppColors.surfaceWhite
-                              : AppColors.textPrimary,
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimary
-                              : AppColors.surfaceWhite,
+                      backgroundColor: isDark
+                          ? AppColors.surfaceWhite
+                          : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimary
+                          : AppColors.surfaceWhite,
                       shape: const StadiumBorder(),
                       elevation: 0,
                     ),
@@ -163,10 +161,9 @@ class GroupEventPublishedView extends ConsumerWidget {
                   child: OutlinedButton(
                     onPressed: () => _share(context, ref),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor:
-                          isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimary,
+                      foregroundColor: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                       side: BorderSide(
                         color: isDark ? AppColors.grey800 : AppColors.grey400,
                       ),

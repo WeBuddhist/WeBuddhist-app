@@ -39,8 +39,9 @@ class GroupEventAboutStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return SingleChildScrollView(
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -162,60 +163,57 @@ class _CoverField extends StatelessWidget {
 
     return AspectRatio(
       aspectRatio: 16 / 7,
-      child:
-          cover == null
-              ? _EmptyCover(isDark: isDark, onTap: onTap)
-              : ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    switch (cover) {
-                      GroupEventCoverFile(:final file) => Image.file(
-                        file,
-                        fit: BoxFit.cover,
+      child: cover == null
+          ? _EmptyCover(isDark: isDark, onTap: onTap)
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  switch (cover) {
+                    GroupEventCoverFile(:final file) => Image.file(
+                      file,
+                      fit: BoxFit.cover,
+                    ),
+                    GroupEventCoverUrl(:final url) => CachedNetworkImageWidget(
+                      imageUrl: url,
+                      fit: BoxFit.cover,
+                      errorWidget: ColoredBox(
+                        color: isDark
+                            ? AppColors.surfaceVariantDark
+                            : AppColors.grey100,
                       ),
-                      GroupEventCoverUrl(:final url) =>
-                        CachedNetworkImageWidget(
-                          imageUrl: url,
-                          fit: BoxFit.cover,
-                          errorWidget: ColoredBox(
-                            color:
-                                isDark
-                                    ? AppColors.surfaceVariantDark
-                                    : AppColors.grey100,
+                    ),
+                  },
+                  Positioned(
+                    right: 12,
+                    bottom: 12,
+                    child: Material(
+                      color: AppColors.textPrimary,
+                      shape: const StadiumBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
                           ),
-                        ),
-                    },
-                    Positioned(
-                      right: 12,
-                      bottom: 12,
-                      child: Material(
-                        color: AppColors.textPrimary,
-                        shape: const StadiumBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: onTap,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            child: Text(
-                              l10n.group_event_change_cover,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.surfaceWhite,
-                              ),
+                          child: Text(
+                            l10n.group_event_change_cover,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.surfaceWhite,
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
     );
   }
 }
@@ -286,14 +284,18 @@ class _LanguageChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeBackground =
-        isDark ? AppColors.surfaceWhite : AppColors.textPrimary;
-    final activeForeground =
-        isDark ? AppColors.textPrimary : AppColors.surfaceWhite;
-    final idleBackground =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
-    final idleForeground =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final activeBackground = isDark
+        ? AppColors.surfaceWhite
+        : AppColors.textPrimary;
+    final activeForeground = isDark
+        ? AppColors.textPrimary
+        : AppColors.surfaceWhite;
+    final idleBackground = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
+    final idleForeground = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     Widget chip({
       required Widget child,

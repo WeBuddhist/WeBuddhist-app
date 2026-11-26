@@ -46,11 +46,10 @@ void main() {
   });
 
   test('adjacent navigation still carries the event through', () {
-    final next =
-        service.createNavigationContextForAdjacent(
-          _plan(0),
-          SwipeDirection.next,
-        )!;
+    final next = service.createNavigationContextForAdjacent(
+      _plan(0),
+      SwipeDirection.next,
+    )!;
     expect(next.currentTextIndex, 1);
     expect(next.eventId, 'ev1');
   });
@@ -75,12 +74,7 @@ void main() {
     expect(next.eventId, 'ev1');
   });
 
-  test('collection navigation keeps each chant\'s recordings', () {
-    const chosen = CollectionAudioTrack(
-      id: 'track-1',
-      title: 'prayer.mp3',
-      url: 'https://cdn/prayer.mp3',
-    );
+  test('collection navigation does not autoplay the next chant', () {
     final current = NavigationContext(
       source: NavigationSource.groupRecitationCollection,
       planTextItems: _items(),
@@ -88,27 +82,16 @@ void main() {
       groupId: 'g',
       collectionId: 'c',
       autoPlay: true,
-      initialCollectionAudio: chosen,
-      collectionAudioTracks: {
-        'a': const [chosen],
-        'b': const [
-          CollectionAudioTrack(
-            id: 'track-2',
-            title: 'other.mp3',
-            url: 'https://cdn/other.mp3',
-          ),
-        ],
-      },
     );
 
-    final next =
-        service.createNavigationContextForAdjacent(
-          current,
-          SwipeDirection.next,
-        )!;
+    final next = service.createNavigationContextForAdjacent(
+      current,
+      SwipeDirection.next,
+    )!;
 
-    expect(next.collectionAudioTracks['b']?.single.title, 'other.mp3');
+    expect(next.currentTextIndex, 1);
     expect(next.autoPlay, isFalse);
-    expect(next.initialCollectionAudio, isNull);
+    // The next chant loads its own library recordings.
+    expect(next.playsChantRecordings, isTrue);
   });
 }

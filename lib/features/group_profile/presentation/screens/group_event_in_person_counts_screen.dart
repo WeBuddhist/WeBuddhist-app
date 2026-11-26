@@ -39,11 +39,10 @@ class GroupEventInPersonCountsScreen extends ConsumerStatefulWidget {
     return Navigator.of(context).push(
       MaterialPageRoute(
         settings: const RouteSettings(name: 'group-event-in-person-counts'),
-        builder:
-            (_) => GroupEventInPersonCountsScreen(
-              eventId: eventId,
-              accumulation: accumulation,
-            ),
+        builder: (_) => GroupEventInPersonCountsScreen(
+          eventId: eventId,
+          accumulation: accumulation,
+        ),
       ),
     );
   }
@@ -70,10 +69,8 @@ class _GroupEventInPersonCountsScreenState
   _Draft? _draft;
   final _countController = TextEditingController();
 
-  GroupEventInPersonCountsKey get _key => (
-    eventId: widget.eventId,
-    eventAccumulationId: widget.accumulation.id,
-  );
+  GroupEventInPersonCountsKey get _key =>
+      (eventId: widget.eventId, eventAccumulationId: widget.accumulation.id);
 
   @override
   void dispose() {
@@ -85,14 +82,16 @@ class _GroupEventInPersonCountsScreenState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final state = ref.watch(groupEventInPersonCountsProvider(_key));
     final title = widget.accumulation.title;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.scaffoldBackgroundDark : AppColors.surfaceLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldBackgroundDark
+          : AppColors.surfaceLight,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -135,19 +134,18 @@ class _GroupEventInPersonCountsScreenState
   ) {
     final l10n = context.l10n;
     final summary = state.summary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     if (summary == null) {
       final error = state.error;
       if (error != null && !state.isLoading) {
         return ErrorStateWidget(
           error: error,
-          onRetry:
-              () =>
-                  ref
-                      .read(groupEventInPersonCountsProvider(_key).notifier)
-                      .loadInitial(),
+          onRetry: () => ref
+              .read(groupEventInPersonCountsProvider(_key).notifier)
+              .loadInitial(),
         );
       }
       return const Center(child: CircularProgressIndicator());
@@ -179,13 +177,13 @@ class _GroupEventInPersonCountsScreenState
         Align(
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
-            onPressed:
-                draft?.id == null && draft != null
-                    ? null
-                    : () => _startDraft(today),
+            onPressed: draft?.id == null && draft != null
+                ? null
+                : () => _startDraft(today),
             style: OutlinedButton.styleFrom(
-              foregroundColor:
-                  isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+              foregroundColor: isDark
+                  ? AppColors.textPrimaryDark
+                  : AppColors.textPrimary,
               side: BorderSide(
                 color: isDark ? AppColors.grey800 : AppColors.grey400,
               ),
@@ -218,45 +216,38 @@ class _GroupEventInPersonCountsScreenState
         for (final item in state.items)
           draft != null && draft.id == item.id
               ? _DraftCard(
-                draft: draft,
-                maxDay: today,
-                controller: _countController,
-                pending: state.isSaving,
-                isDark: isDark,
-                onPickDay: () => _pickDay(draft, today),
-                onSave: _save,
-                onCancel: _cancelDraft,
-              )
+                  draft: draft,
+                  maxDay: today,
+                  controller: _countController,
+                  pending: state.isSaving,
+                  isDark: isDark,
+                  onPickDay: () => _pickDay(draft, today),
+                  onSave: _save,
+                  onCancel: _cancelDraft,
+                )
               : _CountRow(
-                item: item,
-                isDark: isDark,
-                enabled: !state.isSaving,
-                onEdit: () => _editItem(item),
-                onDelete: () => _confirmDelete(item),
-              ),
+                  item: item,
+                  isDark: isDark,
+                  enabled: !state.isSaving,
+                  onEdit: () => _editItem(item),
+                  onDelete: () => _confirmDelete(item),
+                ),
         if (state.hasMore)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Center(
-              child:
-                  state.isLoadingMore
-                      ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                      : TextButton(
-                        onPressed:
-                            () =>
-                                ref
-                                    .read(
-                                      groupEventInPersonCountsProvider(
-                                        _key,
-                                      ).notifier,
-                                    )
-                                    .loadMore(),
-                        child: Text(l10n.group_event_in_person_load_more),
-                      ),
+              child: state.isLoadingMore
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : TextButton(
+                      onPressed: () => ref
+                          .read(groupEventInPersonCountsProvider(_key).notifier)
+                          .loadMore(),
+                      child: Text(l10n.group_event_in_person_load_more),
+                    ),
             ),
           ),
       ],
@@ -398,15 +389,16 @@ class _AccumulationCard extends StatelessWidget {
     final numberFormat = NumberFormat.decimalPattern(
       intlFormatLocaleOf(context),
     );
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final trackColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final title =
-        (summary.groupAccumulatorTitle ?? '').trim().isNotEmpty
-            ? summary.groupAccumulatorTitle!.trim()
-            : fallbackTitle;
+    final title = (summary.groupAccumulatorTitle ?? '').trim().isNotEmpty
+        ? summary.groupAccumulatorTitle!.trim()
+        : fallbackTitle;
     final imageUrl =
         summary.groupAccumulatorImage?.displayUrl ?? fallbackImageUrl;
     final total = summary.groupAccumulatorTotalCount;
@@ -414,12 +406,12 @@ class _AccumulationCard extends StatelessWidget {
     final app = summary.appCount;
     final target = summary.groupAccumulatorTargetCount;
     // Without a target the bar shows the in-person share of the total.
-    final scale =
-        target != null && target > 0 ? target : ((total ?? 0) < 1 ? 1 : total!);
-    final percent =
-        target != null && target > 0 && total != null
-            ? total / target * 100
-            : null;
+    final scale = target != null && target > 0
+        ? target
+        : ((total ?? 0) < 1 ? 1 : total!);
+    final percent = target != null && target > 0 && total != null
+        ? total / target * 100
+        : null;
     // Flex shares out of 1000 so the filled segments plus the track fill the bar.
     final appFlex = _segmentFlex(app, scale);
     final inPersonFlex = min(_segmentFlex(inPerson, scale), 1000 - appFlex);
@@ -443,14 +435,13 @@ class _AccumulationCard extends StatelessWidget {
                 child: SizedBox(
                   width: 48,
                   height: 48,
-                  child:
-                      imageUrl == null || imageUrl.isEmpty
-                          ? ColoredBox(color: trackColor)
-                          : CachedNetworkImageWidget(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            errorWidget: ColoredBox(color: trackColor),
-                          ),
+                  child: imageUrl == null || imageUrl.isEmpty
+                      ? ColoredBox(color: trackColor)
+                      : CachedNetworkImageWidget(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          errorWidget: ColoredBox(color: trackColor),
+                        ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -476,12 +467,12 @@ class _AccumulationCard extends StatelessWidget {
                   child: Text(
                     target != null && target > 0
                         ? l10n.group_event_in_person_of_target(
-                          numberFormat.format(total),
-                          numberFormat.format(target),
-                        )
+                            numberFormat.format(total),
+                            numberFormat.format(target),
+                          )
                         : l10n.group_event_in_person_in_total(
-                          numberFormat.format(total),
-                        ),
+                            numberFormat.format(total),
+                          ),
                     style: TextStyle(fontSize: 13, color: secondaryColor),
                   ),
                 ),
@@ -553,7 +544,10 @@ class _Segment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (flex <= 0) return const SizedBox.shrink();
-    return Expanded(flex: flex, child: ColoredBox(color: color));
+    return Expanded(
+      flex: flex,
+      child: ColoredBox(color: color),
+    );
   }
 }
 
@@ -572,10 +566,12 @@ class _Legend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -626,10 +622,12 @@ class _DraftCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final locale = intlFormatLocaleOf(context);
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.grey800 : AppColors.grey400;
     final labelStyle = TextStyle(
       fontSize: 12,
@@ -738,27 +736,27 @@ class _DraftCard extends StatelessWidget {
               ElevatedButton(
                 onPressed: pending ? null : onSave,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                  foregroundColor:
-                      isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                  backgroundColor: isDark
+                      ? AppColors.surfaceWhite
+                      : AppColors.textPrimary,
+                  foregroundColor: isDark
+                      ? AppColors.textPrimary
+                      : AppColors.surfaceWhite,
                   elevation: 0,
                   shape: const StadiumBorder(),
                 ),
-                child:
-                    pending
-                        ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color:
-                                isDark
-                                    ? AppColors.textPrimary
-                                    : AppColors.surfaceWhite,
-                          ),
-                        )
-                        : Text(l10n.save),
+                child: pending
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: isDark
+                              ? AppColors.textPrimary
+                              : AppColors.surfaceWhite,
+                        ),
+                      )
+                    : Text(l10n.save),
               ),
               const SizedBox(width: 8),
               TextButton(
@@ -793,10 +791,12 @@ class _CountRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final locale = intlFormatLocaleOf(context);
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
@@ -893,8 +893,8 @@ class _DaySheetState extends State<_DaySheet> {
             mode: CupertinoDatePickerMode.date,
             initialDateTime: widget.initial,
             maximumDate: widget.maxDay,
-            onDateTimeChanged:
-                (dt) => _value = DateTime(dt.year, dt.month, dt.day),
+            onDateTimeChanged: (dt) =>
+                _value = DateTime(dt.year, dt.month, dt.day),
           ),
         ),
       ),

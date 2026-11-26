@@ -75,9 +75,8 @@ class GroupEventRepeatsSheet extends ConsumerStatefulWidget {
   }) {
     return GroupEventSheet.show<GroupEventRecurrenceDraft>(
       context,
-      builder:
-          (_) =>
-              GroupEventRepeatsSheet(firstDate: firstDate, selected: selected),
+      builder: (_) =>
+          GroupEventRepeatsSheet(firstDate: firstDate, selected: selected),
     );
   }
 
@@ -111,18 +110,18 @@ class _GroupEventRepeatsSheetState
     final locale = intlFormatLocaleOf(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final activeColor = isDark ? AppColors.surfaceWhite : AppColors.textPrimary;
     final selected = _selected;
-    final nextDates =
-        selected == null
-            ? const <DateTime>[]
-            : GroupEventScheduleUtils.nextOccurrences(
-              selected,
-              widget.firstDate,
-              _calendar,
-            );
+    final nextDates = selected == null
+        ? const <DateTime>[]
+        : GroupEventScheduleUtils.nextOccurrences(
+            selected,
+            widget.firstDate,
+            _calendar,
+          );
 
     return GroupEventSheet(
       title: l10n.group_event_repeats,
@@ -171,14 +170,12 @@ class _GroupEventRepeatsSheetState
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color:
-                              selected != null && rule.sameRule(selected)
-                                  ? activeColor
-                                  : AppColors.grey400,
-                          width:
-                              selected != null && rule.sameRule(selected)
-                                  ? 6
-                                  : 1.5,
+                          color: selected != null && rule.sameRule(selected)
+                              ? activeColor
+                              : AppColors.grey400,
+                          width: selected != null && rule.sameRule(selected)
+                              ? 6
+                              : 1.5,
                         ),
                       ),
                     ),

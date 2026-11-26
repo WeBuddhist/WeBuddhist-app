@@ -1,3 +1,4 @@
+import 'package:flutter_pecha/features/library/data/models/library_recording.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_pecha/core/utils/audio_url.dart';
 
@@ -489,14 +490,13 @@ class PlanTextItem {
 
   /// Subtask ids this item completes: its own plus every block's and
   /// source's.
-  List<String> get subtaskIds =>
-      {
-        if (subtaskId != null) subtaskId!,
-        for (final b in blocks)
-          if (b.subtaskId != null) b.subtaskId!,
-        for (final s in sources)
-          if (s.subtaskId != null) s.subtaskId!,
-      }.where((id) => id.isNotEmpty).toList();
+  List<String> get subtaskIds => {
+    if (subtaskId != null) subtaskId!,
+    for (final b in blocks)
+      if (b.subtaskId != null) b.subtaskId!,
+    for (final s in sources)
+      if (s.subtaskId != null) s.subtaskId!,
+  }.where((id) => id.isNotEmpty).toList();
 
   /// Those of [subtaskIds] already completed when this item was built.
   Set<String> get completedSubtaskIds => {
@@ -628,28 +628,45 @@ class PlanTextItem {
 
 enum SwipeDirection { next, previous } // Direction for swipe/button navigation
 
-/// One recording the user can pick for a group recitation chant.
-class CollectionAudioTrack {
+/// One library recording the user can pick for the chant on screen.
+/// [id] is the library recording id; its file URL is fetched on play
+/// because the presigned link expires.
+class ChantAudioTrack {
   final String id;
   final String title;
-  final String url;
 
-  const CollectionAudioTrack({
-    required this.id,
-    required this.title,
-    required this.url,
-  });
+  const ChantAudioTrack({required this.id, required this.title});
+
+  /// One track per recording, in the library's order (those that follow the
+  /// edition first), titled in [language] when the library has it.
+  static List<ChantAudioTrack> fromRecordings(
+    List<LibraryRecording> recordings,
+    String? language,
+  ) => [
+    for (final recording in recordings)
+      ChantAudioTrack(id: recording.id, title: recording.titleIn(language)),
+  ];
+
+  /// The track play starts: [selected] while it is still offered, else the
+  /// first. Null when there are none.
+  static ChantAudioTrack? toPlay(
+    List<ChantAudioTrack> tracks,
+    ChantAudioTrack? selected,
+  ) {
+    if (tracks.isEmpty) return null;
+    if (selected != null && tracks.any((track) => track.id == selected.id)) {
+      return selected;
+    }
+    return tracks.first;
+  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CollectionAudioTrack &&
-          other.id == id &&
-          other.title == title &&
-          other.url == url;
+      other is ChantAudioTrack && other.id == id && other.title == title;
 
   @override
-  int get hashCode => Object.hash(id, title, url);
+  int get hashCode => Object.hash(id, title);
 }
 
 /// Context for navigation to reader / plan-text screens.
@@ -664,6 +681,7 @@ class NavigationContext {
   final int? currentTextIndex;
   final SwipeDirection? navigationDirection; // slide direction (left/right)
   /// When true, the reader should auto-play this item's audio segment on open.
+  /// A chant starts its first library recording once the list has loaded.
   final bool autoPlay;
 
   /// The day-level audio URL shared by all tasks in this plan day.
@@ -697,15 +715,6 @@ class NavigationContext {
   /// until a recording has its own image.
   final String? collectionImageUrl;
 
-  /// Recordings for each chant id in a group recitation collection.
-  /// Empty for every other navigation source. Swipe navigation keeps this
-  /// map so the destination chant can offer its own tracks.
-  final Map<String, List<CollectionAudioTrack>> collectionAudioTracks;
-
-  /// The recording the user picked before this reader opened. Playback
-  /// starts only when this is set. Swipe navigation does not carry it.
-  final CollectionAudioTrack? initialCollectionAudio;
-
   /// The group event this task was opened from.
   final String? eventId;
 
@@ -738,8 +747,6 @@ class NavigationContext {
     this.language,
     this.collectionId,
     this.collectionImageUrl,
-    this.collectionAudioTracks = const <String, List<CollectionAudioTrack>>{},
-    this.initialCollectionAudio,
     this.eventId,
     this.isOnlineAttendee = false,
     this.taskIsLive,
@@ -810,8 +817,8 @@ class NavigationContext {
   /// Get the currently selected plan item, if any.
   PlanTextItem? get currentItem =>
       (hasPlanItems || hasRecitationCollectionItems)
-          ? planTextItems![currentTextIndex!]
-          : null;
+      ? planTextItems![currentTextIndex!]
+      : null;
 
   /// Get the next text item in the plan
   PlanTextItem? get nextTextItem {
@@ -835,16 +842,16 @@ class NavigationContext {
   /// Whether [item] has any playable audio once precedence is applied.
   bool hasAudioFor(PlanTextItem item) => effectiveAudioUrlFor(item) != null;
 
-  /// Recordings offered for the chant currently on screen.
-  List<CollectionAudioTrack> get currentCollectionAudioTracks {
-    if (source != NavigationSource.groupRecitationCollection) return const [];
-    final chantId = currentItem?.subtaskId;
-    if (chantId == null || chantId.isEmpty) return const [];
-    return collectionAudioTracks[chantId] ?? const [];
-  }
-
-  /// True when the current group-collection chant has at least one recording.
-  bool get hasCollectionAudioChoices => currentCollectionAudioTracks.isNotEmpty;
+  /// Chant readers play the library's recordings of the text on screen.
+  /// Plans keep their own audio, and a group accumulation's counting bar
+  /// has no room for a player.
+  bool get playsChantRecordings => switch (source) {
+    NavigationSource.recitationList ||
+    NavigationSource.routine ||
+    NavigationSource.groupRecitationCollection ||
+    NavigationSource.myRecitationCollection => true,
+    _ => false,
+  };
 
   /// The resolved audio URL for the current item, if any.
   String? get currentAudioUrl {
@@ -871,8 +878,6 @@ class NavigationContext {
     String? language,
     String? collectionId,
     String? collectionImageUrl,
-    Map<String, List<CollectionAudioTrack>>? collectionAudioTracks,
-    CollectionAudioTrack? initialCollectionAudio,
     String? eventId,
     bool? isOnlineAttendee,
     bool? taskIsLive,
@@ -899,10 +904,6 @@ class NavigationContext {
       language: language ?? this.language,
       collectionId: collectionId ?? this.collectionId,
       collectionImageUrl: collectionImageUrl ?? this.collectionImageUrl,
-      collectionAudioTracks:
-          collectionAudioTracks ?? this.collectionAudioTracks,
-      initialCollectionAudio:
-          initialCollectionAudio ?? this.initialCollectionAudio,
       eventId: eventId ?? this.eventId,
       isOnlineAttendee: isOnlineAttendee ?? this.isOnlineAttendee,
       taskIsLive: taskIsLive ?? this.taskIsLive,

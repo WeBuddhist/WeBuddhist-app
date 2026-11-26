@@ -1202,5 +1202,15 @@
   "session_search_chants_hint": "ရွတ်ဆိုရန်စာများ ရှာဖွေရန်",
   "session_search_malas_hint": "ပုတီးများ ရှာဖွေရန်",
   "session_search_timers_hint": "အမည် သို့မဟုတ် ကြာချိန်ဖြင့် အချိန်မှတ်စက် ရှာဖွေရန်",
-  "search_min_query_length": "ရှာဖွေရန် အနည်းဆုံး စာလုံး {count} လုံး ရိုက်ထည့်ပါ"
+  "search_min_query_length": "ရှာဖွေရန် အနည်းဆုံး စာလုံး {count} လုံး ရိုက်ထည့်ပါ",
+  "practice_next_session": "နောက်အချိန်အပိုင်း",
+  "practice_more_in_session": "ဤအချိန်အပိုင်းတွင် +နောက်ထပ် {count} ခု",
+  "practice_from_your_spaces": "သင့်အဖွဲ့များမှ",
+  "practice_discover_more": "ထပ်မံရှာဖွေရန်",
+  "practice_space_accumulations": "အဖွဲ့ စုဆောင်းမှုများ",
+  "practice_no_space_accumulations": "လောလောဆယ် အခြားအဖွဲ့များမှ စုဆောင်းမှု မရှိပါ",
+  "practice_search_hint": "ကျင့်စဉ်များ ရှာရန်",
+  "practice_search_recent": "မကြာသေးမီက",
+  "practice_search_no_results": "\"{query}\" အတွက် ရလဒ် မရှိပါ",
+  "practice_popular_practices": "လူကြိုက်များသော ကျင့်စဉ်များ"
 }

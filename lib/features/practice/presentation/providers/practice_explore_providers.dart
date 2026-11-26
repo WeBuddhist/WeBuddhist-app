@@ -8,8 +8,6 @@ import 'package:flutter_pecha/core/error/failures.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/home/data/datasource/series_remote_datasource.dart';
 import 'package:flutter_pecha/features/home/domain/entities/series.dart';
-import 'package:flutter_pecha/features/mala/data/datasources/mala_remote_datasource.dart';
-import 'package:flutter_pecha/features/mala/domain/entities/mantra.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/providers/tradition_tag_filter_provider.dart';
 import 'package:flutter_pecha/features/practice/data/repositories/practice_explore_repository.dart';
 import 'package:flutter_pecha/features/recitation/data/models/recitations_page_response.dart';
@@ -30,7 +28,6 @@ final practiceExploreRepositoryProvider = Provider<PracticeExploreRepository>((
     store: ref.watch(screenCacheStoreProvider),
     seriesRemote: SeriesRemoteDatasource(dio: dio),
     recitationsRemote: ref.watch(recitationsRemoteDatasourceProvider),
-    malaRemote: MalaRemoteDataSource(dio: dio),
     timersRemote: TimersRemoteDatasource(dio: dio),
   );
 });
@@ -64,18 +61,6 @@ final practiceExploreRecitationsProvider = AsyncNotifierProvider<
     final language = ref.watch(contentLanguageProvider);
     return bind.source(
       ref.watch(practiceExploreRepositoryProvider).recitationsSource(language),
-    );
-  });
-});
-
-final practiceExploreAccumulatorsProvider = AsyncNotifierProvider<
-  ScreenCacheNotifier<List<Mantra>, Either<Failure, List<Mantra>>>,
-  Either<Failure, List<Mantra>>
->(() {
-  return ScreenCacheNotifier((ref, bind) {
-    final language = ref.watch(contentLanguageProvider);
-    return bind.source(
-      ref.watch(practiceExploreRepositoryProvider).accumulatorsSource(language),
     );
   });
 });

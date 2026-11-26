@@ -57,8 +57,9 @@ class GroupEventUpdateMerge {
     CreateGroupEventRequest original,
     GroupEventEditSource source,
   ) {
-    final fallbackLanguage =
-        next.metadata.isNotEmpty ? next.metadata.first.language : 'EN';
+    final fallbackLanguage = next.metadata.isNotEmpty
+        ? next.metadata.first.language
+        : 'EN';
     final youtube = <GroupEventYoutubeRequest>[
       for (final (i, row) in source.serverYoutube.indexed)
         if (_url(row).isNotEmpty)
@@ -110,8 +111,9 @@ class GroupEventUpdateMerge {
             url: added.url,
             label: added.label,
             language: language ?? added.language,
-            displayOrder:
-                wasYoutube ? (order ?? added.displayOrder) : added.displayOrder,
+            displayOrder: wasYoutube
+                ? (order ?? added.displayOrder)
+                : added.displayOrder,
           ),
         );
       } else if (added is GroupEventLinkRequest) {
@@ -122,8 +124,9 @@ class GroupEventUpdateMerge {
             url: added.url,
             label: added.label,
             language: language ?? added.language,
-            displayOrder:
-                wasYoutube ? added.displayOrder : (order ?? added.displayOrder),
+            displayOrder: wasYoutube
+                ? added.displayOrder
+                : (order ?? added.displayOrder),
           ),
         );
       }
@@ -205,8 +208,9 @@ class GroupEventUpdateMerge {
     final mode = row['count_mode'];
     return GroupEventAccumulationRequest(
       groupAccumulatorId: item.groupAccumulatorId,
-      eventFormat:
-          format is String && format.isNotEmpty ? format : item.eventFormat,
+      eventFormat: format is String && format.isNotEmpty
+          ? format
+          : item.eventFormat,
       displayOrder: item.displayOrder,
       countMode: mode is String && mode.isNotEmpty ? mode : item.countMode,
     );

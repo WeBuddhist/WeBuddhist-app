@@ -24,11 +24,10 @@ class LibraryTocSection {
       title: stringMapFromJson(json['title']),
       spanStart: span is Map ? span['start'] as int? ?? 0 : 0,
       spanEnd: span is Map ? span['end'] as int? ?? 0 : 0,
-      subsections:
-          raw
-              .whereType<Map<String, dynamic>>()
-              .map(LibraryTocSection.fromJson)
-              .toList(growable: false),
+      subsections: raw
+          .whereType<Map<String, dynamic>>()
+          .map(LibraryTocSection.fromJson)
+          .toList(growable: false),
     );
   }
 
@@ -91,11 +90,10 @@ class LibraryTableOfContents {
       id: json['id'] as String? ?? '',
       editionId: json['edition_id'] as String? ?? '',
       textId: json['text_id'] as String? ?? '',
-      sections:
-          raw
-              .whereType<Map<String, dynamic>>()
-              .map(LibraryTocSection.fromJson)
-              .toList(growable: false),
+      sections: raw
+          .whereType<Map<String, dynamic>>()
+          .map(LibraryTocSection.fromJson)
+          .toList(growable: false),
     );
   }
 }

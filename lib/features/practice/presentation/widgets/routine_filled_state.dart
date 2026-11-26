@@ -7,22 +7,16 @@ import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/mala/presentation/utils/mala_analytics.dart';
 import 'package:flutter_pecha/features/notifications/data/models/notification_nav.dart';
-import 'package:flutter_pecha/features/plans/data/models/plans_model.dart';
 import 'package:flutter_pecha/features/plans/data/models/user/user_plans_model.dart';
 import 'package:flutter_pecha/features/plans/data/utils/plan_utils.dart';
-import 'package:flutter_pecha/features/plans/domain/entities/plan.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/plans_providers.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/use_case_providers.dart';
 import 'package:flutter_pecha/features/plans/presentation/providers/user_plans_provider.dart';
 import 'package:flutter_pecha/features/practice/data/models/routine_model.dart';
 import 'package:flutter_pecha/features/practice/data/utils/routine_item_display.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/routine_api_providers.dart';
-import 'package:flutter_pecha/features/practice/presentation/utils/practice_analytics.dart';
-import 'package:flutter_pecha/features/practice/presentation/widgets/practice_chant_list_tile.dart';
-import 'package:flutter_pecha/features/practice/presentation/widgets/routine_item_card.dart';
-import 'package:flutter_pecha/features/practice/presentation/widgets/routine_timer_tile.dart';
+import 'package:flutter_pecha/features/practice/presentation/widgets/routine_session_item_tile.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
-import 'package:flutter_pecha/features/timer/domain/entities/preset_timer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -193,7 +187,7 @@ class _RoutineFilledStateState extends ConsumerState<RoutineFilledState> {
                 : '${durationMs ~/ 60000} min session';
         context.push(
           '/home/timers/active',
-          extra: _routineTimer(item, name: name, durationMs: durationMs),
+          extra: routineTimerFor(item, name: name, durationMs: durationMs),
         );
       }
       return;
@@ -480,145 +474,6 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
 
   bool get _expanded => widget.expanded;
 
-  Future<void> _onItemTap(
-    BuildContext context,
-    WidgetRef ref,
-    RoutineItem item,
-  ) async {
-    switch (item.type) {
-      case RoutineItemType.recitation:
-        _navigateToReader(context, item.id);
-      case RoutineItemType.plan:
-        if (!await _openPlanDetails(context, ref, item, planId: item.id)) {
-          return;
-        }
-      case RoutineItemType.series:
-        if (!context.mounted) return;
-        context.pushNamed(
-          'home-series-detail',
-          pathParameters: {'id': item.id},
-        );
-      case RoutineItemType.timer:
-        if (!_navigateToTimer(context, item)) return;
-      case RoutineItemType.accumulator:
-        context.push(
-          '/mala',
-          extra: {'presetId': item.id, 'source': MalaOpenSource.routine},
-        );
-      case RoutineItemType.groupAccumulator:
-        context.pushNamed(
-          'home-group-accumulator',
-          pathParameters: {'accumulatorId': item.id},
-        );
-      case RoutineItemType.groupRecitationCollection:
-        context.pushNamed(
-          'recitation-collection',
-          pathParameters: {'collectionId': item.id},
-          extra: {'title': item.title},
-        );
-      case RoutineItemType.myRecitationCollection:
-        context.pushNamed(
-          'my-recitation-collection',
-          pathParameters: {'collectionId': item.id},
-          extra: {'title': item.title},
-        );
-      case RoutineItemType.unknown:
-        // Written by a newer app version — nothing here knows how to open it.
-        return;
-    }
-    _trackItemOpened(ref, item);
-  }
-
-  Future<void> _onPlanArrowTap(
-    BuildContext context,
-    WidgetRef ref,
-    RoutineItem item,
-  ) async {
-    final planId = item.currentPlanId;
-    if (planId == null || planId.isEmpty) return;
-    if (await _openPlanDetails(context, ref, item, planId: planId)) {
-      _trackItemOpened(ref, item);
-    }
-  }
-
-  /// Fired once the item's screen has been pushed.
-  void _trackItemOpened(WidgetRef ref, RoutineItem item) {
-    if (!mounted) return;
-    ref
-        .read(practiceAnalyticsProvider)
-        .routineItemOpened(
-          item: item,
-          blockIndex: widget.blockIndex,
-          blockTime: block.time,
-        );
-  }
-
-  void _navigateToReader(BuildContext context, String textId) {
-    final navigationContext = NavigationContext(
-      source: NavigationSource.routine,
-    );
-    context.push('/reader/$textId', extra: navigationContext);
-  }
-
-  /// Returns false when the item has no duration and nothing was opened.
-  bool _navigateToTimer(BuildContext context, RoutineItem item) {
-    final durationMs = item.durationMs;
-    if (durationMs == null || durationMs <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(context.l10n.notFound)));
-      return false;
-    }
-
-    final name = routineItemDisplayTitle(item, context.l10n);
-    context.push(
-      '/home/timers/active',
-      extra: _routineTimer(item, name: name, durationMs: durationMs),
-    );
-    return true;
-  }
-
-  /// Opens plan details for [planId]. For PLAN sessions that id is
-  /// `source_id` from GET /users/me/routine. Does not search My Plans.
-  Future<bool> _openPlanDetails(
-    BuildContext context,
-    WidgetRef ref,
-    RoutineItem item, {
-    required String planId,
-  }) async {
-    final catalogEither = await ref.read(planByIdFutureProvider(planId).future);
-    final catalogPlan = catalogEither.fold((_) => null, (plan) => plan);
-    if (catalogPlan == null) {
-      _logger.warning('[ENROLL-NAV] plan $planId not found');
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(context.l10n.notFound)));
-      }
-      return false;
-    }
-    if (!context.mounted) return false;
-    final userPlan = _userPlanFromCatalogPlan(catalogPlan, item);
-    final startDate =
-        item.startDate ?? item.enrolledAt ?? userPlan.startedAt;
-    final daysSinceEnrollment =
-        DateTime.now().difference(DateUtils.dateOnly(startDate)).inDays;
-    final selectedDay = (daysSinceEnrollment + 1).clamp(1, userPlan.totalDays);
-    _logger.info(
-      '[ENROLL-NAV] open plan ${userPlan.id} selectedDay=$selectedDay/${userPlan.totalDays}',
-    );
-    context.push(
-      '/practice/details',
-      extra: {
-        'plan': userPlan,
-        'selectedDay': selectedDay,
-        'startDate': startDate,
-        if (item.type == RoutineItemType.series) 'seriesId': item.id,
-      },
-    );
-    return true;
-  }
-
   void _toggleExpanded() {
     if (block.items.isEmpty) return;
     widget.onToggleExpanded();
@@ -705,7 +560,11 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
                           padding: EdgeInsets.only(
                             bottom: i < block.items.length - 1 ? 8.0 : 0,
                           ),
-                          child: _buildItemCard(context, ref, block.items[i]),
+                          child: RoutineSessionItemTile(
+                            item: block.items[i],
+                            blockIndex: widget.blockIndex,
+                            blockTime: block.time,
+                          ),
                         ),
                       ],
                     ],
@@ -716,87 +575,6 @@ class _RoutineBlockSectionState extends ConsumerState<_RoutineBlockSection> {
       ],
     );
   }
-
-  Widget _buildItemCard(BuildContext context, WidgetRef ref, RoutineItem item) {
-    if (item.type == RoutineItemType.recitation) {
-      return PracticeChantListTile(
-        recitation: recitationModelFromRoutineItem(item),
-        includeOuterPadding: false,
-        onTap: () => _onItemTap(context, ref, item),
-      );
-    }
-
-    if (item.type == RoutineItemType.timer) {
-      return RoutineTimerTile(
-        item: item,
-        onTap: () => _onItemTap(context, ref, item),
-      );
-    }
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isCollection =
-        item.type == RoutineItemType.groupRecitationCollection ||
-        item.type == RoutineItemType.myRecitationCollection;
-    final itemCount = item.itemCount;
-
-    return Container(
-      decoration: BoxDecoration(
-        color:
-            isDark
-                ? AppColors.cardBackgroundDark
-                : AppColors.cardBackgroundLight,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: RoutineItemCard(
-          title: routineItemDisplayTitle(item, context.l10n),
-          coverImage: item.coverImage,
-          type: item.type,
-          planTitle:
-              isCollection && itemCount != null && itemCount > 0
-                  ? context.l10n.my_recitation_collection_chant_count(itemCount)
-                  : item.currentPlanTitle,
-          imageSize: 56,
-          onTap: () => _onItemTap(context, ref, item),
-          onPlanTap:
-              item.type == RoutineItemType.series && item.currentPlanId != null
-                  ? () => _onPlanArrowTap(context, ref, item)
-                  : null,
-        ),
-      ),
-    );
-  }
-}
-
-/// The timer a routine timer item plays. A linked item plays its saved timer
-/// (sound, bells, and the id stops are reported against). A bare duration has
-/// no saved timer, so it gets an empty id and its stop is not reported.
-PresetTimer _routineTimer(
-  RoutineItem? item, {
-  required String name,
-  required int durationMs,
-}) {
-  final linked = item?.timer;
-  if (linked != null && linked.id.isNotEmpty) {
-    final timer = linked.toEntity();
-    return PresetTimer(
-      id: timer.id,
-      name: name,
-      durationMs: durationMs,
-      userId: timer.userId,
-      groupId: timer.groupId,
-      type: timer.type,
-      description: timer.description,
-      ambientSoundId: timer.ambientSoundId,
-      bellAtStart: timer.bellAtStart,
-      bellAtEnd: timer.bellAtEnd,
-      parentPresetId: timer.parentPresetId,
-      createdAt: timer.createdAt,
-      updatedAt: timer.updatedAt,
-    );
-  }
-  return PresetTimer(id: '', name: name, durationMs: durationMs);
 }
 
 RoutineItem? _findRoutineItem(RoutineData routineData, String itemId) {
@@ -819,22 +597,4 @@ RoutineItem? _findTimerItem(RoutineData routineData, String? timerId) {
     }
   }
   return null;
-}
-
-UserPlansModel _userPlanFromCatalogPlan(Plan plan, RoutineItem item) {
-  return UserPlansModel(
-    id: plan.id,
-    title: plan.title,
-    description: plan.description,
-    language: plan.language,
-    difficultyLevel: plan.difficulty.name,
-    image:
-        plan.coverImage != null
-            ? ImageModel.fromResponsiveImage(plan.coverImage!)
-            : null,
-    startedAt: item.enrolledAt ?? item.startDate ?? plan.startDate ?? DateTime.now(),
-    totalDays: plan.totalDays,
-    tags: null,
-    startDate: item.startDate ?? plan.startDate,
-  );
 }

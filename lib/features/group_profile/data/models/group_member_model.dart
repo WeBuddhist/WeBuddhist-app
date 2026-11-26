@@ -26,10 +26,9 @@ class GroupMemberModel {
       userId: json['user_id'] as String? ?? '',
       username: json['username'] as String? ?? '',
       fullname: json['fullname'] as String? ?? '',
-      displayName:
-          displayName != null && displayName.trim().isNotEmpty
-              ? displayName.trim()
-              : null,
+      displayName: displayName != null && displayName.trim().isNotEmpty
+          ? displayName.trim()
+          : null,
       avatarUrl: avatar != null && avatar.trim().isNotEmpty ? avatar : null,
       role: role != null && role.trim().isNotEmpty ? role.trim() : null,
     );

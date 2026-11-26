@@ -51,12 +51,14 @@ class _GroupEventManageScreenState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.scaffoldBackgroundDark : AppColors.surfaceLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldBackgroundDark
+          : AppColors.surfaceLight,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -95,10 +97,9 @@ class _GroupEventManageScreenState
               ),
             ),
             Expanded(
-              child:
-                  _tab == 0
-                      ? _buildDetails(context, isDark)
-                      : _buildCounts(context, isDark),
+              child: _tab == 0
+                  ? _buildDetails(context, isDark)
+                  : _buildCounts(context, isDark),
             ),
           ],
         ),
@@ -117,8 +118,9 @@ class _GroupEventManageScreenState
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => ErrorStateWidget(error: error, onRetry: retry),
       data: (items) {
-        final item =
-            items.where((item) => item.event.id == widget.event.id).firstOrNull;
+        final item = items
+            .where((item) => item.event.id == widget.event.id)
+            .firstOrNull;
         if (item == null) {
           return Center(child: Text(context.l10n.notFound));
         }
@@ -174,8 +176,9 @@ class _GroupEventManageScreenState
 
   Widget _buildCounts(BuildContext context, bool isDark) {
     final l10n = context.l10n;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     // The latest copy carries counts changed since the page was opened.
     final event =
         ref
@@ -204,16 +207,15 @@ class _GroupEventManageScreenState
         for (final accumulation in accumulations)
           accumulation.isAdminCounted
               ? _AdminCountedRow(
-                eventId: event.id,
-                accumulation: accumulation,
-                isDark: isDark,
-                onAddCount:
-                    () => GroupEventInPersonCountsScreen.show(
-                      context,
-                      eventId: event.id,
-                      accumulation: accumulation,
-                    ),
-              )
+                  eventId: event.id,
+                  accumulation: accumulation,
+                  isDark: isDark,
+                  onAddCount: () => GroupEventInPersonCountsScreen.show(
+                    context,
+                    eventId: event.id,
+                    accumulation: accumulation,
+                  ),
+                )
               : _AttendeeCountedRow(accumulation: accumulation, isDark: isDark),
         if (event.isRecurring)
           Padding(
@@ -351,16 +353,16 @@ class _AdminCountedRow extends ConsumerWidget {
     );
     return _AccumulationRow(
       title: accumulation.title,
-      subtitle:
-          total == null
-              ? l10n.group_event_manage_admin_adds_pending
-              : l10n.group_event_manage_admin_adds(numberFormat.format(total)),
+      subtitle: total == null
+          ? l10n.group_event_manage_admin_adds_pending
+          : l10n.group_event_manage_admin_adds(numberFormat.format(total)),
       isDark: isDark,
       trailing: TextButton(
         onPressed: onAddCount,
         style: TextButton.styleFrom(
-          foregroundColor:
-              isDark ? AppColors.accentGold : AppColors.accentGoldDarkest,
+          foregroundColor: isDark
+              ? AppColors.accentGold
+              : AppColors.accentGoldDarkest,
           padding: const EdgeInsets.symmetric(horizontal: 8),
         ),
         child: Text(
@@ -390,17 +392,15 @@ class _AttendeeCountedRow extends ConsumerWidget {
       intlFormatLocaleOf(context),
     );
     return _AccumulationRow(
-      title:
-          accumulation.title.isNotEmpty
-              ? accumulation.title
-              : detail?.title ?? '',
-      subtitle:
-          detail == null
-              ? l10n.group_event_manage_attendees_add_pending
-              : l10n.group_event_manage_attendees_add(
-                numberFormat.format(detail.totalCount),
-                detail.memberCount,
-              ),
+      title: accumulation.title.isNotEmpty
+          ? accumulation.title
+          : detail?.title ?? '',
+      subtitle: detail == null
+          ? l10n.group_event_manage_attendees_add_pending
+          : l10n.group_event_manage_attendees_add(
+              numberFormat.format(detail.totalCount),
+              detail.memberCount,
+            ),
       isDark: isDark,
     );
   }
@@ -421,10 +421,12 @@ class _AccumulationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
       child: Row(

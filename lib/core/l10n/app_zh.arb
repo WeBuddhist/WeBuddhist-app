@@ -1296,5 +1296,29 @@
   "session_search_timers_hint": "依名稱或時長搜尋計時",
   "search_min_query_length": "請至少輸入 {count} 個字元以搜尋",
   "splash_tagline_1": "我們佛弟子一起修持",
-  "splash_tagline_2": "我們佛弟子每日修持"
+  "splash_tagline_2": "我們佛弟子每日修持",
+  "practice_next_session": "下一堂課程",
+  "practice_more_in_session": "此課程還有 {count} 項",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "來自你的社群",
+  "practice_discover_more": "探索更多",
+  "practice_space_accumulations": "社群持誦計數",
+  "practice_no_space_accumulations": "目前沒有其他社群的持誦計數",
+  "practice_search_hint": "搜尋修持",
+  "practice_search_recent": "最近",
+  "practice_search_no_results": "找不到「{query}」的結果",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "熱門修持"
 }

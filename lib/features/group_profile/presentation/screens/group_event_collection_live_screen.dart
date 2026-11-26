@@ -117,10 +117,8 @@ class _GroupEventCollectionLiveScreenState
   /// Audio mode slides the top chrome away on scroll-down; video stays pinned.
   bool get _chromeVisible => !(_audioOnly && _embedded.isContentScrollingDown);
 
-  GroupEventLanguageKey get _liveKey => (
-    eventId: _event.id,
-    language: _liveLanguage,
-  );
+  GroupEventLanguageKey get _liveKey =>
+      (eventId: _event.id, language: _liveLanguage);
 
   /// The event as last fetched in the stream language, or the one the event
   /// page passed in until then.
@@ -198,16 +196,17 @@ class _GroupEventCollectionLiveScreenState
   Widget build(BuildContext context) {
     final live = _liveStatus();
     final event = _liveEvent();
-    final replays =
-        _knowsStream(live) ? _replays(event) : const <EventReplay>[];
+    final replays = _knowsStream(live)
+        ? _replays(event)
+        : const <EventReplay>[];
     // Once the stream is over, the first recording plays in its place, as
     // on a plan's day; before the start the countdown keeps the slot.
     final start = event.startDate;
     final hasBegun = start == null || !DateTime.now().isBefore(start);
     final autoReplay =
         live == _LiveStatus.none && replays.isNotEmpty && hasBegun
-            ? replays.first
-            : null;
+        ? replays.first
+        : null;
     final replay = _replay ?? autoReplay;
 
     return PopScope(
@@ -278,33 +277,31 @@ class _GroupEventCollectionLiveScreenState
         tooltip: context.l10n.back,
         onPressed: _embedded.isOpen ? _embedded.close : _leave,
       ),
-      title:
-          _knowsStream(live)
-              ? GroupEventReplaysMenu(
-                replays: replays,
-                selected: replay,
-                onSelected: _openReplay,
-              )
-              : null,
-      actions:
-          showsPlayer
-              ? [
-                GroupEventMediaToggle(
-                  audioOnly: _audioOnly,
-                  onChanged:
-                      (audioOnly) => setState(() => _liveAudioOnly = audioOnly),
+      title: _knowsStream(live)
+          ? GroupEventReplaysMenu(
+              replays: replays,
+              selected: replay,
+              onSelected: _openReplay,
+            )
+          : null,
+      actions: showsPlayer
+          ? [
+              GroupEventMediaToggle(
+                audioOnly: _audioOnly,
+                onChanged: (audioOnly) =>
+                    setState(() => _liveAudioOnly = audioOnly),
+              ),
+              if (isLive) ...[
+                const SizedBox(width: 8),
+                GroupEventLanguageToggle(
+                  language: _liveLanguage,
+                  onChanged: (language) =>
+                      setState(() => _liveLanguage = language),
                 ),
-                if (isLive) ...[
-                  const SizedBox(width: 8),
-                  GroupEventLanguageToggle(
-                    language: _liveLanguage,
-                    onChanged:
-                        (language) => setState(() => _liveLanguage = language),
-                  ),
-                ],
-                const SizedBox(width: 12),
-              ]
-              : null,
+              ],
+              const SizedBox(width: 12),
+            ]
+          : null,
       elevation: 0,
     );
   }
@@ -320,17 +317,16 @@ class _GroupEventCollectionLiveScreenState
       audioOnly: _audioOnly,
       fallbackTitle: event.title,
       showsStream: live != _LiveStatus.none,
-      replay:
-          replay == null
-              ? null
-              : GroupEventReplay(
-                videoId: replay.videoId,
-                title: EventReplays.label(
-                  context.l10n,
-                  Localizations.localeOf(context).languageCode,
-                  replay,
-                ),
+      replay: replay == null
+          ? null
+          : GroupEventReplay(
+              videoId: replay.videoId,
+              title: EventReplays.label(
+                context.l10n,
+                Localizations.localeOf(context).languageCode,
+                replay,
               ),
+            ),
       notStartedBackground: ResponsiveCoverImage(
         image: event.image,
         fit: BoxFit.cover,

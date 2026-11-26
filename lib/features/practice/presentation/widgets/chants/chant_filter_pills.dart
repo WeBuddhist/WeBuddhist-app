@@ -9,9 +9,13 @@ class ChantFilterPills extends StatelessWidget {
     required this.labels,
     required this.selectedIndex,
     required this.onSelected,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20),
   });
 
   final List<String> labels;
+
+  /// Around the row; the Plans screen lines it up with its 16pt list.
+  final EdgeInsetsGeometry padding;
   final int selectedIndex;
   final ValueChanged<int> onSelected;
 
@@ -20,7 +24,7 @@ class ChantFilterPills extends StatelessWidget {
     final localizations = MaterialLocalizations.of(context);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: padding,
       child: Row(
         children: [
           for (var i = 0; i < labels.length; i++) ...[

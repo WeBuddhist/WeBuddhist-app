@@ -17,12 +17,12 @@ enum SpaceMembership {
   final String apiValue;
 }
 
-/// Space chant books from the practices feed, asked for with
-/// `types=collection` so only chant books come back and count toward
-/// `total`. Kept apart from the group profile datasource, whose feed
-/// method serves every practice type.
+/// Space practices from the practices feed, one type per request (chant
+/// books ask for `types=collection`) so only that type comes back and
+/// counts toward `total`. Kept apart from the group profile datasource,
+/// whose feed method serves every practice type in one list.
 ///
-/// Both reads skip the HTTP cache, as the group profile datasource does
+/// Every read skips the HTTP cache, as the group profile datasource does
 /// for these paths: the feed carries the caller's `is_joined`, and a
 /// pull-to-refresh must see a chant added to a book since the last read.
 /// The Chants page keeps loaded results itself (`cacheSuccessFor`).
@@ -43,12 +43,34 @@ class SpaceChantBooksRemoteDatasource {
     required int skip,
     required int limit,
     String? search,
+  }) {
+    return fetchPractices(
+      type: GroupPracticeType.collection,
+      membership: membership,
+      language: language,
+      skip: skip,
+      limit: limit,
+      search: search,
+    );
+  }
+
+  /// GET /author/groups/practices?types=[type]
+  ///
+  /// One practice type from the spaces feed, so a page of plans is not
+  /// crowded out by the other types. Errors propagate.
+  Future<GroupPracticesPage> fetchPractices({
+    required GroupPracticeType type,
+    required SpaceMembership membership,
+    required String language,
+    required int skip,
+    required int limit,
+    String? search,
   }) async {
     final query = search?.trim() ?? '';
     final response = await dio.get(
       '/author/groups/practices',
       queryParameters: {
-        'types': 'collection',
+        'types': type.name,
         'membership': membership.apiValue,
         'language': language,
         'skip': skip,

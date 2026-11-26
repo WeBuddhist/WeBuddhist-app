@@ -2298,5 +2298,29 @@
         "type": "int"
       }
     }
-  }
+  },
+  "practice_next_session": "Next session",
+  "practice_more_in_session": "+{count} more in this session",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "From your spaces",
+  "practice_discover_more": "Discover more",
+  "practice_space_accumulations": "Space accumulations",
+  "practice_no_space_accumulations": "No accumulations from other spaces right now",
+  "practice_search_hint": "Search practices",
+  "practice_search_recent": "Recent",
+  "practice_search_no_results": "No results for \"{query}\"",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "Popular practices"
 }

@@ -4436,4 +4436,39 @@ class AppLocalizationsTh extends AppLocalizations {
   String search_min_query_length(int count) {
     return 'พิมพ์อย่างน้อย $count ตัวอักษรเพื่อค้นหา';
   }
+
+  @override
+  String get practice_next_session => 'ช่วงเวลาถัดไป';
+
+  @override
+  String practice_more_in_session(int count) {
+    return '+อีก $count รายการในช่วงเวลานี้';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'จากกลุ่มของคุณ';
+
+  @override
+  String get practice_discover_more => 'ค้นพบเพิ่มเติม';
+
+  @override
+  String get practice_space_accumulations => 'ยอดสะสมของกลุ่ม';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'ขณะนี้ยังไม่มียอดสะสมจากกลุ่มอื่น';
+
+  @override
+  String get practice_search_hint => 'ค้นหาการปฏิบัติ';
+
+  @override
+  String get practice_search_recent => 'ล่าสุด';
+
+  @override
+  String practice_search_no_results(String query) {
+    return 'ไม่พบผลลัพธ์สำหรับ \"$query\"';
+  }
+
+  @override
+  String get practice_popular_practices => 'การปฏิบัติยอดนิยม';
 }

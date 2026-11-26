@@ -57,33 +57,25 @@ class GroupProfileDrawer extends ConsumerWidget {
                 _buildHandleRow(context, profile),
                 Expanded(
                   child: profileAsync.when(
-                    data:
-                        (either) => either.fold(
-                          (failure) => Center(
-                            child: ErrorStateWidget(
-                              error: failure,
-                              onRetry:
-                                  () => ref.invalidate(
-                                    groupProfileProvider(groupId),
-                                  ),
-                            ),
-                          ),
-                          (profile) => GroupProfileBody(
-                            profile: profile,
-                            isDark: isDark,
-                          ),
+                    data: (either) => either.fold(
+                      (failure) => Center(
+                        child: ErrorStateWidget(
+                          error: failure,
+                          onRetry: () =>
+                              ref.invalidate(groupProfileProvider(groupId)),
                         ),
+                      ),
+                      (profile) =>
+                          GroupProfileBody(profile: profile, isDark: isDark),
+                    ),
                     loading: () => const GroupProfileSkeleton(),
-                    error:
-                        (error, _) => Center(
-                          child: ErrorStateWidget(
-                            error: error,
-                            onRetry:
-                                () => ref.invalidate(
-                                  groupProfileProvider(groupId),
-                                ),
-                          ),
-                        ),
+                    error: (error, _) => Center(
+                      child: ErrorStateWidget(
+                        error: error,
+                        onRetry: () =>
+                            ref.invalidate(groupProfileProvider(groupId)),
+                      ),
+                    ),
                   ),
                 ),
               ],

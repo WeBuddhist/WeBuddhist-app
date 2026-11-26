@@ -21,10 +21,9 @@ class LibraryYigchung {
       id: json['id'] as String? ?? '',
       editionId: json['edition_id'] as String? ?? '',
       textId: json['text_id'] as String? ?? '',
-      span:
-          span is Map<String, dynamic>
-              ? LibraryLineSpan.fromJson(span)
-              : const LibraryLineSpan(start: 0, end: 0),
+      span: span is Map<String, dynamic>
+          ? LibraryLineSpan.fromJson(span)
+          : const LibraryLineSpan(start: 0, end: 0),
     );
   }
 }

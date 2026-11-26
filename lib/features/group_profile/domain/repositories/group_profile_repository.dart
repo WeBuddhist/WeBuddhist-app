@@ -34,9 +34,8 @@ abstract class GroupProfileRepositoryInterface {
     required String language,
   });
 
-  ScreenCacheSource<GroupRecitationCollection> recitationCollectionDetailSource({
-    required String collectionId,
-  });
+  ScreenCacheSource<GroupRecitationCollection>
+  recitationCollectionDetailSource({required String collectionId});
 
   /// Stored profile first, then revalidated in the background.
   Stream<Either<Failure, GroupProfile>> watchGroupProfile(
@@ -80,9 +79,7 @@ abstract class GroupProfileRepositoryInterface {
 
   GroupMembersPage? readStoredGroupMembers(String groupId);
 
-  GroupEventParticipantsPage? readStoredGroupEventParticipants(
-    String eventId,
-  );
+  GroupEventParticipantsPage? readStoredGroupEventParticipants(String eventId);
 
   GroupJoinRequestsPage? readStoredGroupJoinRequests(String groupId);
 

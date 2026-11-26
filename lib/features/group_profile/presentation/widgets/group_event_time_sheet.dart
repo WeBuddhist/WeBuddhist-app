@@ -26,12 +26,11 @@ class GroupEventTimeSheet extends StatefulWidget {
   }) {
     return GroupEventSheet.show<GroupEventTime>(
       context,
-      builder:
-          (_) => GroupEventTimeSheet(
-            title: title,
-            initial: initial,
-            subtitle: subtitle,
-          ),
+      builder: (_) => GroupEventTimeSheet(
+        title: title,
+        initial: initial,
+        subtitle: subtitle,
+      ),
     );
   }
 
@@ -50,8 +49,9 @@ class _GroupEventTimeSheetState extends State<GroupEventTimeSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final now = DateTime.now();
 
     return GroupEventSheet(
@@ -90,8 +90,8 @@ class _GroupEventTimeSheetState extends State<GroupEventTimeSheet> {
                   widget.initial.hour,
                   widget.initial.minute - widget.initial.minute % 5,
                 ),
-                onDateTimeChanged:
-                    (dt) => _value = GroupEventTime(dt.hour, dt.minute),
+                onDateTimeChanged: (dt) =>
+                    _value = GroupEventTime(dt.hour, dt.minute),
               ),
             ),
           ),

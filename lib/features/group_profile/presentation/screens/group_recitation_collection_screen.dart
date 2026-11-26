@@ -17,7 +17,6 @@ import 'package:flutter_pecha/features/practice/data/datasource/bookmark_remote_
 import 'package:flutter_pecha/features/practice/presentation/controllers/bookmark_controller.dart';
 import 'package:flutter_pecha/features/practice/presentation/providers/bookmark_providers.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/widgets/group_recitation_collection_row.dart';
-import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
 import 'package:flutter_pecha/shared/utils/helper_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -77,8 +76,9 @@ class _GroupRecitationCollectionScreenState
     }
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.scaffoldBackgroundDark : AppColors.surfaceLight,
+      backgroundColor: isDark
+          ? AppColors.scaffoldBackgroundDark
+          : AppColors.surfaceLight,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -88,23 +88,19 @@ class _GroupRecitationCollectionScreenState
               child: ScreenCacheBuilder<GroupRecitationCollection>(
                 value: detailAsync,
                 skeleton: const Center(child: CircularProgressIndicator()),
-                onRetry:
-                    () => ref.invalidate(
-                      groupRecitationCollectionDetailProvider(key),
-                    ),
-                data:
-                    (collection) => _CollectionContent(
-                      collection: collection,
-                      completionState: completionState,
-                      isDark: isDark,
-                      onOpenItem:
-                          (item) =>
-                              _openReaderAndComplete(key, item, collection),
-                      onPlayItem:
-                          (item) =>
-                              _openReaderOnFirstAudio(key, item, collection),
-                      onShare: () => _onShare(collection),
-                    ),
+                onRetry: () => ref.invalidate(
+                  groupRecitationCollectionDetailProvider(key),
+                ),
+                data: (collection) => _CollectionContent(
+                  collection: collection,
+                  completionState: completionState,
+                  isDark: isDark,
+                  onOpenItem: (item) =>
+                      _openReaderAndComplete(key, item, collection),
+                  onPlayItem: (item) =>
+                      _openReaderOnFirstAudio(key, item, collection),
+                  onShare: () => _onShare(collection),
+                ),
               ),
             ),
           ],
@@ -150,21 +146,14 @@ class _GroupRecitationCollectionScreenState
     GroupRecitationCollectionItem item,
     GroupRecitationCollection collection,
   ) {
-    final tracks = collectionAudioTracksFor(item);
-    if (tracks.isEmpty) return Future.value();
-    return _openReaderAndComplete(
-      key,
-      item,
-      collection,
-      initialAudio: tracks.first,
-    );
+    return _openReaderAndComplete(key, item, collection, play: true);
   }
 
   Future<void> _openReaderAndComplete(
     GroupRecitationCollectionKey key,
     GroupRecitationCollectionItem item,
     GroupRecitationCollection collection, {
-    CollectionAudioTrack? initialAudio,
+    bool play = false,
   }) async {
     final textId = item.textId.trim();
     final chantId = item.id.trim();
@@ -177,7 +166,7 @@ class _GroupRecitationCollectionScreenState
       completionState: ref.read(
         groupRecitationCollectionCompletionProvider(key),
       ),
-      initialAudio: initialAudio,
+      play: play,
       groupName: _resolveGroupName(ref, collection.groupId),
     );
 
@@ -214,20 +203,18 @@ class _GroupRecitationCollectionScreenState
   Future<void> _onShare(GroupRecitationCollection collection) async {
     final l10n = context.l10n;
     final groupName = _resolveGroupName(ref, collection.groupId);
-    final shareMessage =
-        groupName == null
-            ? l10n.group_recitation_collection_share_message_no_group(
-              collection.name,
-            )
-            : l10n.group_recitation_collection_share_message(
-              collection.name,
-              groupName,
-            );
-    final longUrl =
-        DeepLinkUrlBuilder.groupRecitationCollectionLink(
-          groupId: collection.groupId,
-          collectionId: collection.id,
-        ).toString();
+    final shareMessage = groupName == null
+        ? l10n.group_recitation_collection_share_message_no_group(
+            collection.name,
+          )
+        : l10n.group_recitation_collection_share_message(
+            collection.name,
+            groupName,
+          );
+    final longUrl = DeepLinkUrlBuilder.groupRecitationCollectionLink(
+      groupId: collection.groupId,
+      collectionId: collection.id,
+    ).toString();
     final shareUrl = await resolveShareUrlRef(ref, longUrl);
     if (!mounted) return;
 
@@ -255,8 +242,8 @@ class _GroupRecitationCollectionScreenState
     return ref
         .read(groupProfileProvider(groupId))
         .whenOrNull(
-          data:
-              (either) => either.fold((_) => null, (profile) => profile.title),
+          data: (either) =>
+              either.fold((_) => null, (profile) => profile.title),
         );
   }
 }
@@ -345,8 +332,7 @@ class _CollectionContent extends StatelessWidget {
                       isCompleted: completionState.isCompleted(item.id),
                       isSubmitting: completionState.isSubmitting(item.id),
                       onTap: () => onOpenItem(item),
-                      onPlay:
-                          item.audio.isEmpty ? null : () => onPlayItem(item),
+                      onPlay: () => onPlayItem(item),
                     ),
                   )
                 else
@@ -357,10 +343,9 @@ class _CollectionContent extends StatelessWidget {
                         context.l10n.noContentAvailable,
                         style: TextStyle(
                           fontSize: 15,
-                          color:
-                              isDark
-                                  ? AppColors.textTertiaryDark
-                                  : AppColors.textSecondary,
+                          color: isDark
+                              ? AppColors.textTertiaryDark
+                              : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -380,16 +365,20 @@ class _CollectionContent extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed:
-                  hasItems ? () => onOpenItem(collection.items.first) : null,
+              onPressed: hasItems
+                  ? () => onOpenItem(collection.items.first)
+                  : null,
               style: ElevatedButton.styleFrom(
                 elevation: 0,
-                backgroundColor:
-                    isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                disabledBackgroundColor:
-                    isDark ? AppColors.grey800 : AppColors.grey300,
-                foregroundColor:
-                    isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                backgroundColor: isDark
+                    ? AppColors.surfaceWhite
+                    : AppColors.textPrimary,
+                disabledBackgroundColor: isDark
+                    ? AppColors.grey800
+                    : AppColors.grey300,
+                foregroundColor: isDark
+                    ? AppColors.textPrimary
+                    : AppColors.surfaceWhite,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(26),
                 ),
@@ -417,28 +406,21 @@ class _CollectionHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fallbackColor =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
+    final fallbackColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
     final iconColor = isDark ? AppColors.grey500 : AppColors.grey600;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: AspectRatio(
         aspectRatio: 343 / 196,
-        child:
-            imageUrl != null && imageUrl!.trim().isNotEmpty
-                ? CachedNetworkImageWidget(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                )
-                : ColoredBox(
-                  color: fallbackColor,
-                  child: Icon(
-                    AppAssets.bookOpenText,
-                    size: 44,
-                    color: iconColor,
-                  ),
-                ),
+        child: imageUrl != null && imageUrl!.trim().isNotEmpty
+            ? CachedNetworkImageWidget(imageUrl: imageUrl, fit: BoxFit.cover)
+            : ColoredBox(
+                color: fallbackColor,
+                child: Icon(AppAssets.bookOpenText, size: 44, color: iconColor),
+              ),
       ),
     );
   }
@@ -475,17 +457,13 @@ class _CollectionActionBar extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           _ActionChip(
-            icon:
-                isBookmarked
-                    ? AppAssets.bookmarkSimpleFill
-                    : AppAssets.bookmarkSimple,
+            icon: isBookmarked
+                ? AppAssets.bookmarkSimpleFill
+                : AppAssets.bookmarkSimple,
             label: context.l10n.bookmark,
             isDark: isDark,
-            onTap:
-                () => BookmarkController(
-                  ref: ref,
-                  context: context,
-                ).toggleGroupRecitationCollection(
+            onTap: () => BookmarkController(ref: ref, context: context)
+                .toggleGroupRecitationCollection(
                   collection.id,
                   name: collection.name,
                 ),
@@ -507,7 +485,11 @@ class _CollectionActionBar extends ConsumerWidget {
   /// GROUP_RECITATION_COLLECTION session and lets the user place its time block.
   void _addToPractices(BuildContext context, WidgetRef ref) {
     if (ref.read(authProvider).isGuest) {
-      LoginDrawer.show(context, ref, feature: 'recitation_collection_add_to_practices');
+      LoginDrawer.show(
+        context,
+        ref,
+        feature: 'recitation_collection_add_to_practices',
+      );
       return;
     }
     context.pushNamed(

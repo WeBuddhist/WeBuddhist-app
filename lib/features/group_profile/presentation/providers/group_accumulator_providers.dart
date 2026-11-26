@@ -39,24 +39,25 @@ typedef GroupAccumulatorsNotifier =
     >;
 
 /// Stored page is the first state, refreshed in the background.
-final groupAccumulatorsProvider = AsyncNotifierProvider.autoDispose.family<
-  GroupAccumulatorsNotifier,
-  Either<Failure, GroupAccumulatorsPage>,
-  String
->(() {
-  return GroupAccumulatorsNotifier((ref, groupId, bind) {
-    ref.watch(authProvider);
-    final language = ref.watch(contentLanguageProvider);
-    final repository = ref.watch(groupAccumulatorRepositoryProvider);
-    return bind.source(
-      repository.groupAccumulatorsSource(
-        groupId,
-        limit: 20,
-        language: language,
-      ),
-    );
-  });
-});
+final groupAccumulatorsProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      GroupAccumulatorsNotifier,
+      Either<Failure, GroupAccumulatorsPage>,
+      String
+    >(() {
+      return GroupAccumulatorsNotifier((ref, groupId, bind) {
+        ref.watch(authProvider);
+        final language = ref.watch(contentLanguageProvider);
+        final repository = ref.watch(groupAccumulatorRepositoryProvider);
+        return bind.source(
+          repository.groupAccumulatorsSource(
+            groupId,
+            limit: 20,
+            language: language,
+          ),
+        );
+      });
+    });
 
 typedef GroupAccumulatorDetailNotifier =
     AutoDisposeScreenCacheFamilyNotifier<
@@ -67,23 +68,24 @@ typedef GroupAccumulatorDetailNotifier =
 
 /// `.future` resolves with the stored detail; use `refreshGroupAccumulator`
 /// when the server copy is required.
-final groupAccumulatorDetailProvider = AsyncNotifierProvider.autoDispose.family<
-  GroupAccumulatorDetailNotifier,
-  Either<Failure, GroupAccumulatorDetail>,
-  String
->(() {
-  return GroupAccumulatorDetailNotifier((ref, accumulatorId, bind) {
-    ref.watch(authProvider);
-    final language = ref.watch(contentLanguageProvider);
-    final repository = ref.watch(groupAccumulatorRepositoryProvider);
-    return bind.source(
-      repository.groupAccumulatorDetailSource(
-        accumulatorId,
-        language: language,
-      ),
-    );
-  });
-});
+final groupAccumulatorDetailProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      GroupAccumulatorDetailNotifier,
+      Either<Failure, GroupAccumulatorDetail>,
+      String
+    >(() {
+      return GroupAccumulatorDetailNotifier((ref, accumulatorId, bind) {
+        ref.watch(authProvider);
+        final language = ref.watch(contentLanguageProvider);
+        final repository = ref.watch(groupAccumulatorRepositoryProvider);
+        return bind.source(
+          repository.groupAccumulatorDetailSource(
+            accumulatorId,
+            language: language,
+          ),
+        );
+      });
+    });
 
 /// The server's detail, for anything that hands the user's count on (the
 /// reader mirrors it exactly). The stored copy can be behind chants made
@@ -134,10 +136,12 @@ List<GroupAccumulatorMember> sortAccumulatorMembers(
 ) {
   final sorted = List<GroupAccumulatorMember>.from(members);
   sorted.sort((a, b) {
-    final aCount =
-        sort == GroupAccumulatorMemberSort.today ? a.todayCount : a.totalCount;
-    final bCount =
-        sort == GroupAccumulatorMemberSort.today ? b.todayCount : b.totalCount;
+    final aCount = sort == GroupAccumulatorMemberSort.today
+        ? a.todayCount
+        : a.totalCount;
+    final bCount = sort == GroupAccumulatorMemberSort.today
+        ? b.todayCount
+        : b.totalCount;
     return bCount.compareTo(aCount);
   });
   return sorted;
@@ -215,10 +219,7 @@ class GroupAccumulatorMembersNotifier
   Future<void> loadInitial({bool force = false}) async {
     if (_hasLoaded && !force) return;
     _hasLoaded = true;
-    state = state.copyWith(
-      isLoading: state.members.isEmpty,
-      clearError: true,
-    );
+    state = state.copyWith(isLoading: state.members.isEmpty, clearError: true);
 
     _firstPageInFlight = true;
     final Either<Failure, GroupAccumulatorMembersPage> result;
@@ -320,16 +321,14 @@ class GroupAccumulatorJoinCacheNotifier extends StateNotifier<Set<String>> {
   void clear() => state = const {};
 
   void syncFromApi(List<GroupAccumulator> accumulators) {
-    final joinedIds =
-        accumulators
-            .where((accumulator) => accumulator.isJoined == true)
-            .map((accumulator) => accumulator.id)
-            .toSet();
-    final notJoinedIds =
-        accumulators
-            .where((accumulator) => accumulator.isJoined == false)
-            .map((accumulator) => accumulator.id)
-            .toSet();
+    final joinedIds = accumulators
+        .where((accumulator) => accumulator.isJoined == true)
+        .map((accumulator) => accumulator.id)
+        .toSet();
+    final notJoinedIds = accumulators
+        .where((accumulator) => accumulator.isJoined == false)
+        .map((accumulator) => accumulator.id)
+        .toSet();
 
     state = {...state, ...joinedIds}..removeAll(notJoinedIds);
   }

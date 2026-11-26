@@ -52,21 +52,20 @@ class GroupAccumulatorModel {
   factory GroupAccumulatorModel.fromJson(Map<String, dynamic> json) {
     final mantraJson = json['mantra'];
     final malaImageJson = json['mala_image'];
-    final malaImageUrl =
-        malaImageJson is Map<String, dynamic>
-            ? malaImageJson['url'] as String?
-            : null;
+    final malaImageUrl = malaImageJson is Map<String, dynamic>
+        ? malaImageJson['url'] as String?
+        : null;
     return GroupAccumulatorModel(
       id: json['id'] as String? ?? '',
       presetAccumulatorId: json['preset_accumulator_id'] as String? ?? '',
       textId: json['text_id'] as String?,
       mantraId: json['mantra_id'] as String?,
-      mantra:
-          mantraJson is Map<String, dynamic>
-              ? PresetMantraModel.fromJson(mantraJson)
-              : null,
-      malaImageUrl:
-          (malaImageUrl == null || malaImageUrl.isEmpty) ? null : malaImageUrl,
+      mantra: mantraJson is Map<String, dynamic>
+          ? PresetMantraModel.fromJson(mantraJson)
+          : null,
+      malaImageUrl: (malaImageUrl == null || malaImageUrl.isEmpty)
+          ? null
+          : malaImageUrl,
       groupId: json['group_id'] as String? ?? '',
       title: json['title'] as String? ?? '',
       imageJson: json['image'] as Map<String, dynamic>?,
@@ -126,12 +125,9 @@ class GroupAccumulatorModel {
       memberCount: memberCount,
       totalCount: totalCount,
       totalTodayCount: totalTodayCount,
-      user:
-          userJson != null
-              ? GroupAccumulatorUserContributionModel.fromJson(
-                userJson!,
-              ).toEntity()
-              : null,
+      user: userJson != null
+          ? GroupAccumulatorUserContributionModel.fromJson(userJson!).toEntity()
+          : null,
       description: description,
       links: links.map((link) => link.toEntity()).toList(),
     );

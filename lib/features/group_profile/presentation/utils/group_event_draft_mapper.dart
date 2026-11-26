@@ -51,19 +51,17 @@ class GroupEventDraftMapper {
   GroupEventDraftMapper._();
 
   static GroupEventEditSource fromJson(Map<String, dynamic> json) {
-    final timezone =
-        (json['timezone'] as String?)?.trim().isNotEmpty == true
-            ? (json['timezone'] as String).trim()
-            : GroupEventScheduleDraft.defaultTimezone;
+    final timezone = (json['timezone'] as String?)?.trim().isNotEmpty == true
+        ? (json['timezone'] as String).trim()
+        : GroupEventScheduleDraft.defaultTimezone;
 
     final metadata = <GroupEventDraftMetadata>[];
     final rawMetadata = json['metadata'];
-    final rows =
-        rawMetadata is List
-            ? rawMetadata.whereType<Map<String, dynamic>>()
-            : rawMetadata is Map<String, dynamic>
-            ? [rawMetadata]
-            : const <Map<String, dynamic>>[];
+    final rows = rawMetadata is List
+        ? rawMetadata.whereType<Map<String, dynamic>>()
+        : rawMetadata is Map<String, dynamic>
+        ? [rawMetadata]
+        : const <Map<String, dynamic>>[];
     for (final row in rows) {
       final code = (row['language'] as String? ?? '').trim().toLowerCase();
       if (code.isEmpty) continue;
@@ -192,12 +190,11 @@ class GroupEventDraftMapper {
       );
     }
 
-    final intentionSlugs =
-        (json['intentions'] as List<dynamic>? ?? const [])
-            .whereType<Map<String, dynamic>>()
-            .map((row) => (row['slug'] as String? ?? '').trim())
-            .where((slug) => slug.isNotEmpty)
-            .toList();
+    final intentionSlugs = (json['intentions'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map((row) => (row['slug'] as String? ?? '').trim())
+        .where((slug) => slug.isNotEmpty)
+        .toList();
 
     return GroupEventEditSource(
       eventId: json['id'] as String? ?? '',
@@ -249,21 +246,18 @@ class GroupEventDraftMapper {
 
   static GroupEventRecurrenceDraft? _recurrence(Object? value) {
     if (value is! Map<String, dynamic>) return null;
-    final frequency =
-        GroupEventRecurrenceFrequency.values
-            .where(
-              (f) =>
-                  f.name.toUpperCase() == (value['frequency'] as String? ?? ''),
-            )
-            .firstOrNull;
+    final frequency = GroupEventRecurrenceFrequency.values
+        .where(
+          (f) => f.name.toUpperCase() == (value['frequency'] as String? ?? ''),
+        )
+        .firstOrNull;
     if (frequency == null) return null;
     final lunar = value['date_system'] == 'TIBETAN_LUNAR';
     return GroupEventRecurrenceDraft(
       frequency: frequency,
-      dateSystem:
-          lunar
-              ? GroupEventDateSystem.tibetanLunar
-              : GroupEventDateSystem.gregorian,
+      dateSystem: lunar
+          ? GroupEventDateSystem.tibetanLunar
+          : GroupEventDateSystem.gregorian,
       calendarType: value['calendar_type'] as String?,
       month: (value['month'] as num?)?.toInt(),
       day: (value['day'] as num?)?.toInt(),
@@ -274,10 +268,9 @@ class GroupEventDraftMapper {
 
   /// `count_mode` decides; older rows without one fall back to the format.
   static GroupEventCountMode _countMode(Map<String, dynamic> row) {
-    final saved =
-        GroupEventCountMode.values
-            .where((mode) => mode.countMode == row['count_mode'])
-            .firstOrNull;
+    final saved = GroupEventCountMode.values
+        .where((mode) => mode.countMode == row['count_mode'])
+        .firstOrNull;
     if (saved != null) return saved;
     return row['event_format'] == 'online'
         ? GroupEventCountMode.attendees

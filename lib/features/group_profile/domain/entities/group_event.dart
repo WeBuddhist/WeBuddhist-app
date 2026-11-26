@@ -117,10 +117,9 @@ class GroupEventAccumulation {
 
   /// True when an admin records this accumulation's counts day by day;
   /// older rows without a mode fall back to the in-person format.
-  bool get isAdminCounted =>
-      countMode == null
-          ? format == GroupEventParticipationType.offline
-          : countMode == manualInPersonCountMode;
+  bool get isAdminCounted => countMode == null
+      ? format == GroupEventParticipationType.offline
+      : countMode == manualInPersonCountMode;
 
   String get title => groupAccumulator?.name.trim() ?? '';
 }
@@ -269,8 +268,8 @@ class GroupEvent {
   String? get practiceCollectionId {
     if (plan != null || series != null) return null;
     if (planId != null || seriesId != null) return null;
-    final id =
-        (groupRecitationCollection?.id ?? groupRecitationCollectionId)?.trim();
+    final id = (groupRecitationCollection?.id ?? groupRecitationCollectionId)
+        ?.trim();
     return id == null || id.isEmpty ? null : id;
   }
 

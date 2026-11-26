@@ -28,20 +28,19 @@ class GroupEventRequestBuilder {
           GroupEventMetadataRequest(
             language: apiLanguage(m.language),
             name: m.name.trim(),
-            description:
-                m.description.trim().isEmpty ? null : m.description.trim(),
+            description: m.description.trim().isEmpty
+                ? null
+                : m.description.trim(),
           ),
     ];
     final language = metadata.isNotEmpty ? metadata.first.language : 'EN';
 
-    final startTime =
-        schedule.allDay
-            ? GroupEventScheduleUtils.defaultStart
-            : (schedule.startTime ?? GroupEventScheduleUtils.defaultStart);
-    final endTime =
-        schedule.allDay
-            ? GroupEventScheduleUtils.defaultEnd
-            : (schedule.endTime ?? GroupEventScheduleUtils.defaultEnd);
+    final startTime = schedule.allDay
+        ? GroupEventScheduleUtils.defaultStart
+        : (schedule.startTime ?? GroupEventScheduleUtils.defaultStart);
+    final endTime = schedule.allDay
+        ? GroupEventScheduleUtils.defaultEnd
+        : (schedule.endTime ?? GroupEventScheduleUtils.defaultEnd);
 
     String? startDate;
     String? endDate;
@@ -54,10 +53,9 @@ class GroupEventRequestBuilder {
       endDate = toBackendIso(anchor, endTime, timezone);
       recurrence = GroupEventRecurrenceRequest(
         frequency: rule.frequency.name.toUpperCase(),
-        dateSystem:
-            rule.dateSystem == GroupEventDateSystem.tibetanLunar
-                ? 'TIBETAN_LUNAR'
-                : 'GREGORIAN',
+        dateSystem: rule.dateSystem == GroupEventDateSystem.tibetanLunar
+            ? 'TIBETAN_LUNAR'
+            : 'GREGORIAN',
         calendarType: rule.calendarType,
         month: rule.month,
         day: rule.day,
@@ -74,10 +72,9 @@ class GroupEventRequestBuilder {
 
     final links = <GroupEventLinkRequest>[];
     final youtube = <GroupEventYoutubeRequest>[];
-    final liveLink =
-        draft.format.needsLink
-            ? GroupEventScheduleUtils.normalizeLiveLink(draft.liveLink)
-            : null;
+    final liveLink = draft.format.needsLink
+        ? GroupEventScheduleUtils.normalizeLiveLink(draft.liveLink)
+        : null;
     if (liveLink != null) {
       if (GroupEventScheduleUtils.isYoutubeLink(liveLink)) {
         youtube.add(

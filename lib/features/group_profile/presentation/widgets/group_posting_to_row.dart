@@ -19,8 +19,9 @@ class GroupPostingToRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final avatarUrl = profile.avatarUrl;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
@@ -35,16 +36,15 @@ class GroupPostingToRow extends StatelessWidget {
             child: SizedBox(
               width: 22,
               height: 22,
-              child:
-                  avatarUrl != null && avatarUrl.isNotEmpty
-                      ? CachedNetworkImageWidget(
-                        imageUrl: avatarUrl,
-                        width: 22,
-                        height: 22,
-                        fit: BoxFit.cover,
-                        errorWidget: _avatarFallback(),
-                      )
-                      : _avatarFallback(),
+              child: avatarUrl != null && avatarUrl.isNotEmpty
+                  ? CachedNetworkImageWidget(
+                      imageUrl: avatarUrl,
+                      width: 22,
+                      height: 22,
+                      fit: BoxFit.cover,
+                      errorWidget: _avatarFallback(),
+                    )
+                  : _avatarFallback(),
             ),
           ),
           const SizedBox(width: 6),

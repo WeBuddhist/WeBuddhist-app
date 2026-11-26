@@ -24,8 +24,9 @@ class LibrarySegmentRepository implements SegmentRepositoryInterface {
     final segment = await _library.getSegment(segmentId);
     final content = await _library.loadResourceContent(segment);
     final textId = segment.textId;
-    final title =
-        textId == null ? '' : (await _library.getText(textId)).displayTitle;
+    final title = textId == null
+        ? ''
+        : (await _library.getText(textId)).displayTitle;
     return SegmentDetailWithText(
       id: segmentId,
       content: content.html,

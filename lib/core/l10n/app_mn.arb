@@ -1306,5 +1306,29 @@
   "session_search_timers_hint": "Нэр эсвэл хугацаагаар цаг хэмжигч хайх",
   "search_min_query_length": "Хайхын тулд дор хаяж {count} тэмдэгт бичнэ үү",
   "splash_tagline_1": "Бид буддистууд хамтдаа бясалгадаг",
-  "splash_tagline_2": "Бид буддистууд өдөр бүр бясалгадаг"
+  "splash_tagline_2": "Бид буддистууд өдөр бүр бясалгадаг",
+  "practice_next_session": "Дараагийн хичээл",
+  "practice_more_in_session": "Энэ хичээлд +{count} бусад",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "Таны орон зайнаас",
+  "practice_discover_more": "Илүү ихийг судлах",
+  "practice_space_accumulations": "Орон зайн хуримтлал",
+  "practice_no_space_accumulations": "Одоогоор бусад орон зайн хуримтлал алга",
+  "practice_search_hint": "Бясалгал хайх",
+  "practice_search_recent": "Сүүлд",
+  "practice_search_no_results": "\"{query}\"-д тохирох илэрц алга",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "Түгээмэл бясалгалууд"
 }

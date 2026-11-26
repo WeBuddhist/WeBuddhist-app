@@ -130,8 +130,9 @@ class _GroupEventVenueSheetState extends ConsumerState<GroupEventVenueSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final canSearch = ref.watch(placeSearchDatasourceProvider) != null;
 
@@ -160,10 +161,9 @@ class _GroupEventVenueSheetState extends ConsumerState<GroupEventVenueSheet> {
                     color: secondaryColor,
                   ),
                   filled: true,
-                  fillColor:
-                      isDark
-                          ? AppColors.surfaceVariantDark
-                          : AppColors.surfaceWhite,
+                  fillColor: isDark
+                      ? AppColors.surfaceVariantDark
+                      : AppColors.surfaceWhite,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: dividerColor),
@@ -171,10 +171,9 @@ class _GroupEventVenueSheetState extends ConsumerState<GroupEventVenueSheet> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color:
-                          isDark
-                              ? AppColors.textPrimaryDark
-                              : AppColors.textPrimary,
+                      color: isDark
+                          ? AppColors.textPrimaryDark
+                          : AppColors.textPrimary,
                     ),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
@@ -246,12 +245,12 @@ class _VenueRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final titleColor =
-        accent
-            ? (isDark ? AppColors.accentGold : AppColors.accentGoldDarkest)
-            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final titleColor = accent
+        ? (isDark ? AppColors.accentGold : AppColors.accentGoldDarkest)
+        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
 
     return InkWell(
       onTap: onTap,

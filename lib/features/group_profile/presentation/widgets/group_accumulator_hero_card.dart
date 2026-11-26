@@ -48,14 +48,18 @@ class GroupAccumulatorHeroCard extends StatelessWidget {
     // counter would keep counting toward an accumulation that has closed.
     final showActionButton =
         hasJoined && !isPastEndDate(detail.endDate, DateTime.now());
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
-    final primaryTextColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final progressTrackColor =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey50;
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
+    final primaryTextColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final progressTrackColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey50;
 
     return Material(
       color: cardColor,
@@ -69,23 +73,18 @@ class GroupAccumulatorHeroCard extends StatelessWidget {
           SizedBox(
             height: 130,
             width: double.infinity,
-            child:
-                detail.image != null && !detail.image!.isEmpty
-                    ? ResponsiveCoverImage(
-                      image: detail.image,
-                      fit: BoxFit.cover,
-                    )
-                    : ColoredBox(
-                      color:
-                          isDark
-                              ? AppColors.surfaceVariantDark
-                              : AppColors.grey100,
-                      child: Icon(
-                        AppAssets.bookOpenText,
-                        size: 40,
-                        color: isDark ? AppColors.grey500 : AppColors.grey600,
-                      ),
+            child: detail.image != null && !detail.image!.isEmpty
+                ? ResponsiveCoverImage(image: detail.image, fit: BoxFit.cover)
+                : ColoredBox(
+                    color: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.grey100,
+                    child: Icon(
+                      AppAssets.bookOpenText,
+                      size: 40,
+                      color: isDark ? AppColors.grey500 : AppColors.grey600,
                     ),
+                  ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
@@ -140,8 +139,9 @@ class GroupAccumulatorHeroCard extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: detail.progressFraction,
                     minHeight: 8,
-                    backgroundColor:
-                        isDark ? AppColors.cardBorderDark : progressTrackColor,
+                    backgroundColor: isDark
+                        ? AppColors.cardBorderDark
+                        : progressTrackColor,
                     color: AppColors.primary,
                   ),
                 ),
@@ -219,27 +219,25 @@ class _JoinButton extends StatelessWidget {
           color: isDark ? AppColors.cardBorderDark : AppColors.backgroundDark,
           borderRadius: BorderRadius.circular(8),
         ),
-        child:
-            isJoining
-                ? SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color:
-                        isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
-                  ),
-                )
-                : Text(
-                  context.l10n.group_join_to_contribute,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimaryDark,
-                  ),
+        child: isJoining
+            ? SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimary,
                 ),
+              )
+            : Text(
+                context.l10n.group_join_to_contribute,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimaryDark,
+                ),
+              ),
       ),
     );
   }
@@ -264,8 +262,9 @@ class _AccumulatorSourceRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final leading =
-        detail.hasTextContent ? _textLeading(ref) : _mantraLeading(ref);
+    final leading = detail.hasTextContent
+        ? _textLeading(ref)
+        : _mantraLeading(ref);
 
     return Row(
       children: [
@@ -392,10 +391,9 @@ class _TextPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final background =
-        isDark
-            ? AppColors.blueDark.withValues(alpha: 0.18)
-            : const Color(0xFFE7EEFB);
+    final background = isDark
+        ? AppColors.blueDark.withValues(alpha: 0.18)
+        : const Color(0xFFE7EEFB);
 
     return Material(
       color: background,
@@ -415,14 +413,13 @@ class _TextPill extends StatelessWidget {
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  strutStyle:
-                      isTibetan
-                          ? AppFontConfig.tibetanStrutStyle(
-                            AppConfig.tibetanLanguageCode,
-                            14,
-                            compact: true,
-                          )
-                          : null,
+                  strutStyle: isTibetan
+                      ? AppFontConfig.tibetanStrutStyle(
+                          AppConfig.tibetanLanguageCode,
+                          14,
+                          compact: true,
+                        )
+                      : null,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -472,14 +469,13 @@ class _MantraLine extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            strutStyle:
-                isScript
-                    ? AppFontConfig.tibetanStrutStyle(
-                      AppConfig.tibetanLanguageCode,
-                      _fontSize,
-                      compact: true,
-                    )
-                    : null,
+            strutStyle: isScript
+                ? AppFontConfig.tibetanStrutStyle(
+                    AppConfig.tibetanLanguageCode,
+                    _fontSize,
+                    compact: true,
+                  )
+                : null,
             style: TextStyle(
               fontSize: _fontSize,
               fontWeight: FontWeight.w600,

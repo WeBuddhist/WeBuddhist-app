@@ -62,13 +62,12 @@ class GroupAccumulatorRepositoryImpl
       'group_accumulators',
       language: language,
       params: [groupId],
-      fetchJson:
-          () => remote.fetchGroupAccumulatorsJson(
-            groupId,
-            skip: 0,
-            limit: limit,
-            language: language,
-          ),
+      fetchJson: () => remote.fetchGroupAccumulatorsJson(
+        groupId,
+        skip: 0,
+        limit: limit,
+        language: language,
+      ),
       parse: (json) => GroupAccumulatorsPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group accumulators',
     );
@@ -82,11 +81,8 @@ class GroupAccumulatorRepositoryImpl
       'group_accumulator',
       language: language,
       params: [accumulatorId],
-      fetchJson:
-          () => remote.fetchGroupAccumulatorJson(
-            accumulatorId,
-            language: language,
-          ),
+      fetchJson: () =>
+          remote.fetchGroupAccumulatorJson(accumulatorId, language: language),
       parse: (json) => GroupAccumulatorModel.fromJson(json).toDetailEntity(),
       failureMessage: 'Failed to load group accumulator',
     );
@@ -133,15 +129,14 @@ class GroupAccumulatorRepositoryImpl
     return _userSource(
       'group_accumulator_members',
       params: [accumulatorId, sortBy.name],
-      fetchJson:
-          () => remote.fetchGroupAccumulatorMembersJson(
-            accumulatorId,
-            skip: 0,
-            limit: limit,
-            sortBy: sortBy,
-          ),
-      parse:
-          (json) => GroupAccumulatorMembersPageModel.fromJson(json).toEntity(),
+      fetchJson: () => remote.fetchGroupAccumulatorMembersJson(
+        accumulatorId,
+        skip: 0,
+        limit: limit,
+        sortBy: sortBy,
+      ),
+      parse: (json) =>
+          GroupAccumulatorMembersPageModel.fromJson(json).toEntity(),
       failureMessage: 'Failed to load group accumulator members',
     );
   }

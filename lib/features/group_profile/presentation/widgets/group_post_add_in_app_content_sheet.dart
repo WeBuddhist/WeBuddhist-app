@@ -150,10 +150,9 @@ class _GroupPostAddInAppContentSheetState
     final practicesState = ref.watch(myConnectPracticesProvider);
     final screenHeight = MediaQuery.sizeOf(context).height;
     final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final sheetHeight =
-        (screenHeight * 0.85 - bottomInset)
-            .clamp(screenHeight * 0.45, screenHeight * 0.85)
-            .toDouble();
+    final sheetHeight = (screenHeight * 0.85 - bottomInset)
+        .clamp(screenHeight * 0.45, screenHeight * 0.85)
+        .toDouble();
 
     return Padding(
       padding: EdgeInsets.only(bottom: bottomInset),
@@ -237,10 +236,12 @@ class _GroupPostAddInAppContentSheetState
   }
 
   Widget _buildTabBar(AppLocalizations l10n, bool isDark) {
-    final labelColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final unselectedColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final labelColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final unselectedColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.grey800 : AppColors.grey300;
 
     return Container(
@@ -277,8 +278,9 @@ class _GroupPostAddInAppContentSheetState
   }
 
   Widget _buildSearchField(AppLocalizations l10n, bool isDark) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     OutlineInputBorder border(Color color) => OutlineInputBorder(
       borderRadius: BorderRadius.circular(24),
@@ -297,8 +299,9 @@ class _GroupPostAddInAppContentSheetState
           hintStyle: TextStyle(fontSize: 14, color: secondaryColor),
           isDense: true,
           filled: true,
-          fillColor:
-              isDark ? AppColors.surfaceVariantDark : AppColors.surfaceWhite,
+          fillColor: isDark
+              ? AppColors.surfaceVariantDark
+              : AppColors.surfaceWhite,
           enabledBorder: border(borderColor),
           focusedBorder: border(
             isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
@@ -307,13 +310,12 @@ class _GroupPostAddInAppContentSheetState
             horizontal: 16,
             vertical: 12,
           ),
-          suffixIcon:
-              _query.isEmpty
-                  ? null
-                  : IconButton(
-                    onPressed: _clearSearch,
-                    icon: const Icon(AppAssets.x, size: 18),
-                  ),
+          suffixIcon: _query.isEmpty
+              ? null
+              : IconButton(
+                  onPressed: _clearSearch,
+                  icon: const Icon(AppAssets.x, size: 18),
+                ),
         ),
       ),
     );
@@ -333,10 +335,9 @@ class _GroupPostAddInAppContentSheetState
       itemBuilder: (context, event) {
         final content = GroupPostInAppContent.event(event);
         return _ContentTile(
-          title:
-              content.title.trim().isNotEmpty
-                  ? content.title
-                  : l10n.connect_event_fallback_title,
+          title: content.title.trim().isNotEmpty
+              ? content.title
+              : l10n.connect_event_fallback_title,
           thumbnail: _responsiveThumbnail(event.image),
           fallbackIcon: AppAssets.calendarDots,
           subtitle: GroupEventListTile.formatDateLabel(context, event),
@@ -388,8 +389,8 @@ class _GroupPostAddInAppContentSheetState
       isLoadingMore: state.isLoadingMore,
       onLoadMore: notifier.loadMore,
       onRetry: notifier.retry,
-      itemBuilder:
-          (context, item) => _buildPracticeTile(l10n, item.$1, item.$2),
+      itemBuilder: (context, item) =>
+          _buildPracticeTile(l10n, item.$1, item.$2),
     );
   }
 
@@ -418,8 +419,9 @@ class _GroupPostAddInAppContentSheetState
           accumulator.startDate,
           accumulator.endDate,
         );
-        progress =
-            accumulator.targetCount > 0 ? accumulator.progressFraction : null;
+        progress = accumulator.targetCount > 0
+            ? accumulator.progressFraction
+            : null;
         count = accumulator.memberCount;
       case GroupPracticeType.plan:
         final plan = practice.plan!;
@@ -429,12 +431,9 @@ class _GroupPostAddInAppContentSheetState
       case GroupPracticeType.collection:
         final collection = practice.collection!;
         thumbnail = _urlThumbnail(collection.imageUrl);
-        subtitle =
-            collection.itemCount > 0
-                ? l10n.my_recitation_collection_chant_count(
-                  collection.itemCount,
-                )
-                : null;
+        subtitle = collection.itemCount > 0
+            ? l10n.my_recitation_collection_chant_count(collection.itemCount)
+            : null;
     }
 
     return _ContentTile(
@@ -460,13 +459,16 @@ class _GroupPostAddInAppContentSheetState
         child: ElevatedButton(
           onPressed: _selected == null ? null : _attach,
           style: ElevatedButton.styleFrom(
-            backgroundColor:
-                isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
+            backgroundColor: isDark
+                ? AppColors.surfaceWhite
+                : AppColors.textPrimary,
             foregroundColor: foreground,
-            disabledBackgroundColor:
-                isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-            disabledForegroundColor:
-                isDark ? AppColors.grey500 : AppColors.grey600,
+            disabledBackgroundColor: isDark
+                ? AppColors.surfaceVariantDark
+                : AppColors.grey100,
+            disabledForegroundColor: isDark
+                ? AppColors.grey500
+                : AppColors.grey600,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -525,10 +527,9 @@ class _ChantsTab extends ConsumerWidget {
       isLoadingMore: listState.isLoadingMore,
       query: isServerSearch ? query : '',
       onLoadMore: ref.read(listProvider.notifier).loadMore,
-      onRetry:
-          isServerSearch
-              ? ref.read(searchProvider.notifier).retry
-              : ref.read(listProvider.notifier).retry,
+      onRetry: isServerSearch
+          ? ref.read(searchProvider.notifier).retry
+          : ref.read(listProvider.notifier).retry,
       itemBuilder: (context, chant) {
         final content = GroupPostInAppContent.chant(chant);
         final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -585,7 +586,9 @@ class _ContentList<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) {
       if (error != null) {
-        return Center(child: ErrorStateWidget(error: error!, onRetry: onRetry));
+        return Center(
+          child: ErrorStateWidget(error: error!, onRetry: onRetry),
+        );
       }
       if (isLoading) return const Center(child: CircularProgressIndicator());
       return _EmptyMessage(query: query);
@@ -640,8 +643,9 @@ class _LoadMoreError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -679,7 +683,9 @@ class _EmptyMessage extends StatelessWidget {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,
-            color: isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+            color: isDark
+                ? AppColors.textTertiaryDark
+                : AppColors.textSecondary,
           ),
         ),
       ),
@@ -715,10 +721,12 @@ class _ContentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final titleStyle = TextStyle(
       fontSize: 15,
@@ -750,10 +758,9 @@ class _ContentTile extends StatelessWidget {
                   child:
                       thumbnail ??
                       ColoredBox(
-                        color:
-                            isDark
-                                ? AppColors.surfaceVariantDark
-                                : AppColors.grey100,
+                        color: isDark
+                            ? AppColors.surfaceVariantDark
+                            : AppColors.grey100,
                         child: Icon(
                           fallbackIcon,
                           size: 28,
@@ -781,10 +788,9 @@ class _ContentTile extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: progress,
                           minHeight: 6,
-                          backgroundColor:
-                              isDark
-                                  ? AppColors.cardBorderDark
-                                  : AppColors.grey100,
+                          backgroundColor: isDark
+                              ? AppColors.cardBorderDark
+                              : AppColors.grey100,
                           color: AppColors.primary,
                         ),
                       ),
@@ -821,7 +827,9 @@ class _ContentTile extends StatelessWidget {
                   child: Icon(
                     AppAssets.check,
                     size: 12,
-                    color: isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                    color: isDark
+                        ? AppColors.textPrimary
+                        : AppColors.surfaceWhite,
                   ),
                 ),
               ],

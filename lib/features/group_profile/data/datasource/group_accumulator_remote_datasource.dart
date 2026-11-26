@@ -110,7 +110,9 @@ class GroupAccumulatorRemoteDatasource {
 
   Future<void> joinGroupAccumulator(String accumulatorId) async {
     try {
-      final response = await dio.post('/group-accumulators/$accumulatorId/join');
+      final response = await dio.post(
+        '/group-accumulators/$accumulatorId/join',
+      );
       if (response.statusCode != 200 &&
           response.statusCode != 201 &&
           response.statusCode != 204) {
@@ -153,7 +155,9 @@ class GroupAccumulatorRemoteDatasource {
         queryParameters: {
           'skip': skip,
           'limit': limit,
-          'sort_by': sortBy == GroupAccumulatorMemberSort.today ? 'today' : 'total',
+          'sort_by': sortBy == GroupAccumulatorMemberSort.today
+              ? 'today'
+              : 'total',
         },
         options: Options(extra: {'no_cache': true}),
       );

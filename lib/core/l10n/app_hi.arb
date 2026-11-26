@@ -1306,5 +1306,29 @@
   "session_search_timers_hint": "नाम या अवधि से टाइमर खोजें",
   "search_min_query_length": "खोजने के लिए कम से कम {count} अक्षर लिखें",
   "splash_tagline_1": "हम बौद्ध साथ मिलकर साधना करते हैं",
-  "splash_tagline_2": "हम बौद्ध प्रतिदिन साधना करते हैं"
+  "splash_tagline_2": "हम बौद्ध प्रतिदिन साधना करते हैं",
+  "practice_next_session": "अगला सत्र",
+  "practice_more_in_session": "इस सत्र में +{count} और",
+  "@practice_more_in_session": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "practice_from_your_spaces": "आपके स्पेस से",
+  "practice_discover_more": "और खोजें",
+  "practice_space_accumulations": "स्पेस संचय",
+  "practice_no_space_accumulations": "अभी अन्य स्पेस से कोई संचय नहीं है",
+  "practice_search_hint": "अभ्यास खोजें",
+  "practice_search_recent": "हाल ही में",
+  "practice_search_no_results": "\"{query}\" के लिए कोई परिणाम नहीं",
+  "@practice_search_no_results": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "practice_popular_practices": "लोकप्रिय अभ्यास"
 }

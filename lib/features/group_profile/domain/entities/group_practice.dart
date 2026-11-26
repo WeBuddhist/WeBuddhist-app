@@ -6,26 +6,6 @@ import 'package:flutter_pecha/shared/domain/value_objects/responsive_image.dart'
 
 enum GroupPracticeType { accumulator, series, collection, plan }
 
-/// One recording attached to a group recitation chant.
-class GroupRecitationAudio extends Equatable {
-  final String id;
-  final String title;
-  final String assetUrl;
-  final String? reciterName;
-  final String? imageUrl;
-
-  const GroupRecitationAudio({
-    required this.id,
-    required this.title,
-    required this.assetUrl,
-    this.reciterName,
-    this.imageUrl,
-  });
-
-  @override
-  List<Object?> get props => [id, title, assetUrl, reciterName, imageUrl];
-}
-
 class GroupRecitationCollectionItem extends Equatable {
   final String id;
   final String textId;
@@ -33,7 +13,6 @@ class GroupRecitationCollectionItem extends Equatable {
   final String language;
   final String type;
   final int displayOrder;
-  final List<GroupRecitationAudio> audio;
 
   const GroupRecitationCollectionItem({
     required this.id,
@@ -42,19 +21,10 @@ class GroupRecitationCollectionItem extends Equatable {
     required this.language,
     required this.type,
     required this.displayOrder,
-    this.audio = const [],
   });
 
   @override
-  List<Object?> get props => [
-    id,
-    textId,
-    title,
-    language,
-    type,
-    displayOrder,
-    audio,
-  ];
+  List<Object?> get props => [id, textId, title, language, type, displayOrder];
 }
 
 class GroupRecitationCollection extends Equatable {
@@ -138,10 +108,9 @@ class GroupPracticePlan extends Equatable {
       description: description,
       authorId: authorId ?? '',
       authorName: authorName,
-      coverImage:
-          imageUrl != null && imageUrl!.isNotEmpty
-              ? ResponsiveImage.uniform(imageUrl!)
-              : null,
+      coverImage: imageUrl != null && imageUrl!.isNotEmpty
+          ? ResponsiveImage.uniform(imageUrl!)
+          : null,
       totalDays: totalDays,
       difficulty: difficulty,
       language: language,

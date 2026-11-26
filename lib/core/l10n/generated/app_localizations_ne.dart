@@ -4503,4 +4503,39 @@ class AppLocalizationsNe extends AppLocalizations {
   String search_min_query_length(int count) {
     return 'खोज्न कम्तीमा $count अक्षर टाइप गर्नुहोस्';
   }
+
+  @override
+  String get practice_next_session => 'अर्को सत्र';
+
+  @override
+  String practice_more_in_session(int count) {
+    return 'यस सत्रमा +$count थप';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'तपाईंका स्पेसहरूबाट';
+
+  @override
+  String get practice_discover_more => 'थप अन्वेषण गर्नुहोस्';
+
+  @override
+  String get practice_space_accumulations => 'स्पेस संचय';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'अहिले अन्य स्पेसहरूबाट कुनै संचय छैन';
+
+  @override
+  String get practice_search_hint => 'अभ्यास खोज्नुहोस्';
+
+  @override
+  String get practice_search_recent => 'हालैका';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '\"$query\" को लागि कुनै नतिजा छैन';
+  }
+
+  @override
+  String get practice_popular_practices => 'लोकप्रिय अभ्यासहरू';
 }

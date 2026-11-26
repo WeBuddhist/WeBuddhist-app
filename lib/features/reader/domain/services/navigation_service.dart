@@ -16,8 +16,9 @@ class NavigationService {
     final currentIndex = context.currentTextIndex;
     if (currentIndex == null) return null;
 
-    final newIndex =
-        direction == SwipeDirection.next ? currentIndex + 1 : currentIndex - 1;
+    final newIndex = direction == SwipeDirection.next
+        ? currentIndex + 1
+        : currentIndex - 1;
 
     if (newIndex < 0 || newIndex >= items.length) return null;
     return items[newIndex];
@@ -38,10 +39,9 @@ class NavigationService {
     final adjacentText = getAdjacentText(currentContext, direction);
     if (adjacentText == null) return null;
 
-    final newIndex =
-        direction == SwipeDirection.next
-            ? currentContext.currentTextIndex! + 1
-            : currentContext.currentTextIndex! - 1;
+    final newIndex = direction == SwipeDirection.next
+        ? currentContext.currentTextIndex! + 1
+        : currentContext.currentTextIndex! - 1;
     return createNavigationContextForIndex(
       currentContext,
       newIndex,
@@ -86,7 +86,6 @@ class NavigationService {
         groupTitle: currentContext.groupTitle,
         collectionId: currentContext.collectionId,
         collectionImageUrl: currentContext.collectionImageUrl,
-        collectionAudioTracks: currentContext.collectionAudioTracks,
         language: target.language,
         eventId: currentContext.eventId,
       );

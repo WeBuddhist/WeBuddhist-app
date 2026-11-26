@@ -4501,4 +4501,39 @@ class AppLocalizationsMn extends AppLocalizations {
   String search_min_query_length(int count) {
     return 'Хайхын тулд дор хаяж $count тэмдэгт бичнэ үү';
   }
+
+  @override
+  String get practice_next_session => 'Дараагийн хичээл';
+
+  @override
+  String practice_more_in_session(int count) {
+    return 'Энэ хичээлд +$count бусад';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'Таны орон зайнаас';
+
+  @override
+  String get practice_discover_more => 'Илүү ихийг судлах';
+
+  @override
+  String get practice_space_accumulations => 'Орон зайн хуримтлал';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'Одоогоор бусад орон зайн хуримтлал алга';
+
+  @override
+  String get practice_search_hint => 'Бясалгал хайх';
+
+  @override
+  String get practice_search_recent => 'Сүүлд';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '\"$query\"-д тохирох илэрц алга';
+  }
+
+  @override
+  String get practice_popular_practices => 'Түгээмэл бясалгалууд';
 }

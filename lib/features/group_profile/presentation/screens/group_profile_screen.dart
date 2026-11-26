@@ -103,12 +103,11 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
                 value: profileAsync,
                 skeleton: const GroupProfileSkeleton(),
                 onRetry: () => ref.invalidate(groupProfileProvider(groupId)),
-                data:
-                    (profile) => GroupProfileBody(
-                      profile: profile,
-                      isDark: isDark,
-                      startCollapsed: widget.startCollapsed,
-                    ),
+                data: (profile) => GroupProfileBody(
+                  profile: profile,
+                  isDark: isDark,
+                  startCollapsed: widget.startCollapsed,
+                ),
               ),
             ),
           ],
@@ -118,14 +117,13 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
 
     return TrackFirstValue<GroupProfile>(
       value: loadedProfile,
-      onFirstValue:
-          (profile) => ref
-              .read(groupAnalyticsProvider)
-              .groupViewed(
-                groupId: groupId,
-                groupType: profile.groupType,
-                source: widget.analyticsSource,
-              ),
+      onFirstValue: (profile) => ref
+          .read(groupAnalyticsProvider)
+          .groupViewed(
+            groupId: groupId,
+            groupType: profile.groupType,
+            source: widget.analyticsSource,
+          ),
       child: scaffold,
     );
   }
@@ -142,8 +140,9 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
     );
     final resolvedTitle = title?.trim() ?? '';
     final hasTitle = resolvedTitle.isNotEmpty;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -179,13 +178,12 @@ class _GroupProfileScreenState extends ConsumerState<GroupProfileScreen> {
               ),
             ),
           ),
-          trailing:
-              profile == null
-                  ? const SizedBox(width: 48, height: 48)
-                  // A Page has no Invite row, so its ⋮ stays up here.
-                  : profile.groupType.isPage
-                  ? _MemberMenuButton(profile: profile)
-                  : GroupSpaceRoomButtons(profile: profile),
+          trailing: profile == null
+              ? const SizedBox(width: 48, height: 48)
+              // A Page has no Invite row, so its ⋮ stays up here.
+              : profile.groupType.isPage
+              ? _MemberMenuButton(profile: profile)
+              : GroupSpaceRoomButtons(profile: profile),
           middleSpacing: 8,
         ),
       ),
@@ -219,11 +217,9 @@ class _MemberMenuButton extends ConsumerWidget {
       icon: const Icon(AppAssets.dotsThreeVertical),
       tooltip: MaterialLocalizations.of(context).showMenuTooltip,
       // Not while a join or leave is still in flight.
-      onPressed:
-          followState is GroupFollowLoading
-              ? null
-              : () =>
-                  openGroupMemberMenu(context, profile, followKey: followKey),
+      onPressed: followState is GroupFollowLoading
+          ? null
+          : () => openGroupMemberMenu(context, profile, followKey: followKey),
     );
   }
 }

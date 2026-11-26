@@ -1,53 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
-import 'package:flutter_pecha/core/utils/audio_url.dart';
 import 'package:flutter_pecha/features/group_profile/domain/entities/group_practice.dart';
 import 'package:flutter_pecha/features/group_profile/presentation/providers/group_profile_providers.dart';
+import 'package:flutter_pecha/features/library/presentation/providers/library_providers.dart';
 import 'package:flutter_pecha/features/reader/data/models/navigation_context.dart';
-
-/// Playable recordings for [item], titles kept exactly as the API sent them.
-List<CollectionAudioTrack> collectionAudioTracksFor(
-  GroupRecitationCollectionItem item,
-) {
-  return [
-    for (final audio in item.audio)
-      if (hasPlayableAudio(audio.assetUrl))
-        CollectionAudioTrack(
-          id: audio.id,
-          title: audio.title,
-          url: audio.assetUrl.trim(),
-        ),
-  ];
-}
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Reader context for one chant of a collection, carrying its siblings so
-/// the reader can step through and mark them complete.
+/// the reader can step through and mark them complete. With [play] the
+/// reader starts the chant's first library recording once it has loaded.
 NavigationContext groupRecitationCollectionNavigationContext({
   required GroupRecitationCollectionKey key,
   required GroupRecitationCollection collection,
   required GroupRecitationCollectionItem item,
   required GroupRecitationCollectionCompletionState completionState,
-  CollectionAudioTrack? initialAudio,
+  bool play = false,
   String? groupName,
 }) {
   final currentIndex = collection.items.indexWhere((i) => i.id == item.id);
-  final planTextItems =
-      collection.items.map((collectionItem) {
-        return PlanTextItem.sourceReference(
-          textId: collectionItem.textId,
-          title: collectionItem.title,
-          language: collectionItem.language,
-          subtaskId: collectionItem.id,
-          isCompleted: completionState.isCompleted(collectionItem.id),
-        );
-      }).toList();
-  final tracks = <String, List<CollectionAudioTrack>>{};
-  for (final collectionItem in collection.items) {
-    final itemTracks = collectionAudioTracksFor(collectionItem);
-    if (itemTracks.isNotEmpty) tracks[collectionItem.id] = itemTracks;
-  }
-
+  final planTextItems = collection.items.map((collectionItem) {
+    return PlanTextItem.sourceReference(
+      textId: collectionItem.textId,
+      title: collectionItem.title,
+      language: collectionItem.language,
+      subtaskId: collectionItem.id,
+      isCompleted: completionState.isCompleted(collectionItem.id),
+    );
+  }).toList();
   return NavigationContext(
     source: NavigationSource.groupRecitationCollection,
     planTextItems: planTextItems,
@@ -57,13 +37,11 @@ NavigationContext groupRecitationCollectionNavigationContext({
     collectionId: key.collectionId,
     collectionImageUrl: collection.imageUrl,
     language: item.language,
-    collectionAudioTracks: tracks,
-    autoPlay: initialAudio != null,
-    initialCollectionAudio: initialAudio,
+    autoPlay: play,
   );
 }
 
-class GroupRecitationCollectionRow extends StatelessWidget {
+class GroupRecitationCollectionRow extends ConsumerWidget {
   const GroupRecitationCollectionRow({
     super.key,
     required this.item,
@@ -80,13 +58,21 @@ class GroupRecitationCollectionRow extends StatelessWidget {
   final bool isSubmitting;
   final VoidCallback onTap;
 
-  /// Opens the recording list. Set only when [item] has playable audio.
+  /// Opens the reader on the first recording. The play circle shows only
+  /// once the library lists a recording for [item]'s text.
   final VoidCallback? onPlay;
 
   @override
-  Widget build(BuildContext context) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final textId = item.textId.trim();
+    final hasRecordings =
+        textId.isNotEmpty &&
+        (ref.watch(chantRecordingsProvider(textId)).valueOrNull?.isNotEmpty ??
+            false);
+    final onPlay = hasRecordings ? this.onPlay : null;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.grey800 : AppColors.grey600;
 
     return InkWell(
@@ -211,10 +197,9 @@ class _CompletionIndicator extends StatelessWidget {
           width: 1,
         ),
       ),
-      child:
-          isCompleted
-              ? Icon(AppAssets.check, size: 13, color: checkColor)
-              : null,
+      child: isCompleted
+          ? Icon(AppAssets.check, size: 13, color: checkColor)
+          : null,
     );
   }
 }

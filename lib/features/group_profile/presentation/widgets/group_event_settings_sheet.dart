@@ -38,8 +38,9 @@ class _GroupEventSettingsSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final intentionsAsync = ref.watch(groupEventIntentionsProvider);
 
@@ -49,14 +50,13 @@ class _GroupEventSettingsSheetState
       footer: GroupEventSheet.primaryButton(
         context,
         label: l10n.done,
-        onPressed:
-            () => Navigator.of(context).pop(
-              widget.draft.copyWith(
-                chatEnabled: _chat,
-                notificationsEnabled: _notifications,
-                intentionIds: _intentions.toList(),
-              ),
-            ),
+        onPressed: () => Navigator.of(context).pop(
+          widget.draft.copyWith(
+            chatEnabled: _chat,
+            notificationsEnabled: _notifications,
+            intentionIds: _intentions.toList(),
+          ),
+        ),
       ),
       child: ListView(
         shrinkWrap: true,
@@ -86,10 +86,9 @@ class _GroupEventSettingsSheetState
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.8,
-                    color:
-                        isDark
-                            ? AppColors.accentGold
-                            : AppColors.accentGoldDarkest,
+                    color: isDark
+                        ? AppColors.accentGold
+                        : AppColors.accentGoldDarkest,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -101,61 +100,56 @@ class _GroupEventSettingsSheetState
             ),
           ),
           intentionsAsync.when(
-            loading:
-                () => const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+            error: (_, _) => Padding(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
+              child: Text(
+                l10n.group_event_settings_intentions_error,
+                style: TextStyle(fontSize: 13, color: secondaryColor),
+              ),
+            ),
+            data: (intentions) => Column(
+              children: [
+                for (final intention in intentions) ...[
+                  InkWell(
+                    onTap: () => _toggle(intention.id),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 2, 16, 2),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              intention.label,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ),
+                          Checkbox(
+                            value: _intentions.contains(intention.id),
+                            onChanged: (_) => _toggle(intention.id),
+                            activeColor: isDark
+                                ? AppColors.surfaceWhite
+                                : AppColors.textPrimary,
+                            checkColor: isDark
+                                ? AppColors.textPrimary
+                                : AppColors.surfaceWhite,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-            error:
-                (_, _) => Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
-                  child: Text(
-                    l10n.group_event_settings_intentions_error,
-                    style: TextStyle(fontSize: 13, color: secondaryColor),
-                  ),
-                ),
-            data:
-                (intentions) => Column(
-                  children: [
-                    for (final intention in intentions) ...[
-                      InkWell(
-                        onTap: () => _toggle(intention.id),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 2, 16, 2),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  intention.label,
-                                  style: const TextStyle(fontSize: 16),
-                                ),
-                              ),
-                              Checkbox(
-                                value: _intentions.contains(intention.id),
-                                onChanged: (_) => _toggle(intention.id),
-                                activeColor:
-                                    isDark
-                                        ? AppColors.surfaceWhite
-                                        : AppColors.textPrimary,
-                                checkColor:
-                                    isDark
-                                        ? AppColors.textPrimary
-                                        : AppColors.surfaceWhite,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Divider(height: 1, thickness: 1, color: dividerColor),
-                    ],
-                  ],
-                ),
+                  Divider(height: 1, thickness: 1, color: dividerColor),
+                ],
+              ],
+            ),
           ),
           const SizedBox(height: 8),
         ],
@@ -165,10 +159,9 @@ class _GroupEventSettingsSheetState
 
   void _toggle(String id) {
     setState(() {
-      _intentions =
-          _intentions.contains(id)
-              ? (_intentions..remove(id))
-              : (_intentions..add(id));
+      _intentions = _intentions.contains(id)
+          ? (_intentions..remove(id))
+          : (_intentions..add(id));
     });
   }
 }
@@ -189,8 +182,9 @@ class _ToggleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 8, 12, 10),
       child: Column(

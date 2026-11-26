@@ -32,12 +32,12 @@ class GroupEventListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final title =
-        event.title.trim().isNotEmpty
-            ? event.title.trim()
-            : context.l10n.connect_event_fallback_title;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final title = event.title.trim().isNotEmpty
+        ? event.title.trim()
+        : context.l10n.connect_event_fallback_title;
     final groupName = event.groupName?.trim() ?? '';
     final dateLabel = formatDateLabel(context, event);
     final chips = _buildChips(context);
@@ -59,26 +59,23 @@ class GroupEventListTile extends StatelessWidget {
                   height: _imageSize,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child:
-                        event.image != null && !event.image!.isEmpty
-                            ? ResponsiveCoverImage(
-                              image: event.image,
-                              fit: BoxFit.cover,
-                            )
-                            : ColoredBox(
-                              color:
-                                  isDark
-                                      ? AppColors.surfaceVariantDark
-                                      : AppColors.grey100,
-                              child: Icon(
-                                AppAssets.calendarDots,
-                                size: 32,
-                                color:
-                                    isDark
-                                        ? AppColors.grey500
-                                        : AppColors.grey600,
-                              ),
+                    child: event.image != null && !event.image!.isEmpty
+                        ? ResponsiveCoverImage(
+                            image: event.image,
+                            fit: BoxFit.cover,
+                          )
+                        : ColoredBox(
+                            color: isDark
+                                ? AppColors.surfaceVariantDark
+                                : AppColors.grey100,
+                            child: Icon(
+                              AppAssets.calendarDots,
+                              size: 32,
+                              color: isDark
+                                  ? AppColors.grey500
+                                  : AppColors.grey600,
                             ),
+                          ),
                   ),
                 ),
                 Padding(
@@ -139,16 +136,15 @@ class GroupEventListTile extends StatelessWidget {
           child: SizedBox(
             width: 18,
             height: 18,
-            child:
-                hasAvatar
-                    ? CachedNetworkImageWidget(
-                      imageUrl: avatarUrl,
-                      width: 18,
-                      height: 18,
-                      fit: BoxFit.cover,
-                      errorWidget: _buildGroupAvatarFallback(),
-                    )
-                    : _buildGroupAvatarFallback(),
+            child: hasAvatar
+                ? CachedNetworkImageWidget(
+                    imageUrl: avatarUrl,
+                    width: 18,
+                    height: 18,
+                    fit: BoxFit.cover,
+                    errorWidget: _buildGroupAvatarFallback(),
+                  )
+                : _buildGroupAvatarFallback(),
           ),
         ),
         const SizedBox(width: 6),
@@ -182,8 +178,9 @@ class GroupEventListTile extends StatelessWidget {
     final showLocation = !isOnline && locationName.isNotEmpty;
     final showOnline = isOnline || isHybrid;
     final hasEnded = isPastEndDate(event.endDate, DateTime.now());
-    final inPersonColor =
-        isDark ? AppColors.eventInPersonChipDark : AppColors.eventInPersonChip;
+    final inPersonColor = isDark
+        ? AppColors.eventInPersonChipDark
+        : AppColors.eventInPersonChip;
 
     return [
       // Solid and inverted against the theme so it reads before the rest.
@@ -191,8 +188,9 @@ class GroupEventListTile extends StatelessWidget {
         _EventChip(
           label: context.l10n.connect_ended,
           color: isDark ? AppColors.textPrimary : AppColors.textPrimaryDark,
-          backgroundColor:
-              isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+          backgroundColor: isDark
+              ? AppColors.textPrimaryDark
+              : AppColors.textPrimary,
           lineHeight: lineHeight,
         ),
       if (showLocation)
@@ -206,10 +204,9 @@ class GroupEventListTile extends StatelessWidget {
         _EventChip(
           icon: AppAssets.videoCamera,
           label: context.l10n.connect_online,
-          color:
-              isDark
-                  ? AppColors.eventOnlineChipDark
-                  : AppColors.eventOnlineChip,
+          color: isDark
+              ? AppColors.eventOnlineChipDark
+              : AppColors.eventOnlineChip,
           lineHeight: lineHeight,
         ),
     ];

@@ -88,8 +88,9 @@ class _GroupJoinRequestsScreenState
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(groupJoinRequestsProvider(widget.groupId));
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -146,11 +147,9 @@ class _GroupJoinRequestsScreenState
       return ErrorStateWidget(
         error: state.error!,
         customMessage: context.l10n.group_join_requests_load_error,
-        onRetry:
-            () =>
-                ref
-                    .read(groupJoinRequestsProvider(widget.groupId).notifier)
-                    .retry(),
+        onRetry: () => ref
+            .read(groupJoinRequestsProvider(widget.groupId).notifier)
+            .retry(),
       );
     }
 
@@ -163,8 +162,9 @@ class _GroupJoinRequestsScreenState
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color:
-                  isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textSecondary,
               fontFamily: getSystemFontFamily(
                 Localizations.localeOf(context).languageCode,
               ),
@@ -223,19 +223,16 @@ class _GroupJoinRequestsScreenState
             strutStyle: context.tibetanStrutStyle(14),
             style: TextStyle(
               fontSize: 14,
-              color:
-                  isDark ? AppColors.textTertiaryDark : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.textTertiaryDark
+                  : AppColors.textSecondary,
               fontFamily: fontFamily,
             ),
           ),
           TextButton(
-            onPressed:
-                () =>
-                    ref
-                        .read(
-                          groupJoinRequestsProvider(widget.groupId).notifier,
-                        )
-                        .retry(),
+            onPressed: () => ref
+                .read(groupJoinRequestsProvider(widget.groupId).notifier)
+                .retry(),
             child: Text(
               context.l10n.retry,
               style: TextStyle(fontFamily: fontFamily),
@@ -268,10 +265,12 @@ class _GroupJoinRequestTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
     final fontFamily = getSystemFontFamily(locale.languageCode);
-    final nameColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final subtitleColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final nameColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final subtitleColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final name = request.userName.trim();
     final email = request.email.trim();
     final avatarUrl = request.userAvatarUrl;
@@ -285,17 +284,16 @@ class _GroupJoinRequestTile extends StatelessWidget {
             child: SizedBox(
               width: 48,
               height: 48,
-              child:
-                  hasAvatar
-                      ? CachedNetworkImageWidget(
-                        key: networkImageKey(avatarUrl),
-                        imageUrl: avatarUrl,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorWidget: _avatarFallback(isDark),
-                      )
-                      : _avatarFallback(isDark),
+              child: hasAvatar
+                  ? CachedNetworkImageWidget(
+                      key: networkImageKey(avatarUrl),
+                      imageUrl: avatarUrl,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                      errorWidget: _avatarFallback(isDark),
+                    )
+                  : _avatarFallback(isDark),
             ),
           ),
           const SizedBox(width: 12),
@@ -336,10 +334,12 @@ class _GroupJoinRequestTile extends StatelessWidget {
           const SizedBox(width: 8),
           _DecisionButton(
             label: context.l10n.group_join_requests_admit,
-            backgroundColor:
-                isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-            foregroundColor:
-                isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+            backgroundColor: isDark
+                ? AppColors.surfaceWhite
+                : AppColors.textPrimary,
+            foregroundColor: isDark
+                ? AppColors.textPrimary
+                : AppColors.surfaceWhite,
             fontFamily: fontFamily,
             isLoading: isApproving,
             onPressed: onAdmit,
@@ -347,8 +347,9 @@ class _GroupJoinRequestTile extends StatelessWidget {
           const SizedBox(width: 8),
           _DecisionButton(
             label: context.l10n.group_join_requests_deny,
-            backgroundColor:
-                isDark ? AppColors.chipBackgroundDark : AppColors.grey100,
+            backgroundColor: isDark
+                ? AppColors.chipBackgroundDark
+                : AppColors.grey100,
             foregroundColor: nameColor,
             fontFamily: fontFamily,
             isLoading: isRejecting,
@@ -402,29 +403,25 @@ class _DecisionButton extends StatelessWidget {
           child: SizedBox(
             height: isTibetan ? 40 : 36,
             child: Center(
-              child:
-                  isLoading
-                      ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: foregroundColor,
-                        ),
-                      )
-                      : Text(
-                        label,
-                        strutStyle: context.tibetanStrutStyle(
-                          14,
-                          compact: true,
-                        ),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: foregroundColor,
-                          fontFamily: fontFamily,
-                        ),
+              child: isLoading
+                  ? SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: foregroundColor,
                       ),
+                    )
+                  : Text(
+                      label,
+                      strutStyle: context.tibetanStrutStyle(14, compact: true),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: foregroundColor,
+                        fontFamily: fontFamily,
+                      ),
+                    ),
             ),
           ),
         ),

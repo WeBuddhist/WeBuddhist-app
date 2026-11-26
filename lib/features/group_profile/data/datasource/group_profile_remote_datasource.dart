@@ -149,10 +149,9 @@ class GroupProfileRemoteDatasource {
   }
 
   Future<bool> checkFollowStatus(String groupId, GroupType groupType) async {
-    final path =
-        groupType.isPage
-            ? '/users/me/following/author/groups'
-            : '/users/me/joined/author/groups';
+    final path = groupType.isPage
+        ? '/users/me/following/author/groups'
+        : '/users/me/joined/author/groups';
     try {
       final response = await dio.get(
         path,
@@ -618,10 +617,9 @@ class GroupProfileRemoteDatasource {
     try {
       final response = await dio.post(
         '/events/$eventId/participants',
-        data:
-            participationType == null
-                ? null
-                : {'participation_type': participationType.apiValue},
+        data: participationType == null
+            ? null
+            : {'participation_type': participationType.apiValue},
       );
       if (response.statusCode != 200 &&
           response.statusCode != 201 &&
@@ -890,10 +888,7 @@ class GroupProfileRemoteDatasource {
       if (statusCode >= 200 && statusCode < 300) return;
 
       _logger.error('Failed to delete chat message $messageId: $statusCode');
-      throw _statusToException(
-        response.statusCode,
-        'Failed to delete message',
-      );
+      throw _statusToException(response.statusCode, 'Failed to delete message');
     } on DioException catch (e) {
       _logger.error('Dio error in deleteGroupChatMessage', e);
       throw _dioToException(e, 'Failed to delete message');

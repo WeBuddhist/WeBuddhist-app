@@ -56,11 +56,10 @@ class GroupProfileTabSkeleton extends StatelessWidget {
         padding = const EdgeInsets.only(top: 10, bottom: 32);
         sliver = SliverList.separated(
           itemCount: itemCount,
-          separatorBuilder:
-              (_, __) => ColoredBox(
-                color: ConnectFeedCardLayout.listGapColor(isDark),
-                child: const SizedBox(height: 10),
-              ),
+          separatorBuilder: (_, __) => ColoredBox(
+            color: ConnectFeedCardLayout.listGapColor(isDark),
+            child: const SizedBox(height: 10),
+          ),
           itemBuilder: (context, index) => _buildFeedSkeletonCard(context),
         );
         break;

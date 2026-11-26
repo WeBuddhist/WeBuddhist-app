@@ -93,10 +93,8 @@ class _GroupEventLiveHeaderState extends ConsumerState<GroupEventLiveHeader> {
   Timer? _startCheck;
   DateTime? _startCheckAt;
 
-  GroupEventLanguageKey get _key => (
-    eventId: widget.eventId,
-    language: widget.language,
-  );
+  GroupEventLanguageKey get _key =>
+      (eventId: widget.eventId, language: widget.language);
 
   @override
   void dispose() {
@@ -625,8 +623,9 @@ JSON.stringify((function () {
       end = asDouble(data['d']) ?? 0;
     }
     final span = end - start;
-    final fraction =
-        span <= 0 ? 1.0 : ((current - start) / span).clamp(0.0, 1.0);
+    final fraction = span <= 0
+        ? 1.0
+        : ((current - start) / span).clamp(0.0, 1.0);
     final atLiveEdge =
         atHead ?? (span <= 0 || end - current <= _liveEdgeTolerance.inSeconds);
     return _LiveProgress(
@@ -666,8 +665,9 @@ JSON.stringify((function () {
 
   void _seekToLive() {
     final live = _live.value;
-    final fallback =
-        live.hasRange ? '${live.seekableEnd}' : 'player.getDuration()';
+    final fallback = live.hasRange
+        ? '${live.seekableEnd}'
+        : 'player.getDuration()';
     _runJs('''
 if (typeof player.seekToLiveHead === 'function') {
   player.seekToLiveHead();
@@ -791,9 +791,8 @@ player.playVideo();
         const SizedBox(width: 10),
         ValueListenableBuilder<_LiveProgress>(
           valueListenable: _live,
-          builder:
-              (context, live, _) =>
-                  _LiveChip(atLiveEdge: live.atLiveEdge, onTap: _seekToLive),
+          builder: (context, live, _) =>
+              _LiveChip(atLiveEdge: live.atLiveEdge, onTap: _seekToLive),
         ),
         const SizedBox(width: 2),
         fullscreenButton,
@@ -834,9 +833,8 @@ player.playVideo();
   Widget _buildLiveBadge() {
     return ValueListenableBuilder<_LiveProgress>(
       valueListenable: _live,
-      builder:
-          (context, live, _) =>
-              _LiveBadge(atLiveEdge: live.atLiveEdge, onTap: _seekToLive),
+      builder: (context, live, _) =>
+          _LiveBadge(atLiveEdge: live.atLiveEdge, onTap: _seekToLive),
     );
   }
 
@@ -920,10 +918,9 @@ player.playVideo();
                   maxWidth: width,
                   minHeight: playerHeight,
                   maxHeight: playerHeight,
-                  child:
-                      _fullscreen
-                          ? const ColoredBox(color: Colors.black)
-                          : _buildPlayer(width),
+                  child: _fullscreen
+                      ? const ColoredBox(color: Colors.black)
+                      : _buildPlayer(width),
                 ),
               ),
             ),
@@ -939,8 +936,9 @@ player.playVideo();
 
   Widget _buildAudioRow(BuildContext context, bool isDark) {
     final busy = _isBuffering || _switching || widget.isSwitching;
-    final primaryColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
+    final primaryColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
 
     return Container(
       width: double.infinity,
@@ -967,14 +965,12 @@ player.playVideo();
                   const SizedBox(width: 8),
                   ValueListenableBuilder<_LiveProgress>(
                     valueListenable: _live,
-                    builder:
-                        (context, live, _) => _AudioLiveChip(
-                          active:
-                              live.atLiveEdge &&
-                              (_isPlaying ||
-                                  _playerState == PlayerState.buffering),
-                          onTap: _seekToLive,
-                        ),
+                    builder: (context, live, _) => _AudioLiveChip(
+                      active:
+                          live.atLiveEdge &&
+                          (_isPlaying || _playerState == PlayerState.buffering),
+                      onTap: _seekToLive,
+                    ),
                   ),
                 ],
               ],
@@ -982,26 +978,24 @@ player.playVideo();
           ),
           const SizedBox(width: 8),
           IconButton(
-            tooltip:
-                _isPlaying
-                    ? context.l10n.player_pause
-                    : context.l10n.player_play,
+            tooltip: _isPlaying
+                ? context.l10n.player_pause
+                : context.l10n.player_play,
             iconSize: 26,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 40, height: 40),
             color: primaryColor,
             onPressed: _isReady && !busy ? _togglePlayback : null,
-            icon:
-                busy
-                    ? SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: primaryColor,
-                      ),
-                    )
-                    : Icon(_isPlaying ? AppAssets.pause : AppAssets.play),
+            icon: busy
+                ? SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: primaryColor,
+                    ),
+                  )
+                : Icon(_isPlaying ? AppAssets.pause : AppAssets.play),
           ),
         ],
       ),
@@ -1090,10 +1084,8 @@ class _LiveProgressBarState extends State<_LiveProgressBar> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onHorizontalDragDown: (details) => _start(details.globalPosition),
-      onHorizontalDragUpdate:
-          (details) => setState(
-            () => _dragFraction = _fractionAt(details.globalPosition),
-          ),
+      onHorizontalDragUpdate: (details) =>
+          setState(() => _dragFraction = _fractionAt(details.globalPosition)),
       onHorizontalDragEnd: (_) => _end(),
       // A plain tap arrives as down + cancel, which also seeks.
       onHorizontalDragCancel: _end,
@@ -1101,13 +1093,12 @@ class _LiveProgressBarState extends State<_LiveProgressBar> {
         height: 28,
         child: ValueListenableBuilder<_LiveProgress>(
           valueListenable: widget.progress,
-          builder:
-              (context, live, _) => CustomPaint(
-                painter: _LiveBarPainter(
-                  fraction: _dragFraction ?? live.fraction,
-                  dragging: _dragFraction != null,
-                ),
-              ),
+          builder: (context, live, _) => CustomPaint(
+            painter: _LiveBarPainter(
+              fraction: _dragFraction ?? live.fraction,
+              dragging: _dragFraction != null,
+            ),
+          ),
         ),
       ),
     );
@@ -1125,16 +1116,14 @@ class _LiveBarPainter extends CustomPainter {
     final centerY = size.height / 2;
     final thickness = dragging ? 4.0 : 2.5;
     final playedX = size.width * fraction;
-    final track =
-        Paint()
-          ..color = Colors.white.withValues(alpha: 0.35)
-          ..strokeWidth = thickness
-          ..strokeCap = StrokeCap.round;
-    final played =
-        Paint()
-          ..color = AppColors.primary
-          ..strokeWidth = thickness
-          ..strokeCap = StrokeCap.round;
+    final track = Paint()
+      ..color = Colors.white.withValues(alpha: 0.35)
+      ..strokeWidth = thickness
+      ..strokeCap = StrokeCap.round;
+    final played = Paint()
+      ..color = AppColors.primary
+      ..strokeWidth = thickness
+      ..strokeCap = StrokeCap.round;
     canvas.drawLine(Offset(0, centerY), Offset(size.width, centerY), track);
     canvas.drawLine(Offset(0, centerY), Offset(playedX, centerY), played);
     canvas.drawCircle(
@@ -1254,10 +1243,9 @@ class _FullscreenButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip:
-          isFullscreen
-              ? context.l10n.player_exit_fullscreen
-              : context.l10n.player_fullscreen,
+      tooltip: isFullscreen
+          ? context.l10n.player_exit_fullscreen
+          : context.l10n.player_fullscreen,
       iconSize: 24,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 36, minHeight: 36),

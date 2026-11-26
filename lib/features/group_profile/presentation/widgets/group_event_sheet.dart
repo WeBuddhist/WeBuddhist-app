@@ -43,14 +43,18 @@ class GroupEventSheet extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-          foregroundColor:
-              isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
-          disabledBackgroundColor:
-              isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-          disabledForegroundColor:
-              isDark ? AppColors.grey500 : AppColors.grey600,
+          backgroundColor: isDark
+              ? AppColors.surfaceWhite
+              : AppColors.textPrimary,
+          foregroundColor: isDark
+              ? AppColors.textPrimary
+              : AppColors.surfaceWhite,
+          disabledBackgroundColor: isDark
+              ? AppColors.surfaceVariantDark
+              : AppColors.grey100,
+          disabledForegroundColor: isDark
+              ? AppColors.grey500
+              : AppColors.grey600,
           shape: const StadiumBorder(),
           elevation: 0,
         ),

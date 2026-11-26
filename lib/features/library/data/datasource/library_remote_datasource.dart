@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_pecha/features/library/data/models/library_alignment.dart';
 import 'package:flutter_pecha/features/library/data/models/library_edition.dart';
 import 'package:flutter_pecha/features/library/data/models/library_language.dart';
+import 'package:flutter_pecha/features/library/data/models/library_recording.dart';
 import 'package:flutter_pecha/features/library/data/models/library_search_result.dart';
 import 'package:flutter_pecha/features/library/data/models/library_segment.dart';
 import 'package:flutter_pecha/features/library/data/models/library_text.dart';
@@ -44,9 +45,7 @@ class LibraryRemoteDatasource {
 
   Future<LibraryEdition> fetchEdition(String editionId) async {
     final response = await dio.get('/v2/editions/$editionId');
-    return LibraryEdition.fromJson(
-      _asMap(response.data, '/v2/editions/{id}'),
-    );
+    return LibraryEdition.fromJson(_asMap(response.data, '/v2/editions/{id}'));
   }
 
   Future<LibrarySegmentPage> fetchEditionSegments(
@@ -94,23 +93,23 @@ class LibraryRemoteDatasource {
     String editionId,
   ) async {
     final response = await dio.get('/v2/editions/$editionId/table-of-contents');
-    return _asList(response.data, '/v2/editions/{id}/table-of-contents')
-        .map(LibraryTableOfContents.fromJson)
-        .toList(growable: false);
+    return _asList(
+      response.data,
+      '/v2/editions/{id}/table-of-contents',
+    ).map(LibraryTableOfContents.fromJson).toList(growable: false);
   }
 
   Future<List<LibraryYigchung>> fetchYigchungs(String editionId) async {
     final response = await dio.get('/v2/editions/$editionId/yigchungs');
-    return _asList(response.data, '/v2/editions/{id}/yigchungs')
-        .map(LibraryYigchung.fromJson)
-        .toList(growable: false);
+    return _asList(
+      response.data,
+      '/v2/editions/{id}/yigchungs',
+    ).map(LibraryYigchung.fromJson).toList(growable: false);
   }
 
   Future<LibrarySegment> fetchSegment(String segmentId) async {
     final response = await dio.get('/v2/segments/$segmentId');
-    return LibrarySegment.fromJson(
-      _asMap(response.data, '/v2/segments/{id}'),
-    );
+    return LibrarySegment.fromJson(_asMap(response.data, '/v2/segments/{id}'));
   }
 
   Future<LibrarySegmentPage> fetchRelatedSegments(
@@ -134,9 +133,50 @@ class LibraryRemoteDatasource {
 
   Future<List<LibraryLanguage>> fetchLanguages() async {
     final response = await dio.get('/v2/languages');
-    return _asList(response.data, '/v2/languages')
-        .map(LibraryLanguage.fromJson)
-        .toList(growable: false);
+    return _asList(
+      response.data,
+      '/v2/languages',
+    ).map(LibraryLanguage.fromJson).toList(growable: false);
+  }
+
+  /// Recordings that follow [editionId]; only these can highlight its verses.
+  Future<List<LibraryRecording>> fetchEditionRecordings(
+    String editionId,
+  ) async {
+    final response = await dio.get('/v2/editions/$editionId/recordings');
+    return _asList(
+      response.data,
+      '/v2/editions/{id}/recordings',
+    ).map(LibraryRecording.fromJson).toList(growable: false);
+  }
+
+  /// Every performance of [textId], including ones not linked to an edition.
+  Future<List<LibraryAudio>> fetchTextAudios(String textId) async {
+    final response = await dio.get('/v2/texts/$textId/audios');
+    return _asList(
+      response.data,
+      '/v2/texts/{id}/audios',
+    ).map(LibraryAudio.fromJson).toList(growable: false);
+  }
+
+  /// One performance's files.
+  Future<List<LibraryRecording>> fetchAudioRecordings(String audioId) async {
+    final response = await dio.get('/v2/audios/$audioId/recordings');
+    return _asList(
+      response.data,
+      '/v2/audios/{id}/recordings',
+    ).map(LibraryRecording.fromJson).toList(growable: false);
+  }
+
+  /// A presigned link to [recordingId]'s file. Never cached: it expires.
+  Future<LibraryAudioUrl> fetchRecordingAudioUrl(String recordingId) async {
+    final response = await dio.get(
+      '/v2/recordings/$recordingId/audio-url',
+      options: Options(extra: {'no_cache': true}),
+    );
+    return LibraryAudioUrl.fromJson(
+      _asMap(response.data, '/v2/recordings/{id}/audio-url'),
+    );
   }
 
   Future<List<LibrarySearchResult>> searchContent({
@@ -156,9 +196,10 @@ class LibraryRemoteDatasource {
         if (editionId != null) 'edition_id': editionId,
       },
     );
-    return _asList(response.data, '/v2/content-search')
-        .map(LibrarySearchResult.fromJson)
-        .toList(growable: false);
+    return _asList(
+      response.data,
+      '/v2/content-search',
+    ).map(LibrarySearchResult.fromJson).toList(growable: false);
   }
 
   static Map<String, dynamic> _asMap(Object? data, String endpoint) {

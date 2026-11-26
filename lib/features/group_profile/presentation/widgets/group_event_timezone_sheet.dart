@@ -31,8 +31,8 @@ class GroupEventTimezoneSheet extends StatelessWidget {
       child: ListView.separated(
         shrinkWrap: true,
         itemCount: options.length,
-        separatorBuilder:
-            (_, _) => Divider(height: 1, thickness: 1, color: dividerColor),
+        separatorBuilder: (_, _) =>
+            Divider(height: 1, thickness: 1, color: dividerColor),
         itemBuilder: (context, index) {
           final option = options[index];
           final isSelected = option.value == selected;

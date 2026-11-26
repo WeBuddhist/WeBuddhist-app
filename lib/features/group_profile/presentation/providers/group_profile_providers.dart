@@ -57,23 +57,20 @@ typedef GroupProfileNotifier =
 /// Stored profile is the first state, refreshed in the background. `.future`
 /// resolves with the stored value; callers needing fresh data use
 /// `refreshGroupProfile`.
-final groupProfileProvider = AsyncNotifierProvider.autoDispose.family<
-  GroupProfileNotifier,
-  Either<Failure, GroupProfile>,
-  String
->(() {
-  return GroupProfileNotifier((ref, groupId, bind) {
-    // Rebuild when auth changes so user-specific fields (e.g. is_group_enrolled)
-    // are loaded with the Bearer token attached.
-    ref.watch(authProvider);
-    final language = ref.watch(contentLanguageProvider);
-    return bind.source(
-      ref
-          .watch(groupProfileRepositoryProvider)
-          .groupProfileSource(groupId, language: language),
-    );
-  });
-});
+final groupProfileProvider = AsyncNotifierProvider.autoDispose
+    .family<GroupProfileNotifier, Either<Failure, GroupProfile>, String>(() {
+      return GroupProfileNotifier((ref, groupId, bind) {
+        // Rebuild when auth changes so user-specific fields (e.g. is_group_enrolled)
+        // are loaded with the Bearer token attached.
+        ref.watch(authProvider);
+        final language = ref.watch(contentLanguageProvider);
+        return bind.source(
+          ref
+              .watch(groupProfileRepositoryProvider)
+              .groupProfileSource(groupId, language: language),
+        );
+      });
+    });
 
 class GroupPracticesState {
   final List<GroupPractice> practices;
@@ -244,23 +241,26 @@ class GroupPracticesNotifier extends StateNotifier<GroupPracticesState> {
   }
 }
 
-final groupPracticesProvider = StateNotifierProvider.autoDispose.family<
-  GroupPracticesNotifier,
-  GroupPracticesState,
-  String
->((ref, groupId) {
-  ref.watch(authProvider);
-  final language = ref.watch(contentLanguageProvider);
-  final repository = ref.watch(groupProfileRepositoryProvider);
-  final notifier = GroupPracticesNotifier(
-    repository: repository,
-    ref: ref,
-    groupId: groupId,
-    stored: repository.readStoredGroupPractices(groupId, language: language),
-  );
-  notifier.loadInitial();
-  return notifier;
-});
+final groupPracticesProvider = StateNotifierProvider.autoDispose
+    .family<GroupPracticesNotifier, GroupPracticesState, String>((
+      ref,
+      groupId,
+    ) {
+      ref.watch(authProvider);
+      final language = ref.watch(contentLanguageProvider);
+      final repository = ref.watch(groupProfileRepositoryProvider);
+      final notifier = GroupPracticesNotifier(
+        repository: repository,
+        ref: ref,
+        groupId: groupId,
+        stored: repository.readStoredGroupPractices(
+          groupId,
+          language: language,
+        ),
+      );
+      notifier.loadInitial();
+      return notifier;
+    });
 
 void refreshGroupPractices(WidgetRef ref, String groupId) {
   if (!ref.exists(groupPracticesProvider(groupId))) return;
@@ -917,10 +917,9 @@ final groupFollowProvider = StateNotifierProvider.autoDispose
         ref: ref,
         key: key,
         isAuthenticated: isAuthenticated,
-        storedStatus:
-            isAuthenticated && key.loadInitialStatus
-                ? repository.readStoredFollowStatus(key.groupId, key.groupType)
-                : null,
+        storedStatus: isAuthenticated && key.loadInitialStatus
+            ? repository.readStoredFollowStatus(key.groupId, key.groupType)
+            : null,
       );
     });
 
@@ -1298,11 +1297,8 @@ void noteMySpaceMembershipChanged(Ref ref) {
   if (either == null) return null;
   return either.fold(
     (_) => null,
-    (profile) => (
-      profile.memberCount,
-      profile.joinerCount,
-      profile.followerCount,
-    ),
+    (profile) =>
+        (profile.memberCount, profile.joinerCount, profile.followerCount),
   );
 }
 
@@ -1380,10 +1376,12 @@ class GroupJoinRequestsState {
       error: clearError ? null : error ?? this.error,
       hasMore: hasMore ?? this.hasMore,
       skip: skip ?? this.skip,
-      approvingRequestId:
-          clearApproving ? null : approvingRequestId ?? this.approvingRequestId,
-      rejectingRequestId:
-          clearRejecting ? null : rejectingRequestId ?? this.rejectingRequestId,
+      approvingRequestId: clearApproving
+          ? null
+          : approvingRequestId ?? this.approvingRequestId,
+      rejectingRequestId: clearRejecting
+          ? null
+          : rejectingRequestId ?? this.rejectingRequestId,
     );
   }
 }
@@ -1687,19 +1685,23 @@ typedef GroupEventInLanguageNotifier =
     >;
 
 /// Event detail in an explicit language, for the live stream language toggle.
-final groupEventInLanguageProvider = AsyncNotifierProvider.autoDispose.family<
-  GroupEventInLanguageNotifier,
-  Either<Failure, GroupEvent>,
-  GroupEventLanguageKey
->(() {
-  return GroupEventInLanguageNotifier((ref, key, bind) {
-    ref.watch(authProvider);
-    final repository = ref.watch(groupProfileRepositoryProvider);
-    return bind.source(
-      repository.groupEventDetailSource(key.eventId, language: key.language),
-    );
-  });
-});
+final groupEventInLanguageProvider = AsyncNotifierProvider.autoDispose
+    .family<
+      GroupEventInLanguageNotifier,
+      Either<Failure, GroupEvent>,
+      GroupEventLanguageKey
+    >(() {
+      return GroupEventInLanguageNotifier((ref, key, bind) {
+        ref.watch(authProvider);
+        final repository = ref.watch(groupProfileRepositoryProvider);
+        return bind.source(
+          repository.groupEventDetailSource(
+            key.eventId,
+            language: key.language,
+          ),
+        );
+      });
+    });
 
 class GroupEventParticipantsState {
   final List<GroupEventParticipant> participants;
@@ -1892,21 +1894,22 @@ class GroupEventParticipantsNotifier
   }
 }
 
-final groupEventParticipantsProvider = StateNotifierProvider.autoDispose.family<
-  GroupEventParticipantsNotifier,
-  GroupEventParticipantsState,
-  String
->((ref, eventId) {
-  final repository = ref.watch(groupProfileRepositoryProvider);
-  final notifier = GroupEventParticipantsNotifier(
-    repository: repository,
-    eventId: eventId,
-    stored: repository.readStoredGroupEventParticipants(eventId),
-  );
-  // Load on creation so the first watch already has participants.
-  notifier.loadInitial();
-  return notifier;
-});
+final groupEventParticipantsProvider = StateNotifierProvider.autoDispose
+    .family<
+      GroupEventParticipantsNotifier,
+      GroupEventParticipantsState,
+      String
+    >((ref, eventId) {
+      final repository = ref.watch(groupProfileRepositoryProvider);
+      final notifier = GroupEventParticipantsNotifier(
+        repository: repository,
+        eventId: eventId,
+        stored: repository.readStoredGroupEventParticipants(eventId),
+      );
+      // Load on creation so the first watch already has participants.
+      notifier.loadInitial();
+      return notifier;
+    });
 
 /// Removal reported by the join-request endpoint for the signed-in user.
 /// The group profile response carries no ban field, so the notice is kept here
@@ -2025,7 +2028,9 @@ Future<GroupJoinRequestOutcome> submitGroupJoinRequest({
                   groupId: groupId,
                 )).notifier,
               )
-              .state = GroupRemovalNotice(expiresAt);
+              .state = GroupRemovalNotice(
+            expiresAt,
+          );
         }
         return GroupJoinRequestOutcome.banned(expiresAt);
       }

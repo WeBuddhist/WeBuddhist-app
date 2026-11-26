@@ -8,6 +8,7 @@ class PracticeSectionContainer extends StatelessWidget {
     required this.child,
     this.seeAllLabel,
     this.onSeeAll,
+    this.isSubsection = false,
   });
 
   final String title;
@@ -15,11 +16,15 @@ class PracticeSectionContainer extends StatelessWidget {
   final String? seeAllLabel;
   final VoidCallback? onSeeAll;
 
+  /// A row inside a group such as "From your spaces": a smaller title
+  /// under the group's heading, and less space above.
+  final bool isSubsection;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.only(top: 20),
+      padding: EdgeInsets.only(top: isSubsection ? 16 : 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -28,11 +33,14 @@ class PracticeSectionContainer extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
+                Flexible(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: isSubsection ? 16 : 18,
+                      fontWeight:
+                          isSubsection ? FontWeight.w600 : FontWeight.w700,
+                    ),
                   ),
                 ),
                 if (seeAllLabel != null)
@@ -50,9 +58,27 @@ class PracticeSectionContainer extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: isSubsection ? 10 : 12),
           child,
         ],
+      ),
+    );
+  }
+}
+
+/// Heading over a group of Practice tab rows, such as "Discover more".
+class PracticeGroupHeading extends StatelessWidget {
+  const PracticeGroupHeading({super.key, required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 28, 16, 0),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
       ),
     );
   }

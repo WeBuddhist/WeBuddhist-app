@@ -40,10 +40,9 @@ abstract final class GroupEventDraftSummary {
     final schedule = draft.schedule;
     final start = schedule.startDate;
     if (start == null) return l10n.group_event_choose_date;
-    final times =
-        schedule.allDay
-            ? l10n.group_event_all_day
-            : '${GroupEventWhenWhereStep.formatTime(schedule.startTime ?? GroupEventScheduleUtils.defaultStart, locale)} – ${GroupEventWhenWhereStep.formatTime(schedule.endTime ?? GroupEventScheduleUtils.defaultEnd, locale)}';
+    final times = schedule.allDay
+        ? l10n.group_event_all_day
+        : '${GroupEventWhenWhereStep.formatTime(schedule.startTime ?? GroupEventScheduleUtils.defaultStart, locale)} – ${GroupEventWhenWhereStep.formatTime(schedule.endTime ?? GroupEventScheduleUtils.defaultEnd, locale)}';
     final rule = schedule.recurrence;
     if (schedule.isRecurring && rule != null) {
       return l10n.group_event_review_recurring_from(
@@ -55,11 +54,11 @@ abstract final class GroupEventDraftSummary {
     final end = schedule.effectiveEndDate;
     final dates =
         end != null &&
-                !GroupEventScheduleUtils.dateOnly(
-                  end,
-                ).isAtSameMomentAs(GroupEventScheduleUtils.dateOnly(start))
-            ? '${DateFormat('d MMM', locale).format(start)} – ${DateFormat('d MMM yyyy', locale).format(end)}'
-            : GroupEventWhenWhereStep.formatDate(start, locale);
+            !GroupEventScheduleUtils.dateOnly(
+              end,
+            ).isAtSameMomentAs(GroupEventScheduleUtils.dateOnly(start))
+        ? '${DateFormat('d MMM', locale).format(start)} – ${DateFormat('d MMM yyyy', locale).format(end)}'
+        : GroupEventWhenWhereStep.formatDate(start, locale);
     return '$dates · $times';
   }
 
@@ -82,10 +81,9 @@ abstract final class GroupEventDraftSummary {
     final url = GroupEventScheduleUtils.normalizeLiveLink(draft.liveLink);
     if (url == null) return l10n.group_event_review_none;
     if (GroupEventScheduleUtils.isYoutubeLink(url)) {
-      final handle =
-          Uri.parse(
-            url,
-          ).pathSegments.where((p) => p.startsWith('@')).firstOrNull;
+      final handle = Uri.parse(
+        url,
+      ).pathSegments.where((p) => p.startsWith('@')).firstOrNull;
       return handle == null
           ? l10n.group_event_review_youtube_live
           : '${l10n.group_event_review_youtube_live} · $handle';
@@ -105,10 +103,9 @@ abstract final class GroupEventDraftSummary {
       ]);
 
   static String settings(GroupEventDraft draft, AppLocalizations l10n) {
-    final intentions =
-        draft.intentionIds.isEmpty
-            ? l10n.group_event_all_intentions
-            : l10n.group_event_intentions_count(draft.intentionIds.length);
+    final intentions = draft.intentionIds.isEmpty
+        ? l10n.group_event_all_intentions
+        : l10n.group_event_intentions_count(draft.intentionIds.length);
     return [
       draft.chatEnabled ? l10n.group_event_chat_on : l10n.group_event_chat_off,
       draft.notificationsEnabled

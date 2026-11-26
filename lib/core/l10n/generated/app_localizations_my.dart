@@ -4525,4 +4525,39 @@ class AppLocalizationsMy extends AppLocalizations {
   String search_min_query_length(int count) {
     return 'ရှာဖွေရန် အနည်းဆုံး စာလုံး $count လုံး ရိုက်ထည့်ပါ';
   }
+
+  @override
+  String get practice_next_session => 'နောက်အချိန်အပိုင်း';
+
+  @override
+  String practice_more_in_session(int count) {
+    return 'ဤအချိန်အပိုင်းတွင် +နောက်ထပ် $count ခု';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'သင့်အဖွဲ့များမှ';
+
+  @override
+  String get practice_discover_more => 'ထပ်မံရှာဖွေရန်';
+
+  @override
+  String get practice_space_accumulations => 'အဖွဲ့ စုဆောင်းမှုများ';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'လောလောဆယ် အခြားအဖွဲ့များမှ စုဆောင်းမှု မရှိပါ';
+
+  @override
+  String get practice_search_hint => 'ကျင့်စဉ်များ ရှာရန်';
+
+  @override
+  String get practice_search_recent => 'မကြာသေးမီက';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '\"$query\" အတွက် ရလဒ် မရှိပါ';
+  }
+
+  @override
+  String get practice_popular_practices => 'လူကြိုက်များသော ကျင့်စဉ်များ';
 }

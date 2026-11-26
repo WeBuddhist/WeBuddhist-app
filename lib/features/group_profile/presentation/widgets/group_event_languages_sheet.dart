@@ -27,11 +27,8 @@ class GroupEventLanguagesSheet extends StatefulWidget {
       useRootNavigator: true,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.5),
-      builder:
-          (_) => GroupEventLanguagesSheet(
-            languages: languages,
-            selected: selected,
-          ),
+      builder: (_) =>
+          GroupEventLanguagesSheet(languages: languages, selected: selected),
     );
   }
 
@@ -58,8 +55,9 @@ class _GroupEventLanguagesSheetState extends State<GroupEventLanguagesSheet> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final maxHeight = MediaQuery.sizeOf(context).height * 0.75;
 
@@ -114,9 +112,8 @@ class _GroupEventLanguagesSheetState extends State<GroupEventLanguagesSheet> {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: widget.languages.length,
-                separatorBuilder:
-                    (_, _) =>
-                        Divider(height: 1, thickness: 1, color: dividerColor),
+                separatorBuilder: (_, _) =>
+                    Divider(height: 1, thickness: 1, color: dividerColor),
                 itemBuilder: (context, index) {
                   final language = widget.languages[index];
                   final checked = _selected.contains(language.code);
@@ -135,14 +132,12 @@ class _GroupEventLanguagesSheetState extends State<GroupEventLanguagesSheet> {
                           Checkbox(
                             value: checked,
                             onChanged: (_) => _toggle(language.code),
-                            activeColor:
-                                isDark
-                                    ? AppColors.surfaceWhite
-                                    : AppColors.textPrimary,
-                            checkColor:
-                                isDark
-                                    ? AppColors.textPrimary
-                                    : AppColors.surfaceWhite,
+                            activeColor: isDark
+                                ? AppColors.surfaceWhite
+                                : AppColors.textPrimary,
+                            checkColor: isDark
+                                ? AppColors.textPrimary
+                                : AppColors.surfaceWhite,
                           ),
                         ],
                       ),
@@ -166,10 +161,12 @@ class _GroupEventLanguagesSheetState extends State<GroupEventLanguagesSheet> {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(_selected),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                    foregroundColor:
-                        isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                    backgroundColor: isDark
+                        ? AppColors.surfaceWhite
+                        : AppColors.textPrimary,
+                    foregroundColor: isDark
+                        ? AppColors.textPrimary
+                        : AppColors.surfaceWhite,
                     shape: const StadiumBorder(),
                     elevation: 0,
                   ),

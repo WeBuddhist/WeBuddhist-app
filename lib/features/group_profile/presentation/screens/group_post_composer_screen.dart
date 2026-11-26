@@ -56,10 +56,9 @@ class GroupPostComposerScreen extends ConsumerStatefulWidget {
         fullscreenDialog: true,
         settings: const RouteSettings(name: 'group-post-composer'),
         // Drafts, photos and link previews never appear in Clarity recordings.
-        builder:
-            (_) => ClarityMask(
-              child: GroupPostComposerScreen(profile: profile, post: post),
-            ),
+        builder: (_) => ClarityMask(
+          child: GroupPostComposerScreen(profile: profile, post: post),
+        ),
       ),
     );
   }
@@ -97,12 +96,11 @@ class _GroupPostComposerScreenState
       final base = original[index];
       final source = photo.source;
       // A partially saved local photo is known only by its uploaded key.
-      final unchanged =
-          source != null
-              ? source.id == base.id
-              : base.id.isEmpty &&
-                  base.mediaKey != null &&
-                  base.mediaKey == photo.uploadedKey;
+      final unchanged = source != null
+          ? source.id == base.id
+          : base.id.isEmpty &&
+                base.mediaKey != null &&
+                base.mediaKey == photo.uploadedKey;
       if (!unchanged) return true;
     }
     return false;
@@ -300,19 +298,13 @@ class _GroupPostComposerScreenState
         ),
     ];
 
-    final saved =
-        post == null
-            ? await _create(
-              caption: caption,
-              media: media ?? const [],
-              links: links,
-            )
-            : await _saveEdits(
-              post,
-              caption: caption,
-              media: media,
-              links: links,
-            );
+    final saved = post == null
+        ? await _create(
+            caption: caption,
+            media: media ?? const [],
+            links: links,
+          )
+        : await _saveEdits(post, caption: caption, media: media, links: links);
     if (!mounted) return;
 
     if (saved == null) {
@@ -402,15 +394,12 @@ class _GroupPostComposerScreenState
           media: media,
           links: _linkChanged ? links : null,
         );
-    return result.fold(
-      (failure) {
-        if (failure is PartialPostUpdateFailure) {
-          _recordPartialSave(post, failure, caption);
-        }
-        return null;
-      },
-      (updated) => updated ?? _applyEdits(post, caption: caption),
-    );
+    return result.fold((failure) {
+      if (failure is PartialPostUpdateFailure) {
+        _recordPartialSave(post, failure, caption);
+      }
+      return null;
+    }, (updated) => updated ?? _applyEdits(post, caption: caption));
   }
 
   /// Advances the base to what persisted so a retry only resends the rest.
@@ -436,35 +425,33 @@ class _GroupPostComposerScreenState
     final link = _link;
     return post.copyWith(
       caption: caption,
-      media:
-          !media
-              ? null
-              : [
-                for (final (index, photo) in _photos.indexed)
-                  photo.source ??
-                      ConnectPostMedia(
-                        id: '',
-                        mediaType: 'IMAGE',
-                        url: '',
-                        width: photo.width,
-                        height: photo.height,
-                        displayOrder: index + 1,
-                        mediaKey: photo.uploadedKey,
-                      ),
-              ],
-      links:
-          !links
-              ? null
-              : [
-                if (link != null)
-                  ConnectPostLink(
-                    id: post.links.isNotEmpty ? post.links.first.id : '',
-                    type: link.type,
-                    url: link.url,
-                    label: _truncateLabel(link.title),
-                    displayOrder: 1,
-                  ),
-              ],
+      media: !media
+          ? null
+          : [
+              for (final (index, photo) in _photos.indexed)
+                photo.source ??
+                    ConnectPostMedia(
+                      id: '',
+                      mediaType: 'IMAGE',
+                      url: '',
+                      width: photo.width,
+                      height: photo.height,
+                      displayOrder: index + 1,
+                      mediaKey: photo.uploadedKey,
+                    ),
+            ],
+      links: !links
+          ? null
+          : [
+              if (link != null)
+                ConnectPostLink(
+                  id: post.links.isNotEmpty ? post.links.first.id : '',
+                  type: link.type,
+                  url: link.url,
+                  label: _truncateLabel(link.title),
+                  displayOrder: 1,
+                ),
+            ],
       updatedAt: DateTime.now(),
     );
   }
@@ -488,8 +475,9 @@ class _GroupPostComposerScreenState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
 
     return PopScope(
@@ -554,10 +542,9 @@ class _GroupPostComposerScreenState
                           url: _link!.url,
                           label: _link!.title,
                           onTap: () {},
-                          onRemove:
-                              _isSubmitting
-                                  ? null
-                                  : () => setState(() => _link = null),
+                          onRemove: _isSubmitting
+                              ? null
+                              : () => setState(() => _link = null),
                         ),
                       ],
                     ],
@@ -605,38 +592,40 @@ class _GroupPostComposerScreenState
             child: ElevatedButton(
               onPressed: _canSubmit ? _submit : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                foregroundColor:
-                    isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
-                disabledBackgroundColor:
-                    isDark ? AppColors.surfaceVariantDark : AppColors.grey100,
-                disabledForegroundColor:
-                    isDark ? AppColors.grey500 : AppColors.grey600,
+                backgroundColor: isDark
+                    ? AppColors.surfaceWhite
+                    : AppColors.textPrimary,
+                foregroundColor: isDark
+                    ? AppColors.textPrimary
+                    : AppColors.surfaceWhite,
+                disabledBackgroundColor: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.grey100,
+                disabledForegroundColor: isDark
+                    ? AppColors.grey500
+                    : AppColors.grey600,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 shape: const StadiumBorder(),
                 elevation: 0,
               ),
-              child:
-                  _isSubmitting
-                      ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color:
-                              isDark
-                                  ? AppColors.textPrimary
-                                  : AppColors.surfaceWhite,
-                        ),
-                      )
-                      : Text(
-                        _isEditing ? l10n.save : l10n.group_post_button,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
+              child: _isSubmitting
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: isDark
+                            ? AppColors.textPrimary
+                            : AppColors.surfaceWhite,
                       ),
+                    )
+                  : Text(
+                      _isEditing ? l10n.save : l10n.group_post_button,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -745,10 +734,9 @@ class _ComposerAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final iconColor =
-        onTap == null
-            ? color
-            : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
+    final iconColor = onTap == null
+        ? color
+        : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimary);
 
     return InkWell(
       onTap: onTap,
@@ -845,18 +833,17 @@ class _AddPhotoTile extends StatelessWidget {
       child: InkWell(
         onTap: isBusy ? null : onTap,
         child: Center(
-          child:
-              isBusy
-                  ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : Icon(
-                    AppAssets.plus,
-                    size: 28,
-                    color: isDark ? AppColors.grey500 : AppColors.grey600,
-                  ),
+          child: isBusy
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Icon(
+                  AppAssets.plus,
+                  size: 28,
+                  color: isDark ? AppColors.grey500 : AppColors.grey600,
+                ),
         ),
       ),
     );

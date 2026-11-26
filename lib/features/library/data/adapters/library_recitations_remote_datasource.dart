@@ -45,17 +45,15 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
   static const int maxFilterPages = 5;
 
   @override
-  List<String> get cacheKeyParams =>
-      _traditionTagIds.isEmpty
-          ? const []
-          : ['tags-${_traditionTagIds.join('-')}'];
+  List<String> get cacheKeyParams => _traditionTagIds.isEmpty
+      ? const []
+      : ['tags-${_traditionTagIds.join('-')}'];
 
   /// Tags sent to the library: the chants tag, plus the tradition when a
   /// single one can be matched server-side.
-  String _serverTagIds(String chantsTagId) =>
-      _traditionTagIds.length == 1
-          ? '$chantsTagId,${_traditionTagIds.single}'
-          : chantsTagId;
+  String _serverTagIds(String chantsTagId) => _traditionTagIds.length == 1
+      ? '$chantsTagId,${_traditionTagIds.single}'
+      : chantsTagId;
 
   /// Tags matched on the client, or null when the server did the filtering.
   Set<String>? get _clientTagIds =>
@@ -76,13 +74,12 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
     // Collections come from another API: when they fail the chants still
     // list. Handling the error here also keeps it from going unobserved if
     // the chant request below throws first.
-    final collectionsFuture =
-        params.shouldIncludeCollections
-            ? _loadAllCollections().catchError((Object error) {
-              _logger.warning('Recitation collections failed', error);
-              return const <MyRecitationListCollectionModel>[];
-            })
-            : Future.value(const <MyRecitationListCollectionModel>[]);
+    final collectionsFuture = params.shouldIncludeCollections
+        ? _loadAllCollections().catchError((Object error) {
+            _logger.warning('Recitation collections failed', error);
+            return const <MyRecitationListCollectionModel>[];
+          })
+        : Future.value(const <MyRecitationListCollectionModel>[]);
 
     List<LibraryText> texts = const [];
     var hasMore = false;

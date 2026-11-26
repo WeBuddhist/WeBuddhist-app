@@ -125,19 +125,17 @@ class _GroupEventNotStartedCardState extends State<GroupEventNotStartedCard> {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            onImage
-                                ? Colors.black.withValues(alpha: 0.45)
-                                : isDark
-                                ? AppColors.chipBackgroundDark
-                                : AppColors.grey800,
+                        color: onImage
+                            ? Colors.black.withValues(alpha: 0.45)
+                            : isDark
+                            ? AppColors.chipBackgroundDark
+                            : AppColors.grey800,
                         borderRadius: BorderRadius.circular(12),
-                        border:
-                            onImage
-                                ? Border.all(
-                                  color: Colors.white.withValues(alpha: 0.15),
-                                )
-                                : null,
+                        border: onImage
+                            ? Border.all(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              )
+                            : null,
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -176,21 +174,14 @@ class _GroupEventNotStartedCardState extends State<GroupEventNotStartedCard> {
                     dateText,
                     style: TextStyle(
                       fontSize: 13,
-                      color:
-                          onImage
-                              ? Colors.white.withValues(alpha: 0.9)
-                              : isDark
-                              ? AppColors.textTertiaryDark
-                              : AppColors.textSecondary,
-                      shadows:
-                          onImage
-                              ? const [
-                                Shadow(
-                                  color: Colors.black54,
-                                  blurRadius: 6,
-                                ),
-                              ]
-                              : null,
+                      color: onImage
+                          ? Colors.white.withValues(alpha: 0.9)
+                          : isDark
+                          ? AppColors.textTertiaryDark
+                          : AppColors.textSecondary,
+                      shadows: onImage
+                          ? const [Shadow(color: Colors.black54, blurRadius: 6)]
+                          : null,
                     ),
                   ),
                 ],

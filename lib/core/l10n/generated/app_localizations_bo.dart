@@ -4496,4 +4496,39 @@ class AppLocalizationsBo extends AppLocalizations {
   String search_min_query_length(int count) {
     return 'འཚོལ་བར་ཡི་གེ་ཉུང་མཐར་ $count འབྲི་དགོས།';
   }
+
+  @override
+  String get practice_next_session => 'ཉམས་ལེན་ཚན་པ་རྗེས་མ།';
+
+  @override
+  String practice_more_in_session(int count) {
+    return 'ཚན་པ་འདིའི་ནང་ +$count གཞན།';
+  }
+
+  @override
+  String get practice_from_your_spaces => 'ཁྱེད་ཀྱི་ཚོགས་པ་ནས།';
+
+  @override
+  String get practice_discover_more => 'དེ་ལས་མང་བ་གསར་རྙེད།';
+
+  @override
+  String get practice_space_accumulations => 'ཚོགས་པའི་བསགས་གྲངས།';
+
+  @override
+  String get practice_no_space_accumulations =>
+      'ད་ལྟ་ཚོགས་པ་གཞན་དག་གི་བསགས་གྲངས་མི་འདུག';
+
+  @override
+  String get practice_search_hint => 'ཉམས་ལེན་འཚོལ།';
+
+  @override
+  String get practice_search_recent => 'ཉེ་ཆར།';
+
+  @override
+  String practice_search_no_results(String query) {
+    return '\"$query\" ཡི་འབྲས་བུ་མི་འདུག';
+  }
+
+  @override
+  String get practice_popular_practices => 'དར་ཁྱབ་ཆེ་བའི་ཉམས་ལེན།';
 }

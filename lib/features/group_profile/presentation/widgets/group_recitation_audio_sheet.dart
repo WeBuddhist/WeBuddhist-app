@@ -11,27 +11,26 @@ import 'package:flutter_pecha/features/reader/data/models/navigation_context.dar
 ///
 /// [imageUrl] is the collection cover, shown on every row until each
 /// recording has its own image. [groupName] is the first line of each row.
-Future<CollectionAudioTrack?> showGroupRecitationAudioSheet(
+Future<ChantAudioTrack?> showGroupRecitationAudioSheet(
   BuildContext context, {
-  required List<CollectionAudioTrack> tracks,
+  required List<ChantAudioTrack> tracks,
   String? selectedTrackId,
   String? groupName,
   String? imageUrl,
 }) {
-  return showModalBottomSheet<CollectionAudioTrack>(
+  return showModalBottomSheet<ChantAudioTrack>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-    builder:
-        (context) => _GroupRecitationAudioSheet(
-          tracks: tracks,
-          selectedTrackId: selectedTrackId,
-          groupName: groupName,
-          imageUrl: imageUrl,
-        ),
+    builder: (context) => _GroupRecitationAudioSheet(
+      tracks: tracks,
+      selectedTrackId: selectedTrackId,
+      groupName: groupName,
+      imageUrl: imageUrl,
+    ),
   );
 }
 
@@ -43,7 +42,7 @@ class _GroupRecitationAudioSheet extends StatelessWidget {
     this.imageUrl,
   });
 
-  final List<CollectionAudioTrack> tracks;
+  final List<ChantAudioTrack> tracks;
   final String? selectedTrackId;
   final String? groupName;
   final String? imageUrl;
@@ -126,7 +125,7 @@ class _AudioVersionRow extends StatelessWidget {
     required this.onSelect,
   });
 
-  final CollectionAudioTrack track;
+  final ChantAudioTrack track;
   final String groupName;
   final String? imageUrl;
   final bool isSelected;
@@ -136,8 +135,9 @@ class _AudioVersionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = Theme.of(context).colorScheme.onSurface;
-    final groupNameColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final groupNameColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final borderColor = isDark ? AppColors.grey800 : AppColors.grey600;
 
     return InkWell(
@@ -201,8 +201,9 @@ class _CollectionThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = imageUrl?.trim() ?? '';
-    final fallbackColor =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
+    final fallbackColor = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
     final iconColor = isDark ? AppColors.grey500 : AppColors.grey600;
     final placeholder = ColoredBox(
       color: fallbackColor,
@@ -214,16 +215,15 @@ class _CollectionThumbnail extends StatelessWidget {
       child: SizedBox(
         width: 56,
         height: 56,
-        child:
-            url.isEmpty
-                ? placeholder
-                : CachedNetworkImageWidget(
-                  imageUrl: url,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorWidget: placeholder,
-                ),
+        child: url.isEmpty
+            ? placeholder
+            : CachedNetworkImageWidget(
+                imageUrl: url,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                errorWidget: placeholder,
+              ),
       ),
     );
   }
@@ -277,10 +277,9 @@ class _SelectionMark extends StatelessWidget {
           width: 1.5,
         ),
       ),
-      child:
-          isSelected
-              ? Icon(AppAssets.check, size: 13, color: checkColor)
-              : null,
+      child: isSelected
+          ? Icon(AppAssets.check, size: 13, color: checkColor)
+          : null,
     );
   }
 }
@@ -315,6 +314,64 @@ class CollectionAudioPlayButton extends StatelessWidget {
           ),
           alignment: Alignment.center,
           child: Icon(AppAssets.play, size: 26, color: color),
+        ),
+      ),
+    );
+  }
+}
+
+/// Where play would be when a chant's recordings failed to load: tapping
+/// asks the library again. A spinner shows while that request runs.
+class ChantAudioRetryButton extends StatelessWidget {
+  const ChantAudioRetryButton({
+    super.key,
+    required this.onPressed,
+    this.isLoading = false,
+  });
+
+  final VoidCallback onPressed;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurface;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
+    return Semantics(
+      button: true,
+      label: context.l10n.retry,
+      child: Material(
+        color: bgColor.withAlpha(235),
+        shape: const CircleBorder(),
+        elevation: 4,
+        shadowColor: Colors.black38,
+        child: InkWell(
+          onTap: isLoading ? null : onPressed,
+          customBorder: const CircleBorder(),
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withAlpha(100), width: 1.5),
+            ),
+            alignment: Alignment.center,
+            child:
+                isLoading
+                    ? SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: color,
+                      ),
+                    )
+                    : Icon(
+                      AppAssets.arrowCounterClockwise,
+                      size: 24,
+                      color: color,
+                    ),
+          ),
         ),
       ),
     );

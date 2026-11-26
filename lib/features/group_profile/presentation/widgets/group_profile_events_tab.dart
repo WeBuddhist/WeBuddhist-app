@@ -57,64 +57,61 @@ class GroupProfileEventsTab extends ConsumerWidget {
         variant: GroupProfileTabSkeletonVariant.event,
       ),
       onRetry: () => ref.invalidate(groupEventsProvider(groupId)),
-      error:
-          (error, onRetry) => GroupProfileNestedTabScrollView.centered(
+      error: (error, onRetry) => GroupProfileNestedTabScrollView.centered(
+        pageStorageKey: pageStorageKey,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: ErrorStateWidget(
+            error: error,
+            customMessage: context.l10n.group_events_load_error,
+            onRetry: onRetry,
+          ),
+        ),
+      ),
+      data: (page) {
+        if (page.events.isEmpty) {
+          return GroupProfileNestedTabScrollView.centered(
             pageStorageKey: pageStorageKey,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: ErrorStateWidget(
-                error: error,
-                customMessage: context.l10n.group_events_load_error,
-                onRetry: onRetry,
+            child: _EmptyEvents(
+              isDark: isDark,
+              lineHeight: lineHeight,
+              canCreate: false,
+              onCreateEvent: onCreateEvent,
+            ),
+          );
+        }
+
+        return GroupProfileNestedTabScrollView(
+          pageStorageKey: pageStorageKey,
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(0, 8, 0, 32),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final event = page.events[index];
+                  final isLast = index == page.events.length - 1;
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: isLast ? 0 : ConnectFeedCardLayout.listItemGap,
+                    ),
+                    child: GroupEventListTile(
+                      event: event,
+                      showGroup: event.groupId != groupId,
+                      isDark: isDark,
+                      lineHeight: lineHeight,
+                      onTap: () => context.push(
+                        AppRoutes.groupEventPath(
+                          event.id,
+                          source: 'group_page',
+                        ),
+                      ),
+                    ),
+                  );
+                }, childCount: page.events.length),
               ),
             ),
-          ),
-      data: (page) {
-            if (page.events.isEmpty) {
-              return GroupProfileNestedTabScrollView.centered(
-                pageStorageKey: pageStorageKey,
-                child: _EmptyEvents(
-                  isDark: isDark,
-                  lineHeight: lineHeight,
-                  canCreate: false,
-                  onCreateEvent: onCreateEvent,
-                ),
-              );
-            }
-
-            return GroupProfileNestedTabScrollView(
-              pageStorageKey: pageStorageKey,
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(0, 8, 0, 32),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final event = page.events[index];
-                      final isLast = index == page.events.length - 1;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom:
-                              isLast ? 0 : ConnectFeedCardLayout.listItemGap,
-                        ),
-                        child: GroupEventListTile(
-                          event: event,
-                          showGroup: event.groupId != groupId,
-                          isDark: isDark,
-                          lineHeight: lineHeight,
-                          onTap:
-                              () => context.push(
-                                AppRoutes.groupEventPath(
-                                  event.id,
-                                  source: 'group_page',
-                                ),
-                              ),
-                        ),
-                      );
-                    }, childCount: page.events.length),
-                  ),
-                ),
-              ],
-            );
+          ],
+        );
       },
     );
   }
@@ -127,23 +124,21 @@ extension on GroupProfileEventsTab {
 
     return itemsAsync.when(
       skipLoadingOnReload: true,
-      loading:
-          () => GroupProfileTabSkeleton(
-            pageStorageKey: pageStorageKey,
-            variant: GroupProfileTabSkeletonVariant.event,
+      loading: () => GroupProfileTabSkeleton(
+        pageStorageKey: pageStorageKey,
+        variant: GroupProfileTabSkeletonVariant.event,
+      ),
+      error: (error, _) => GroupProfileNestedTabScrollView.centered(
+        pageStorageKey: pageStorageKey,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: ErrorStateWidget(
+            error: error,
+            customMessage: l10n.group_events_load_error,
+            onRetry: () => ref.invalidate(groupCmsEventsProvider(groupId)),
           ),
-      error:
-          (error, _) => GroupProfileNestedTabScrollView.centered(
-            pageStorageKey: pageStorageKey,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              child: ErrorStateWidget(
-                error: error,
-                customMessage: l10n.group_events_load_error,
-                onRetry: () => ref.invalidate(groupCmsEventsProvider(groupId)),
-              ),
-            ),
-          ),
+        ),
+      ),
       data: (items) {
         final drafts = items.where((item) => item.isDraft).toList();
         final live = items.where((item) => !item.isDraft).toList();
@@ -175,10 +170,9 @@ extension on GroupProfileEventsTab {
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 0.8,
-                            color:
-                                isDark
-                                    ? AppColors.textTertiaryDark
-                                    : AppColors.textSecondary,
+                            color: isDark
+                                ? AppColors.textTertiaryDark
+                                : AppColors.textSecondary,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -203,21 +197,21 @@ extension on GroupProfileEventsTab {
                       final isLast = index == live.length - 1;
                       return Padding(
                         padding: EdgeInsets.only(
-                          bottom:
-                              isLast ? 0 : ConnectFeedCardLayout.listItemGap,
+                          bottom: isLast
+                              ? 0
+                              : ConnectFeedCardLayout.listItemGap,
                         ),
                         child: GroupEventListTile(
                           event: event,
                           showGroup: false,
                           isDark: isDark,
                           lineHeight: lineHeight,
-                          onTap:
-                              () => context.push(
-                                AppRoutes.groupEventPath(
-                                  event.id,
-                                  source: 'group_page',
-                                ),
-                              ),
+                          onTap: () => context.push(
+                            AppRoutes.groupEventPath(
+                              event.id,
+                              source: 'group_page',
+                            ),
+                          ),
                         ),
                       );
                     }, childCount: live.length),
@@ -267,12 +261,12 @@ class _DraftCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final event = item.event;
-    final title =
-        event.title.trim().isNotEmpty
-            ? event.title.trim()
-            : l10n.group_event_draft_untitled;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final title = event.title.trim().isNotEmpty
+        ? event.title.trim()
+        : l10n.group_event_draft_untitled;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final imageUrl = event.image?.displayUrl;
 
     return CustomPaint(
@@ -295,27 +289,24 @@ class _DraftCard extends StatelessWidget {
                   child: SizedBox(
                     width: 64,
                     height: 64,
-                    child:
-                        imageUrl == null || imageUrl.isEmpty
-                            ? ColoredBox(
-                              color:
-                                  isDark
-                                      ? AppColors.surfaceVariantDark
-                                      : AppColors.grey100,
-                              child: Icon(
-                                AppAssets.image,
-                                color:
-                                    isDark
-                                        ? AppColors.grey500
-                                        : AppColors.grey600,
-                              ),
-                            )
-                            : CachedNetworkImageWidget(
-                              imageUrl: imageUrl,
-                              width: 64,
-                              height: 64,
-                              fit: BoxFit.cover,
+                    child: imageUrl == null || imageUrl.isEmpty
+                        ? ColoredBox(
+                            color: isDark
+                                ? AppColors.surfaceVariantDark
+                                : AppColors.grey100,
+                            child: Icon(
+                              AppAssets.image,
+                              color: isDark
+                                  ? AppColors.grey500
+                                  : AppColors.grey600,
                             ),
+                          )
+                        : CachedNetworkImageWidget(
+                            imageUrl: imageUrl,
+                            width: 64,
+                            height: 64,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -370,10 +361,12 @@ class _EmptyEvents extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final titleColor =
-        isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final titleColor = isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
 
     return Center(
       child: Padding(
@@ -406,10 +399,12 @@ class _EmptyEvents extends StatelessWidget {
               ElevatedButton(
                 onPressed: onCreateEvent,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      isDark ? AppColors.surfaceWhite : AppColors.textPrimary,
-                  foregroundColor:
-                      isDark ? AppColors.textPrimary : AppColors.surfaceWhite,
+                  backgroundColor: isDark
+                      ? AppColors.surfaceWhite
+                      : AppColors.textPrimary,
+                  foregroundColor: isDark
+                      ? AppColors.textPrimary
+                      : AppColors.surfaceWhite,
                   minimumSize: const Size(0, 44),
                   padding: const EdgeInsets.symmetric(horizontal: 28),
                   shape: const StadiumBorder(),

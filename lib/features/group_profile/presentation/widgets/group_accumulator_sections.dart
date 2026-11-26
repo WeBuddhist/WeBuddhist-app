@@ -70,12 +70,15 @@ class _GroupAccumulatorSectionsState extends State<GroupAccumulatorSections>
   Widget build(BuildContext context) {
     final videos = widget.detail.youtubeLinks;
     final showVideos = videos.isNotEmpty;
-    final labelColor =
-        widget.isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final unselected =
-        widget.isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final dividerColor =
-        widget.isDark ? AppColors.cardBorderDark : AppColors.grey300;
+    final labelColor = widget.isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final unselected = widget.isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final dividerColor = widget.isDark
+        ? AppColors.cardBorderDark
+        : AppColors.grey300;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,12 +150,15 @@ class _LeaderboardPaneState extends State<_LeaderboardPane>
 
   @override
   Widget build(BuildContext context) {
-    final labelColor =
-        widget.isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
-    final unselected =
-        widget.isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
-    final dividerColor =
-        widget.isDark ? AppColors.cardBorderDark : AppColors.grey300;
+    final labelColor = widget.isDark
+        ? AppColors.textPrimaryDark
+        : AppColors.textPrimary;
+    final unselected = widget.isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
+    final dividerColor = widget.isDark
+        ? AppColors.cardBorderDark
+        : AppColors.grey300;
 
     return Column(
       children: [
@@ -209,8 +215,9 @@ class _AboutPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final description = detail.description?.trim() ?? '';
     final dateLabel = description.isEmpty ? _dateLabel(context, detail) : null;
-    final cardColor =
-        isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
+    final cardColor = isDark
+        ? AppColors.cardBackgroundDark
+        : AppColors.surfaceWhite;
 
     final Widget body;
     if (description.isNotEmpty) {
@@ -233,8 +240,9 @@ class _AboutPane extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color:
-                    isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
               ),
             ),
           ),
@@ -330,8 +338,9 @@ class _VideoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final videoId = groupAccumulatorVideoId(link);
     final title = link.title.trim();
-    final placeholder =
-        isDark ? AppColors.surfaceVariantDark : AppColors.grey100;
+    final placeholder = isDark
+        ? AppColors.surfaceVariantDark
+        : AppColors.grey100;
 
     return GestureDetector(
       onTap: () => _open(context, videoId),
@@ -383,8 +392,9 @@ class _VideoCard extends StatelessWidget {
                 fontSize: 14,
                 height: 1.25,
                 fontWeight: FontWeight.w500,
-                color:
-                    isDark ? AppColors.textPrimaryDark : AppColors.textPrimary,
+                color: isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimary,
               ),
             ),
           ],
@@ -407,8 +417,8 @@ class _VideoCard extends StatelessWidget {
         settings: const RouteSettings(name: 'video-player'),
         // The player accepts a bare ID, which avoids re-parsing URL forms
         // (such as /live/) that its own matcher does not understand.
-        builder:
-            (_) => YoutubeVideoPlayer(videoUrl: videoId, title: link.title),
+        builder: (_) =>
+            YoutubeVideoPlayer(videoUrl: videoId, title: link.title),
       ),
     );
   }

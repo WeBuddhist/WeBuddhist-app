@@ -10,7 +10,10 @@ enum SearchSurface {
   recitations,
   accumulations,
   groups,
-  reader;
+  reader,
+
+  /// The Practice tab's search, which runs every search above at once.
+  practice;
 
   String get key => name;
 }

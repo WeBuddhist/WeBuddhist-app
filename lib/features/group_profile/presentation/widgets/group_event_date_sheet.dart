@@ -27,12 +27,11 @@ class GroupEventDateSheet extends StatefulWidget {
   }) {
     return GroupEventSheet.show<DateTime>(
       context,
-      builder:
-          (_) => GroupEventDateSheet(
-            title: title,
-            selected: selected,
-            minDate: minDate,
-          ),
+      builder: (_) => GroupEventDateSheet(
+        title: title,
+        selected: selected,
+        minDate: minDate,
+      ),
     );
   }
 
@@ -52,8 +51,9 @@ class _GroupEventDateSheetState extends State<GroupEventDateSheet> {
     final isDark = theme.brightness == Brightness.dark;
     final primary = isDark ? AppColors.surfaceWhite : AppColors.textPrimary;
     final onPrimary = isDark ? AppColors.textPrimary : AppColors.surfaceWhite;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final selected = widget.selected;
 
     return GroupEventSheet(
@@ -70,8 +70,8 @@ class _GroupEventDateSheetState extends State<GroupEventDateSheet> {
           availableGestures: AvailableGestures.horizontalSwipe,
           rowHeight: 44,
           enabledDayPredicate: (day) => !day.isBefore(_first),
-          selectedDayPredicate:
-              (day) => selected != null && isSameDay(day, selected),
+          selectedDayPredicate: (day) =>
+              selected != null && isSameDay(day, selected),
           onDaySelected: (day, _) {
             Navigator.of(context).pop(GroupEventScheduleUtils.dateOnly(day));
           },

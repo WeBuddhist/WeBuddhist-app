@@ -184,7 +184,6 @@ class GroupEventAnalytics {
     });
   }
 
-
   /// A meeting, video or web link on the event was opened.
   void eventLinkOpened({
     required String eventId,

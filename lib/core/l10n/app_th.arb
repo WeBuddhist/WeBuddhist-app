@@ -1202,5 +1202,15 @@
   "session_search_chants_hint": "ค้นหาบทสวด",
   "session_search_malas_hint": "ค้นหาลูกประคำ",
   "session_search_timers_hint": "ค้นหาตัวจับเวลาตามชื่อหรือระยะเวลา",
-  "search_min_query_length": "พิมพ์อย่างน้อย {count} ตัวอักษรเพื่อค้นหา"
+  "search_min_query_length": "พิมพ์อย่างน้อย {count} ตัวอักษรเพื่อค้นหา",
+  "practice_next_session": "ช่วงเวลาถัดไป",
+  "practice_more_in_session": "+อีก {count} รายการในช่วงเวลานี้",
+  "practice_from_your_spaces": "จากกลุ่มของคุณ",
+  "practice_discover_more": "ค้นพบเพิ่มเติม",
+  "practice_space_accumulations": "ยอดสะสมของกลุ่ม",
+  "practice_no_space_accumulations": "ขณะนี้ยังไม่มียอดสะสมจากกลุ่มอื่น",
+  "practice_search_hint": "ค้นหาการปฏิบัติ",
+  "practice_search_recent": "ล่าสุด",
+  "practice_search_no_results": "ไม่พบผลลัพธ์สำหรับ \"{query}\"",
+  "practice_popular_practices": "การปฏิบัติยอดนิยม"
 }

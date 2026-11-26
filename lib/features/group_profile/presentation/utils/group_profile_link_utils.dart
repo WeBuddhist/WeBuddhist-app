@@ -7,10 +7,12 @@ abstract final class GroupProfileLinkUtils {
   static List<GroupProfileSocialLink> orderedLinks(
     List<GroupProfileSocialLink> links,
   ) {
-    final website =
-        links.where((l) => l.platform.toLowerCase() == 'website').toList();
-    final others =
-        links.where((l) => l.platform.toLowerCase() != 'website').toList();
+    final website = links
+        .where((l) => l.platform.toLowerCase() == 'website')
+        .toList();
+    final others = links
+        .where((l) => l.platform.toLowerCase() != 'website')
+        .toList();
     return [...website, ...others];
   }
 

@@ -53,9 +53,8 @@ class GroupEventAddPracticeSheet extends ConsumerStatefulWidget {
   }) {
     return GroupEventSheet.show<List<GroupEventPracticePick>>(
       context,
-      builder:
-          (_) =>
-              GroupEventAddPracticeSheet(groupId: groupId, selected: selected),
+      builder: (_) =>
+          GroupEventAddPracticeSheet(groupId: groupId, selected: selected),
     );
   }
 
@@ -110,8 +109,9 @@ class _GroupEventAddPracticeSheetState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final secondaryColor =
-        isDark ? AppColors.textTertiaryDark : AppColors.textSecondary;
+    final secondaryColor = isDark
+        ? AppColors.textTertiaryDark
+        : AppColors.textSecondary;
     final dividerColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     final optionsAsync = ref.watch(
       groupEventPracticeOptionsProvider(widget.groupId),
@@ -145,10 +145,9 @@ class _GroupEventAddPracticeSheetState
                   color: secondaryColor,
                 ),
                 filled: true,
-                fillColor:
-                    isDark
-                        ? AppColors.surfaceVariantDark
-                        : AppColors.surfaceWhite,
+                fillColor: isDark
+                    ? AppColors.surfaceVariantDark
+                    : AppColors.surfaceWhite,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: dividerColor),
@@ -156,10 +155,9 @@ class _GroupEventAddPracticeSheetState
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
-                    color:
-                        isDark
-                            ? AppColors.textPrimaryDark
-                            : AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary,
                   ),
                 ),
                 contentPadding: const EdgeInsets.symmetric(
@@ -201,31 +199,28 @@ class _GroupEventAddPracticeSheetState
               replacement == null
                   ? l10n.group_event_practice_rule
                   : l10n.group_event_practice_replaced(
-                    replacement.$1,
-                    replacement.$2,
-                  ),
+                      replacement.$1,
+                      replacement.$2,
+                    ),
               style: TextStyle(fontSize: 12, color: secondaryColor),
             ),
           ),
           Flexible(
             child: optionsAsync.when(
-              loading:
-                  () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 32),
-                    child: Center(child: CircularProgressIndicator()),
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.all(20),
+                child: ErrorStateWidget(
+                  error: error,
+                  customMessage: l10n.group_event_practices_load_error,
+                  onRetry: () => ref.invalidate(
+                    groupEventPracticeOptionsProvider(widget.groupId),
                   ),
-              error:
-                  (error, _) => Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: ErrorStateWidget(
-                      error: error,
-                      customMessage: l10n.group_event_practices_load_error,
-                      onRetry:
-                          () => ref.invalidate(
-                            groupEventPracticeOptionsProvider(widget.groupId),
-                          ),
-                    ),
-                  ),
+                ),
+              ),
               data: (options) {
                 final seen = <String>{};
                 final picks = [
@@ -251,9 +246,8 @@ class _GroupEventAddPracticeSheetState
                 return ListView.separated(
                   shrinkWrap: true,
                   itemCount: picks.length,
-                  separatorBuilder:
-                      (_, _) =>
-                          Divider(height: 1, thickness: 1, color: dividerColor),
+                  separatorBuilder: (_, _) =>
+                      Divider(height: 1, thickness: 1, color: dividerColor),
                   itemBuilder: (context, index) {
                     final pick = picks[index];
                     final checked = _isSelected(pick);
@@ -282,14 +276,12 @@ class _GroupEventAddPracticeSheetState
                             Checkbox(
                               value: checked,
                               onChanged: (_) => _toggle(pick),
-                              activeColor:
-                                  isDark
-                                      ? AppColors.surfaceWhite
-                                      : AppColors.textPrimary,
-                              checkColor:
-                                  isDark
-                                      ? AppColors.textPrimary
-                                      : AppColors.surfaceWhite,
+                              activeColor: isDark
+                                  ? AppColors.surfaceWhite
+                                  : AppColors.textPrimary,
+                              checkColor: isDark
+                                  ? AppColors.textPrimary
+                                  : AppColors.surfaceWhite,
                             ),
                           ],
                         ),
@@ -321,10 +313,12 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeBackground =
-        isDark ? AppColors.surfaceWhite : AppColors.textPrimary;
-    final activeForeground =
-        isDark ? AppColors.textPrimary : AppColors.surfaceWhite;
+    final activeBackground = isDark
+        ? AppColors.surfaceWhite
+        : AppColors.textPrimary;
+    final activeForeground = isDark
+        ? AppColors.textPrimary
+        : AppColors.surfaceWhite;
     final borderColor = isDark ? AppColors.cardBorderDark : AppColors.grey300;
     return Material(
       color: selected ? activeBackground : Colors.transparent,
@@ -341,12 +335,11 @@ class _FilterChip extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color:
-                  selected
-                      ? activeForeground
-                      : (isDark
-                          ? AppColors.textPrimaryDark
-                          : AppColors.textPrimary),
+              color: selected
+                  ? activeForeground
+                  : (isDark
+                        ? AppColors.textPrimaryDark
+                        : AppColors.textPrimary),
             ),
           ),
         ),
@@ -381,16 +374,15 @@ class PracticeThumbnail extends StatelessWidget {
       child: SizedBox(
         width: 48,
         height: 48,
-        child:
-            imageUrl == null || imageUrl!.isEmpty
-                ? fallback
-                : CachedNetworkImageWidget(
-                  imageUrl: imageUrl,
-                  width: 48,
-                  height: 48,
-                  fit: BoxFit.cover,
-                  errorWidget: fallback,
-                ),
+        child: imageUrl == null || imageUrl!.isEmpty
+            ? fallback
+            : CachedNetworkImageWidget(
+                imageUrl: imageUrl,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+                errorWidget: fallback,
+              ),
       ),
     );
   }
