@@ -44,6 +44,10 @@ class GroupAccumulatorHeroCard extends StatelessWidget {
     final progressText =
         '${numberFormat.format(detail.totalCount)} / ${numberFormat.format(detail.targetCount)}';
     final showJoinButton = !hasJoined;
+    // Once the end date passes, a member gets no button: opening the mala
+    // counter would keep counting toward an accumulation that has closed.
+    final showActionButton =
+        hasJoined && !isPastEndDate(detail.endDate, DateTime.now());
     final cardColor =
         isDark ? AppColors.cardBackgroundDark : AppColors.surfaceWhite;
     final primaryTextColor =
@@ -141,19 +145,17 @@ class GroupAccumulatorHeroCard extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 16),
-                if (showJoinButton)
+                if (showJoinButton) ...[
+                  const SizedBox(height: 16),
                   _JoinButton(
                     isDark: isDark,
                     isJoining: isJoining,
                     onTap: onJoinTap,
-                  )
-                else
-                  _ActionButton(
-                    isDark: isDark,
-                    ended: isPastEndDate(detail.endDate, DateTime.now()),
-                    onTap: onActionTap,
                   ),
+                ] else if (showActionButton) ...[
+                  const SizedBox(height: 16),
+                  _ActionButton(isDark: isDark, onTap: onActionTap),
+                ],
               ],
             ),
           ),
@@ -165,10 +167,9 @@ class GroupAccumulatorHeroCard extends StatelessWidget {
 
 class _ActionButton extends StatelessWidget {
   final bool isDark;
-  final bool ended;
   final VoidCallback? onTap;
 
-  const _ActionButton({required this.isDark, required this.ended, this.onTap});
+  const _ActionButton({required this.isDark, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -183,9 +184,7 @@ class _ActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
-          ended
-              ? context.l10n.group_accumulator_view_practice
-              : context.l10n.group_accumulator_recite_now,
+          context.l10n.group_accumulator_recite_now,
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.w600,
