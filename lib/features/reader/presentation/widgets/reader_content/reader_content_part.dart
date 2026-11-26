@@ -607,16 +607,24 @@ class _ReaderContentPartState extends ConsumerState<ReaderContentPart> {
             opening != null && opening.opensText && opening.depth == 0;
         titleSectionId = opens ? opening.id : _textSectionId;
         (title, titleLanguage) =
-            opens && !view.translationHeadings
-                ? _outlineTitle(view, opening)
+            opens
+                ? _textRowTitle(
+                  view,
+                  _outlineTitle(view, opening),
+                  (textTitle, textLanguage),
+                )
                 : (textTitle, textLanguage);
       } else {
         final heading = items.isEmpty ? null : items.first.section;
         final titled = heading != null && (heading.title?.isNotEmpty ?? false);
         titleSectionId = titled ? heading.id : _textSectionId;
         (title, titleLanguage) =
-            titled && !view.translationHeadings
-                ? _headingText(view, heading)
+            titled
+                ? _textRowTitle(
+                  view,
+                  _headingText(view, heading),
+                  (textTitle, textLanguage),
+                )
                 : (textTitle, textLanguage);
       }
       final startUnloaded = !_isCollapsed && view.state.hasPreviousPage;
@@ -647,7 +655,11 @@ class _ReaderContentPartState extends ConsumerState<ReaderContentPart> {
       if (opening != null && !opening.opensText) textSection();
       final outlineSection = <String, int>{};
       for (final section in outlined) {
-        final (sectionTitle, sectionLanguage) = _outlineTitle(view, section);
+        // The section naming the text reads as the text's row does.
+        final (sectionTitle, sectionLanguage) =
+            section.id == titleSectionId
+                ? (title, titleLanguage)
+                : _outlineTitle(view, section);
         outlineSection[section.id] = sectionAt(
           view.index,
           section.id,
@@ -742,13 +754,16 @@ class _ReaderContentPartState extends ConsumerState<ReaderContentPart> {
           if (heading == null) {
             sectionIndex = textSection();
           } else {
-            final (title, language) = _headingText(view, heading);
+            final (headingTitle, headingLanguage) =
+                heading.id == titleSectionId
+                    ? (title, titleLanguage)
+                    : _headingText(view, heading);
             final at = drawn[heading.id];
             sectionIndex = sectionAt(
               view.index,
               heading.id,
-              title,
-              language,
+              headingTitle,
+              headingLanguage,
               at != null && at.$1 == view.index ? at.$2 : entries.length,
             );
           }
@@ -826,6 +841,26 @@ class _ReaderContentPartState extends ConsumerState<ReaderContentPart> {
       textLanguage: view.language,
     );
     return _inScript(view, (title.title, title.language));
+  }
+
+  /// The title of the row naming [view]'s text, in the pill and the sheet
+  /// alike: its [heading]'s or the [text]'s, whichever is in the shown
+  /// translation's language (see [readerTextRowTitle]).
+  (String, String) _textRowTitle(
+    _SourceView view,
+    (String, String) heading,
+    (String, String) text,
+  ) {
+    final row = readerTextRowTitle(
+      heading: (title: heading.$1, language: heading.$2),
+      text: (title: text.$1, language: text.$2),
+      translationLanguage:
+          view.secondaryActive
+              ? view.dualSettings.secondary.languageCode
+              : null,
+      headingShown: !view.translationHeadings,
+    );
+    return (row.title, row.language);
   }
 
   /// A heading's title in the original's language, in the script the

@@ -66,6 +66,134 @@ void main() {
         isEmpty,
       );
     });
+
+    // 84000's sutras: the Tibetan opens with front matter (verse 1) the
+    // English leaves out, so the English title opens at verse 2.
+    final sutra = TextOutline(
+      language: 'bo',
+      sections: [
+        _section('title', 1, 400, titles: {'bo': 'ཏིང་ངེ་འཛིན་གྱི་རྒྱལ་པོ།'}),
+      ],
+    );
+
+    test('a title the translation opens a verse later still matches', () {
+      final translation = TextOutline(
+        language: 'en',
+        sections: [
+          _section('e', 2, 400, titles: {'en': 'The King of Samādhis'}),
+          _section('c1', 2, 39, depth: 1, titles: {'en': 'Chapter 1'}),
+          _section('c2', 40, 400, depth: 1, titles: {'en': 'Chapter 2'}),
+        ],
+      );
+
+      expect(matchTranslationTitles(sutra, translation), {
+        'title': 'The King of Samādhis',
+      });
+    });
+
+    test('a later opening at another depth does not name it', () {
+      final translation = TextOutline(
+        language: 'en',
+        sections: [
+          _section('c1', 2, 39, depth: 1, titles: {'en': 'Chapter 1'}),
+        ],
+      );
+
+      expect(matchTranslationTitles(sutra, translation), isEmpty);
+    });
+
+    test('a flat translation\'s first chapter does not name it', () {
+      // No title over the chapters, so they sit at the title's depth.
+      final translation = TextOutline(
+        language: 'en',
+        sections: [
+          _section('c1', 2, 39, titles: {'en': 'Chapter 1'}),
+          _section('c2', 40, 400, titles: {'en': 'Chapter 2'}),
+        ],
+      );
+
+      expect(matchTranslationTitles(sutra, translation), isEmpty);
+    });
+
+    test('nor one opening after the next section of the original', () {
+      final translation = TextOutline(
+        language: 'en',
+        sections: [
+          // ch1 has none at verse 1, and this opens after p2 (verse 11)
+          // does, so it is not ch1's.
+          _section('late', 12, 20, titles: {'en': 'Too late'}),
+          _section('e2', 21, 40, titles: {'en': 'Chapter Two'}),
+        ],
+      );
+
+      expect(matchTranslationTitles(_original, translation), {
+        'ch2': 'Chapter Two',
+      });
+    });
+  });
+
+  group('a text\'s own row', () {
+    const tibetan = (title: 'ཏིང་ངེ་འཛིན་གྱི་རྒྱལ་པོ།', language: 'bo');
+    const label = (title: 'The King of Samādhis Sūtra', language: 'en');
+    const english = (title: 'The King of Samādhis', language: 'en');
+
+    test('with English shown, the heading\'s English title', () {
+      expect(
+        readerTextRowTitle(
+          heading: english,
+          text: label,
+          translationLanguage: 'en',
+        ),
+        english,
+      );
+    });
+
+    test('with English shown and the heading Tibetan, the text\'s', () {
+      expect(
+        readerTextRowTitle(
+          heading: tibetan,
+          text: label,
+          translationLanguage: 'en',
+        ),
+        label,
+      );
+    });
+
+    test('languages compare without case', () {
+      expect(
+        readerTextRowTitle(
+          heading: tibetan,
+          text: label,
+          translationLanguage: 'EN',
+        ),
+        label,
+      );
+    });
+
+    test('with no translation, the heading\'s', () {
+      expect(readerTextRowTitle(heading: tibetan, text: label), tibetan);
+    });
+
+    test('neither in its language: the heading\'s while drawn', () {
+      const text = (title: 'ཏིང་ངེ་འཛིན།', language: 'bo');
+      expect(
+        readerTextRowTitle(
+          heading: tibetan,
+          text: text,
+          translationLanguage: 'zh',
+        ),
+        tibetan,
+      );
+      expect(
+        readerTextRowTitle(
+          heading: tibetan,
+          text: text,
+          translationLanguage: 'zh',
+          headingShown: false,
+        ),
+        text,
+      );
+    });
   });
 
   group('a section\'s title', () {
