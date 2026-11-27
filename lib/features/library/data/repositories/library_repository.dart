@@ -13,6 +13,7 @@ import 'package:flutter_pecha/features/library/data/models/library_text.dart';
 import 'package:flutter_pecha/features/library/data/models/library_toc.dart';
 import 'package:flutter_pecha/features/library/data/models/library_yigchung.dart';
 import 'package:flutter_pecha/features/library/domain/library_content_slicer.dart';
+import 'package:flutter_pecha/features/library/domain/library_license_policy.dart';
 import 'package:flutter_pecha/features/library/domain/library_toc_sections.dart';
 
 /// Composes the library API calls into what the reader and chant list need.
@@ -74,6 +75,7 @@ class LibraryRepository {
       tagId: tagId,
       language: language,
       title: title,
+      licenses: LibraryLicensePolicy.allowed,
       limit: limit,
       offset: offset,
       noCache: noCache,
