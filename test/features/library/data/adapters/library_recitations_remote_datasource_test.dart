@@ -153,11 +153,12 @@ void main() {
       queryParams: RecitationsQueryParams(language: 'en', skip: 0, limit: 20),
     );
 
-    expect(seen.single.queryParameters, {
-      'language': 'en',
-      'tag_id': 'TAG',
-      'limit': '20',
-      'offset': '0',
+    expect(seen.single.queryParametersAll, {
+      'language': ['en'],
+      'license': ['cc0', 'public'],
+      'tag_id': ['TAG'],
+      'limit': ['20'],
+      'offset': ['0'],
     });
     // The list is one call: no per-chant preview fetches.
     expect(server.requests.map((u) => u.path), ['/v2/texts']);
@@ -375,4 +376,46 @@ void main() {
     expect(page.collections.map((c) => c.collectionId), ['c0']);
     expect(server.count('/users/me/recitation-collections'), 2);
   });
+
+  test(
+    'texts the app may not show are dropped and the page is filled',
+    () async {
+      // A library that ignores the license filter.
+      const licenses = [
+        'cc0', 'copyrighted', 'unknown', //
+        'public', 'cc-by', null, //
+        'cc0',
+      ];
+      final seen = <Uri>[];
+      final server = LibraryTestServer({
+        '/v2/texts': (uri) {
+          seen.add(uri);
+          final offset = int.parse(uri.queryParameters['offset']!);
+          final limit = int.parse(uri.queryParameters['limit']!);
+          return jsonBody(
+            pageJson(
+              [
+                for (var i = offset;
+                    i < offset + limit && i < licenses.length;
+                    i++)
+                  textJson('T$i', editions: ['E$i'], license: licenses[i]),
+              ],
+              hasMore: offset + limit < licenses.length,
+              offset: offset,
+              limit: limit,
+            ),
+          );
+        },
+      });
+
+      final page = await _datasource(server).fetchRecitationsPage(
+        queryParams: RecitationsQueryParams(language: 'en', skip: 0, limit: 3),
+      );
+
+      expect(_ids(page), ['E0', 'E3', 'E6']);
+      expect(seen.map((u) => u.queryParameters['offset']), ['0', '3', '6']);
+      expect(page.nextSkip, 7);
+      expect(page.hasMore, isFalse);
+    },
+  );
 }
