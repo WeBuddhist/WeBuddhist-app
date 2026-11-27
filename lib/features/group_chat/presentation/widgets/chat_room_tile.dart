@@ -6,6 +6,7 @@ import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/utils/tibetan_numerals.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_media_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_thread_rows.dart';
@@ -125,6 +126,8 @@ class ChatRoomTile extends StatelessWidget {
     final body = chatRoomPreviewBody(
       room,
       deletedLabel: context.l10n.group_chat_message_deleted_by_sender,
+      mediaPreview:
+          (media) => chatMediaListPreviewLabel(context.l10n, media),
     );
     if (body == null) {
       return Text(

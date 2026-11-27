@@ -48,6 +48,10 @@ ChatRoomDTO _direct(int i) {
 
 /// Serves a fixed rooms list, sliced by skip/limit like the API.
 class _FakeGroupChatRepository implements GroupChatRepository {
+  // Media upload and delete are not exercised here.
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   _FakeGroupChatRepository({required this.rooms});
 
   List<ChatRoomDTO> rooms;
@@ -117,6 +121,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendGroupMessage(
     String groupId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
     String? messageType,
     String? intention,
@@ -140,6 +145,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendEventMessage(
     String eventId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
     String? messageType,
     String? intention,
@@ -149,6 +155,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendDirectMessage(
     String userId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
   }) async => const Left(NotFoundFailure('not used'));
 

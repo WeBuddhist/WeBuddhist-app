@@ -4041,12 +4041,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String group_removed_message(String group, String duration) =>
-      TolgeeBridge.format(
-        localeName,
-        'group_removed_message',
-        <String, Object>{'group': group, 'duration': duration},
-        () => _fallback.group_removed_message(group, duration),
-      );
+      TolgeeBridge.format(localeName, 'group_removed_message', <String, Object>{
+        'group': group,
+        'duration': duration,
+      }, () => _fallback.group_removed_message(group, duration));
 
   @override
   String group_removed_message_no_date(String group) => TolgeeBridge.format(
@@ -5423,6 +5421,307 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get group_chat_preview_photo => TolgeeBridge.get(
+    localeName,
+    'group_chat_preview_photo',
+    () => _fallback.group_chat_preview_photo,
+  );
+
+  @override
+  String group_chat_preview_photos(int count) => TolgeeBridge.format(
+    localeName,
+    'group_chat_preview_photos',
+    <String, Object>{'count': count},
+    () => _fallback.group_chat_preview_photos(count),
+  );
+
+  @override
+  String get group_chat_preview_video => TolgeeBridge.get(
+    localeName,
+    'group_chat_preview_video',
+    () => _fallback.group_chat_preview_video,
+  );
+
+  @override
+  String group_chat_preview_videos(int count) => TolgeeBridge.format(
+    localeName,
+    'group_chat_preview_videos',
+    <String, Object>{'count': count},
+    () => _fallback.group_chat_preview_videos(count),
+  );
+
+  @override
+  String get group_chat_preview_media => TolgeeBridge.get(
+    localeName,
+    'group_chat_preview_media',
+    () => _fallback.group_chat_preview_media,
+  );
+
+  @override
+  String get group_chat_media_upload_failed => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_upload_failed',
+    () => _fallback.group_chat_media_upload_failed,
+  );
+
+  @override
+  String group_chat_media_sending(int current, int total) =>
+      TolgeeBridge.format(
+        localeName,
+        'group_chat_media_sending',
+        <String, Object>{'current': current, 'total': total},
+        () => _fallback.group_chat_media_sending(current, total),
+      );
+
+  @override
+  String get group_chat_media_failed => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_failed',
+    () => _fallback.group_chat_media_failed,
+  );
+
+  @override
+  String get group_chat_media_share_title => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_share_title',
+    () => _fallback.group_chat_media_share_title,
+  );
+
+  @override
+  String get group_chat_media_gallery => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_gallery',
+    () => _fallback.group_chat_media_gallery,
+  );
+
+  @override
+  String get group_chat_media_camera => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_camera',
+    () => _fallback.group_chat_media_camera,
+  );
+
+  @override
+  String get group_chat_media_photo => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_photo',
+    () => _fallback.group_chat_media_photo,
+  );
+
+  @override
+  String get group_chat_media_video => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_video',
+    () => _fallback.group_chat_media_video,
+  );
+
+  @override
+  String get group_chat_media_caption_hint => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_caption_hint',
+    () => _fallback.group_chat_media_caption_hint,
+  );
+
+  @override
+  String get group_chat_media_camera_caption_hint => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_camera_caption_hint',
+    () => _fallback.group_chat_media_camera_caption_hint,
+  );
+
+  @override
+  String get group_chat_media_send => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_send',
+    () => _fallback.group_chat_media_send,
+  );
+
+  @override
+  String get group_chat_media_limited_access => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_limited_access',
+    () => _fallback.group_chat_media_limited_access,
+  );
+
+  @override
+  String get group_chat_media_select_more => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_select_more',
+    () => _fallback.group_chat_media_select_more,
+  );
+
+  @override
+  String get group_chat_media_permission_title => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_permission_title',
+    () => _fallback.group_chat_media_permission_title,
+  );
+
+  @override
+  String get group_chat_media_permission_body => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_permission_body',
+    () => _fallback.group_chat_media_permission_body,
+  );
+
+  @override
+  String get group_chat_media_open_settings => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_open_settings',
+    () => _fallback.group_chat_media_open_settings,
+  );
+
+  @override
+  String get group_chat_media_empty => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_empty',
+    () => _fallback.group_chat_media_empty,
+  );
+
+  @override
+  String get group_chat_media_empty_limited => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_empty_limited',
+    () => _fallback.group_chat_media_empty_limited,
+  );
+
+  @override
+  String group_chat_media_photo_limit(int count) => TolgeeBridge.format(
+    localeName,
+    'group_chat_media_photo_limit',
+    <String, Object>{'count': count},
+    () => _fallback.group_chat_media_photo_limit(count),
+  );
+
+  @override
+  String group_chat_media_video_too_large(String size, int max) =>
+      TolgeeBridge.format(
+        localeName,
+        'group_chat_media_video_too_large',
+        <String, Object>{'size': size, 'max': max},
+        () => _fallback.group_chat_media_video_too_large(size, max),
+      );
+
+  @override
+  String group_chat_media_video_too_long(String duration, String max) =>
+      TolgeeBridge.format(
+        localeName,
+        'group_chat_media_video_too_long',
+        <String, Object>{'duration': duration, 'max': max},
+        () => _fallback.group_chat_media_video_too_long(duration, max),
+      );
+
+  @override
+  String group_chat_media_camera_too_large(String size, int max) =>
+      TolgeeBridge.format(
+        localeName,
+        'group_chat_media_camera_too_large',
+        <String, Object>{'size': size, 'max': max},
+        () => _fallback.group_chat_media_camera_too_large(size, max),
+      );
+
+  @override
+  String group_chat_media_camera_too_long(String duration, String max) =>
+      TolgeeBridge.format(
+        localeName,
+        'group_chat_media_camera_too_long',
+        <String, Object>{'duration': duration, 'max': max},
+        () => _fallback.group_chat_media_camera_too_long(duration, max),
+      );
+
+  @override
+  String group_chat_media_position(int index, int total) => TolgeeBridge.format(
+    localeName,
+    'group_chat_media_position',
+    <String, Object>{'index': index, 'total': total},
+    () => _fallback.group_chat_media_position(index, total),
+  );
+
+  @override
+  String get group_chat_media_download => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_download',
+    () => _fallback.group_chat_media_download,
+  );
+
+  @override
+  String get group_chat_media_saved => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_saved',
+    () => _fallback.group_chat_media_saved,
+  );
+
+  @override
+  String get group_chat_media_save_failed => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_save_failed',
+    () => _fallback.group_chat_media_save_failed,
+  );
+
+  @override
+  String get group_chat_media_save_denied => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_save_denied',
+    () => _fallback.group_chat_media_save_denied,
+  );
+
+  @override
+  String get group_chat_media_mute => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_mute',
+    () => _fallback.group_chat_media_mute,
+  );
+
+  @override
+  String get group_chat_media_unmute => TolgeeBridge.get(
+    localeName,
+    'group_chat_media_unmute',
+    () => _fallback.group_chat_media_unmute,
+  );
+
+  @override
+  String get group_chat_browser_open_external => TolgeeBridge.get(
+    localeName,
+    'group_chat_browser_open_external',
+    () => _fallback.group_chat_browser_open_external,
+  );
+
+  @override
+  String get group_chat_browser_copy_link => TolgeeBridge.get(
+    localeName,
+    'group_chat_browser_copy_link',
+    () => _fallback.group_chat_browser_copy_link,
+  );
+
+  @override
+  String get group_chat_browser_link_copied => TolgeeBridge.get(
+    localeName,
+    'group_chat_browser_link_copied',
+    () => _fallback.group_chat_browser_link_copied,
+  );
+
+  @override
+  String get group_chat_browser_back => TolgeeBridge.get(
+    localeName,
+    'group_chat_browser_back',
+    () => _fallback.group_chat_browser_back,
+  );
+
+  @override
+  String get group_chat_browser_forward => TolgeeBridge.get(
+    localeName,
+    'group_chat_browser_forward',
+    () => _fallback.group_chat_browser_forward,
+  );
+
+  @override
+  String get group_chat_browser_load_failed => TolgeeBridge.get(
+    localeName,
+    'group_chat_browser_load_failed',
+    () => _fallback.group_chat_browser_load_failed,
+  );
+
+  @override
   String get group_tab_posts => TolgeeBridge.get(
     localeName,
     'group_tab_posts',
@@ -5729,12 +6028,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String event_replay_session(String day, String session) =>
-      TolgeeBridge.format(
-        localeName,
-        'event_replay_session',
-        <String, Object>{'day': day, 'session': session},
-        () => _fallback.event_replay_session(day, session),
-      );
+      TolgeeBridge.format(localeName, 'event_replay_session', <String, Object>{
+        'day': day,
+        'session': session,
+      }, () => _fallback.event_replay_session(day, session));
 
   @override
   String get event_replay_recording => TolgeeBridge.get(
@@ -8528,12 +8825,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_round_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_round_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_round_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_round_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_round_position(current, total));
 
   @override
   String reader_round_number(String current) => TolgeeBridge.format(
@@ -8545,12 +8840,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_count_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_count_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_count_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_count_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_count_position(current, total));
 
   @override
   String reader_show_script_in(String language) => TolgeeBridge.format(

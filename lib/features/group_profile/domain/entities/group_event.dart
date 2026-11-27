@@ -251,11 +251,11 @@ class GroupEvent {
     this.locationId,
     this.location,
     this.eventFormat,
-    this.myParticipationType,
-    this.chatEnabled = false,
-    this.chatRoomId,
-    this.prayerRequestCount = 0,
-  });
+      this.myParticipationType,
+      this.chatEnabled = false,
+      this.chatRoomId,
+      this.prayerRequestCount = 0,
+    });
 
   /// A plan, a series or a recitation collection marks the event as a puja
   /// to enter.

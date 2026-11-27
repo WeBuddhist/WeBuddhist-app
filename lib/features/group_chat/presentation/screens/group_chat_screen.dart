@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/config/router/app_routes.dart';
@@ -17,6 +18,11 @@ import 'package:flutter_pecha/features/group_chat/presentation/providers/group_c
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_composer_controller.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_pending_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/push_notifications/domain/entities/push_message.dart';
 import 'package:flutter_pecha/features/push_notifications/presentation/providers/push_notification_providers.dart';
@@ -26,6 +32,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_cha
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_composer_link_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_error_state.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_header.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_message_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_notification_bell.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_reply_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_selection_header.dart';
@@ -73,6 +80,15 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   StreamSubscription<PushMessage>? _pushSub;
   bool _redirecting = false;
   bool _sending = false;
+  ChatMediaUploader? _mediaUpload;
+
+  /// A media upload is running. Separate from [_sending], which is the text
+  /// composer's: media goes out in its own bubble and leaves the composer free.
+  bool _sendingMedia = false;
+
+  /// The media message on its way out, drawn in the thread until it lands.
+  /// Stays after a failure so it can be retried.
+  ChatPendingMedia? _pendingMedia;
   bool _resolvingRoom = false;
   _RoomState _roomState = _RoomState.resolving;
   String? _roomId;
@@ -385,6 +401,190 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     setState(() => _selection = selection);
   }
 
+  void _openMediaPicker() {
+    showChatMediaAttachSheet(
+      context,
+      onMediaSelected: (files, mediaType, caption) {
+        unawaited(_sendMedia(files, mediaType, caption));
+      },
+    );
+  }
+
+  /// Stops an upload in flight, or drops a failed one.
+  void _cancelMediaUpload() {
+    final upload = _mediaUpload;
+    if (upload != null) {
+      upload.cancel();
+    } else if (!_sendingMedia) {
+      setState(() => _pendingMedia = null);
+    }
+  }
+
+  void _retryMediaUpload() {
+    final pending = _pendingMedia;
+    if (pending == null || !pending.failed) return;
+    unawaited(
+      _sendMedia(
+        pending.files,
+        pending.mediaType,
+        pending.caption,
+        parent: pending.parent,
+        isRetry: true,
+      ),
+    );
+  }
+
+  Future<void> _sendMedia(
+    List<File> files,
+    String mediaType,
+    String caption, {
+    ChatMessageDTO? parent,
+    bool isRetry = false,
+  }) async {
+    if (_sendingMedia || files.isEmpty) return;
+    parent = isRetry ? parent : _replyingTo;
+    // Held while the photo's shape is read, so a double tap can't send twice.
+    _sendingMedia = true;
+    final singleAspect =
+        mediaType != 'VIDEO' && files.length == 1
+            ? await resolveLocalImageAspect(files.first)
+            : null;
+    if (!mounted) return;
+    final repository = _providers.read(groupChatRepositoryProvider);
+    final session = startChatMediaUpload(
+      repository: repository,
+      files: files,
+      mediaType: mediaType,
+      onProgress: (current, total) {
+        if (!mounted) return;
+        setState(() {
+          _pendingMedia = _pendingMedia?.copyWith(
+            current: current,
+            total: total,
+          );
+        });
+      },
+      onFraction: (fraction) {
+        if (!mounted) return;
+        setState(() {
+          _pendingMedia = _pendingMedia?.copyWith(progress: fraction);
+        });
+      },
+    );
+    setState(() {
+      _sendingMedia = true;
+      _mediaUpload = session.uploader;
+      _pendingMedia = ChatPendingMedia(
+        files: files,
+        mediaType: mediaType,
+        caption: caption,
+        parent: parent,
+        current: 0,
+        total: files.length,
+        singleAspectRatio: singleAspect,
+      );
+      // The reply now travels with the pending message.
+      if (!isRetry) _replyingTo = null;
+    });
+    var failed = false;
+    var pendingMediaIds = <String>[];
+    try {
+      final upload = await session.future;
+      // The ids now belong to the message about to be sent; Cancel goes
+      // away rather than deleting media the message carries.
+      if (mounted) setState(() => _mediaUpload = null);
+      pendingMediaIds = List<String>.from(upload.mediaIds);
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      if (upload.isCancelled) return;
+      if (upload.failed || pendingMediaIds.isEmpty) {
+        failed = true;
+        return;
+      }
+      ChatLocalMediaCache.instance.registerAll(upload.localFiles);
+
+      final analytics = _providers.read(groupChatAnalyticsProvider);
+      final result = await repository.sendGroupMessage(
+        widget.groupId,
+        body: caption,
+        parentMessageId: parent?.id,
+        mediaIds: pendingMediaIds,
+      );
+      result.map((message) {
+        _trackOpened(message.roomId, source: ChatOpenSource.firstSend);
+        analytics.messageSent(
+          groupId: widget.groupId,
+          roomId: message.roomId,
+          messageId: message.id,
+          parentMessageId: parent?.id,
+        );
+      });
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      await result.fold(
+        (failure) async {
+          await deletePendingChatMedia(repository, pendingMediaIds);
+          pendingMediaIds = [];
+          final lostParent =
+              chatSendErrorKind(failure) == ChatSendErrorKind.invalidParent;
+          // A reply to a message that is gone is retried as a plain message.
+          if (lostParent) parent = null;
+          failed = true;
+          if (!mounted) return;
+          presentChatSendError(context, failure);
+        },
+        (message) async {
+          pendingMediaIds = [];
+          await _persistRoomId(message.roomId);
+          if (!mounted) return;
+          final newRoom = _roomId != message.roomId;
+          ChatLocalMediaCache.instance.seedDiskCaches(message.media);
+          // Pending goes in the same frame the sent message arrives, so the
+          // two are never on screen together.
+          setState(() {
+            _roomId = message.roomId;
+            _roomState = _RoomState.joined;
+            _sendingMedia = false;
+            _mediaUpload = null;
+            _pendingMedia = null;
+          });
+          _providers
+              .read(groupChatThreadProvider(message.roomId).notifier)
+              .appendLive(message);
+          unawaited(_markRoomRead());
+          if (newRoom) _attachLive(message.roomId);
+        },
+      );
+    } finally {
+      if (pendingMediaIds.isNotEmpty) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+      }
+      if (mounted) {
+        setState(() {
+          _sendingMedia = false;
+          _mediaUpload = null;
+          _pendingMedia =
+              failed
+                  ? ChatPendingMedia(
+                    files: files,
+                    mediaType: mediaType,
+                    caption: caption,
+                    parent: parent,
+                    current: 0,
+                    total: files.length,
+                    failed: true,
+                    singleAspectRatio: singleAspect,
+                  )
+                  : null;
+        });
+      }
+    }
+  }
+
   Future<void> _send() async {
     final body = _bodyController.text.trim();
     if (body.isEmpty || _sending) return;
@@ -537,6 +737,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                 targetMessageId: widget.targetMessageId,
                 onReply: _startReply,
                 onSelectionChanged: _onSelectionChanged,
+                pending: _pendingBubble(),
               ),
       },
       // A confirmed member may always write: a lookup that failed still
@@ -557,7 +758,8 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     bool closed = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = ref.watch(userProvider).user;
+    // Rebuilt on a profile change, so the pending bubble's avatar follows.
+    ref.watch(userProvider);
     // The selection belongs to the thread State that published it. Any other
     // body means that State is gone — a profile reload swaps in the spinner
     // — and a disposed State can never publish the null that dismisses the
@@ -638,8 +840,8 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                     hintText: context.l10n.group_chat_message_hint,
                     isSending: _sending,
                     onSubmit: _send,
-                    avatarUrl: user?.avatarUrl,
-                    displayName: user?.visibleNameOrNull ?? user?.email,
+                    onAddMediaPressed: _openMediaPicker,
+                    addMediaEnabled: !_sendingMedia,
                   ),
                 ],
               )
@@ -648,6 +850,29 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   }
 
   Widget _buildLoading() {
+    final pending = _pendingBubble();
+    // No room yet means this is the first send: show it at the bottom so
+    // Cancel is still in reach while the room is created.
+    if (pending != null) {
+      return Align(alignment: Alignment.bottomCenter, child: pending);
+    }
     return const GroupChatSkeleton();
+  }
+
+  Widget? _pendingBubble() {
+    final pending = _pendingMedia;
+    if (pending == null) return null;
+    final user = ref.read(userProvider).user;
+    return ChatPendingMediaBubble(
+      pending: pending,
+      onCancel:
+          _mediaUpload != null || pending.failed ? _cancelMediaUpload : null,
+      onRetry: _retryMediaUpload,
+      avatar: GroupChatAvatar(
+        avatarUrl: user?.avatarUrl,
+        displayName: user?.visibleNameOrNull ?? user?.email,
+        isDark: Theme.of(context).brightness == Brightness.dark,
+      ),
+    );
   }
 }

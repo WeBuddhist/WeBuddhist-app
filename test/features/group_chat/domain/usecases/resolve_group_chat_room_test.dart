@@ -53,6 +53,10 @@ ChatRoomDTO _room(String id, {String? groupId}) {
 
 /// Serves `getRoom` from [rooms] and `getGroupRoom` from [groupRooms].
 class _FakeGroupChatRepository implements GroupChatRepository {
+  // Media upload and delete are not exercised here.
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   final Map<String, ChatRoomDTO> rooms = {};
   final Map<String, ChatRoomDTO> groupRooms = {};
   Failure? getRoomFailure;
@@ -91,6 +95,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendGroupMessage(
     String groupId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
     String? messageType,
     String? intention,
@@ -134,6 +139,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendEventMessage(
     String eventId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
     String? messageType,
     String? intention,
@@ -143,6 +149,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendDirectMessage(
     String userId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
   }) async => const Left(NotFoundFailure('not used'));
 

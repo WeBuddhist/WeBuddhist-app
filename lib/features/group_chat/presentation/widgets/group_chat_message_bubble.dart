@@ -5,15 +5,16 @@ import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/l10n/intl_format_locale.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/utils/tibetan_numerals.dart';
-import 'package:flutter_pecha/core/utils/url_opener.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_inline_format.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_opener.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_blocks.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_time.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_link_preview_card.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_message_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_quoted_message.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_reaction_badges.dart';
 import 'package:intl/intl.dart';
@@ -38,6 +39,7 @@ class GroupChatMessageBubble extends StatelessWidget {
     this.isParentOwn = false,
     this.onShowReactions,
     this.onTapQuote,
+    this.onOpenMedia,
     this.showIdentity = true,
   });
 
@@ -75,11 +77,16 @@ class GroupChatMessageBubble extends StatelessWidget {
   /// Scrolls to the quoted original when it is still on screen.
   final VoidCallback? onTapQuote;
 
+  /// Opens the media viewer at the tapped photo or video. Null in selection
+  /// mode, where a tap toggles the row instead.
+  final ValueChanged<int>? onOpenMedia;
+
   /// Avatars and the sender name. A direct chat leaves them out: the header
   /// already says who the other person is, and the side says who wrote what.
   final bool showIdentity;
 
   static const double _avatarSize = 32;
+  static const double _mediaBubbleWidth = 240;
   static const double _maxWidthFactor = 0.68;
 
   /// A tombstone is one line — icon, label and the time after it — and that
@@ -129,7 +136,7 @@ class GroupChatMessageBubble extends StatelessWidget {
         context.l10n.group_chat_unknown_sender;
     final avatarUrl =
         message.senderAvatarUrl ?? (isSelf ? selfAvatarUrl : null);
-    final avatar = _Avatar(
+    final avatar = GroupChatAvatar(
       avatarUrl: avatarUrl,
       displayName: displayName,
       isDark: isDark,
@@ -226,9 +233,15 @@ class GroupChatMessageBubble extends StatelessWidget {
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final previewUrl = firstChatLinkUrl(message.body);
+    // Photos and video sit 4px inside a 240-wide bubble, per the media frames.
+    final isMedia = message.media.isNotEmpty && !isDeleted;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      width: isMedia ? _mediaBubbleWidth : null,
+      padding:
+          isMedia
+              ? const EdgeInsets.fromLTRB(4, 4, 4, 6)
+              : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: background,
         // Uniform corners and a soft shadow, per the mocks: no tail, the
@@ -288,7 +301,33 @@ class GroupChatMessageBubble extends StatelessWidget {
                       isParentDeleted || message.parent!.deletedAt != null,
                   onTap: onTapQuote,
                 ),
-              _body(context, textColor, isDark),
+              if (message.media.isNotEmpty)
+                ChatMessageMediaBubble(
+                  media: message.media,
+                  isDark: isDark,
+                  messageId: message.id,
+                  onTapMedia: onOpenMedia,
+                ),
+              if (message.body.trim().isNotEmpty)
+                isMedia
+                    ? Padding(
+                      padding: chatMediaCaptionPadding,
+                      // Your own caption hugs the right edge, under the
+                      // time, as in the "Sent" media frames.
+                      child:
+                          isSelf
+                              ? Align(
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: _body(
+                                  context,
+                                  textColor,
+                                  isDark,
+                                  textAlign: TextAlign.end,
+                                ),
+                              )
+                              : _body(context, textColor, isDark),
+                    )
+                    : _body(context, textColor, isDark),
               if (previewUrl != null)
                 GroupChatLinkPreviewCard(url: previewUrl, onOpen: _openUrl),
             ],
@@ -296,10 +335,14 @@ class GroupChatMessageBubble extends StatelessWidget {
             // `_tombstone`), so the bubble stays one line tall.
             if (!isDeleted) ...[
               const SizedBox(height: 2),
-              Text(
-                timeLabel(context, message),
-                textAlign: TextAlign.right,
-                style: _timeStyle(isDark),
+              Padding(
+                // Lines up with the pending bubble's Cancel row.
+                padding: EdgeInsets.symmetric(horizontal: isMedia ? 4 : 0),
+                child: Text(
+                  timeLabel(context, message),
+                  textAlign: TextAlign.right,
+                  style: _timeStyle(isDark),
+                ),
               ),
             ],
           ],
@@ -310,7 +353,10 @@ class GroupChatMessageBubble extends StatelessWidget {
 
   Widget _maybeIntrinsic(Widget column) {
     final isReply = message.parent != null && !isDeleted;
-    return isReply ? column : IntrinsicWidth(child: column);
+    // A deleted media message is a one-line tombstone, which needs the
+    // IntrinsicWidth like any other short bubble.
+    final hasMedia = message.media.isNotEmpty && !isDeleted;
+    return isReply || hasMedia ? column : IntrinsicWidth(child: column);
   }
 
   TextStyle _timeStyle(bool isDark) {
@@ -363,12 +409,18 @@ class GroupChatMessageBubble extends StatelessWidget {
 
   /// A message with no markers stays a single [Text]; only one that needs
   /// block layout pays for it.
-  Widget _body(BuildContext context, Color textColor, bool isDark) {
+  Widget _body(
+    BuildContext context,
+    Color textColor,
+    bool isDark, {
+    TextAlign? textAlign,
+  }) {
     if (!chatBodyNeedsBlocks(message.body)) {
       return ChatFormattedText(
         body: message.body,
         textColor: textColor,
         isDark: isDark,
+        textAlign: textAlign,
       );
     }
 
@@ -477,24 +529,32 @@ class GroupChatMessageBubble extends StatelessWidget {
     return context.isTibetanLocale ? toTibetanDigits(formatted) : formatted;
   }
 
-  static Future<void> _openUrl(String url) => openUrl(url);
+  static Future<void> _openUrl(String url) => openChatLink(url);
 }
 
 /// Message body with tappable links and inline formatting.
 ///
 /// Stateful so the [TapGestureRecognizer]s it creates are disposed with the
 /// row rather than leaking on every rebuild.
+/// Caption inset under photos and video, shared by the sent and the pending
+/// bubble so a caption doesn't move when its upload finishes.
+const chatMediaCaptionPadding = EdgeInsets.fromLTRB(8, 4, 8, 0);
+
 class ChatFormattedText extends StatefulWidget {
   const ChatFormattedText({
     super.key,
     required this.body,
     required this.textColor,
     required this.isDark,
+    this.textAlign,
   });
 
   final String body;
   final Color textColor;
   final bool isDark;
+
+  /// Null keeps the default, which starts each line at the leading edge.
+  final TextAlign? textAlign;
 
   @override
   State<ChatFormattedText> createState() => _ChatFormattedTextState();
@@ -523,6 +583,7 @@ class _ChatFormattedTextState extends State<ChatFormattedText> {
     if (links.isEmpty && !chatTextHasInlineMarkers(widget.body)) {
       return Text(
         widget.body,
+        textAlign: widget.textAlign,
         strutStyle: context.tibetanStrutStyle(15),
         style: baseStyle,
       );
@@ -557,6 +618,7 @@ class _ChatFormattedTextState extends State<ChatFormattedText> {
 
     return Text.rich(
       TextSpan(style: baseStyle, children: spans),
+      textAlign: widget.textAlign,
       strutStyle: context.tibetanStrutStyle(15),
     );
   }
@@ -612,8 +674,10 @@ class _ChatFormattedTextState extends State<ChatFormattedText> {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({
+/// Round 32px avatar used beside chat bubbles, with initials as fallback.
+class GroupChatAvatar extends StatelessWidget {
+  const GroupChatAvatar({
+    super.key,
     required this.avatarUrl,
     required this.displayName,
     required this.isDark,

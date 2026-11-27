@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pecha/core/constants/app_assets.dart';
@@ -12,6 +13,12 @@ import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.d
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/chat_send_error.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/providers/direct_chat_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_providers.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_pending_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
@@ -56,6 +63,15 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
   ModalRoute<dynamic>? _route;
   bool _disposed = false;
   bool _sending = false;
+  ChatMediaUploader? _mediaUpload;
+
+  /// A media upload is running. Separate from [_sending], which is the text
+  /// composer's: media goes out in its own bubble and leaves the composer free.
+  bool _sendingMedia = false;
+
+  /// The media message on its way out, drawn in the thread until it lands.
+  /// Stays after a failure so it can be retried.
+  ChatPendingMedia? _pendingMedia;
 
   /// The message a reply is being composed for, quoted above the composer.
   ChatMessageDTO? _replyingTo;
@@ -155,6 +171,170 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
     setState(() => _selection = selection);
   }
 
+  void _openMediaPicker() {
+    showChatMediaAttachSheet(
+      context,
+      onMediaSelected: (files, mediaType, caption) {
+        unawaited(_sendMedia(files, mediaType, caption));
+      },
+    );
+  }
+
+  /// Stops an upload in flight, or drops a failed one.
+  void _cancelMediaUpload() {
+    final upload = _mediaUpload;
+    if (upload != null) {
+      upload.cancel();
+    } else if (!_sendingMedia) {
+      setState(() => _pendingMedia = null);
+    }
+  }
+
+  void _retryMediaUpload() {
+    final pending = _pendingMedia;
+    if (pending == null || !pending.failed) return;
+    unawaited(
+      _sendMedia(
+        pending.files,
+        pending.mediaType,
+        pending.caption,
+        parent: pending.parent,
+        isRetry: true,
+      ),
+    );
+  }
+
+  Future<void> _sendMedia(
+    List<File> files,
+    String mediaType,
+    String caption, {
+    ChatMessageDTO? parent,
+    bool isRetry = false,
+  }) async {
+    if (_sendingMedia || files.isEmpty) return;
+    parent = isRetry ? parent : _replyingTo;
+    // Held while the photo's shape is read, so a double tap can't send twice.
+    _sendingMedia = true;
+    final singleAspect =
+        mediaType != 'VIDEO' && files.length == 1
+            ? await resolveLocalImageAspect(files.first)
+            : null;
+    if (!mounted) return;
+    final repository = _providers.read(groupChatRepositoryProvider);
+    final session = startChatMediaUpload(
+      repository: repository,
+      files: files,
+      mediaType: mediaType,
+      onProgress: (current, total) {
+        if (!mounted) return;
+        setState(() {
+          _pendingMedia = _pendingMedia?.copyWith(
+            current: current,
+            total: total,
+          );
+        });
+      },
+      onFraction: (fraction) {
+        if (!mounted) return;
+        setState(() {
+          _pendingMedia = _pendingMedia?.copyWith(progress: fraction);
+        });
+      },
+    );
+    setState(() {
+      _sendingMedia = true;
+      _mediaUpload = session.uploader;
+      _pendingMedia = ChatPendingMedia(
+        files: files,
+        mediaType: mediaType,
+        caption: caption,
+        parent: parent,
+        current: 0,
+        total: files.length,
+        singleAspectRatio: singleAspect,
+      );
+      // The reply now travels with the pending message.
+      if (!isRetry) _replyingTo = null;
+    });
+    var failed = false;
+    var pendingMediaIds = <String>[];
+    try {
+      final upload = await session.future;
+      // The ids now belong to the message about to be sent; Cancel goes
+      // away rather than deleting media the message carries.
+      if (mounted) setState(() => _mediaUpload = null);
+      pendingMediaIds = List<String>.from(upload.mediaIds);
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      if (upload.isCancelled) return;
+      if (upload.failed || pendingMediaIds.isEmpty) {
+        failed = true;
+        return;
+      }
+      ChatLocalMediaCache.instance.registerAll(upload.localFiles);
+
+      final result = await _notifier.send(
+        caption,
+        parentMessageId: parent?.id,
+        mediaIds: pendingMediaIds,
+      );
+      if (!mounted) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+        return;
+      }
+      result.fold(
+        (_) {},
+        (message) => _providers.read(groupChatAnalyticsProvider).directMessageSent(
+              roomId: widget.roomId,
+              messageId: message.id,
+              isReply: parent != null,
+            ),
+      );
+      await result.fold(
+        (failure) async {
+          await deletePendingChatMedia(repository, pendingMediaIds);
+          pendingMediaIds = [];
+          // A reply to a message that is gone is retried as a plain message.
+          if (chatSendErrorKind(failure) == ChatSendErrorKind.invalidParent) {
+            parent = null;
+          }
+          failed = true;
+          if (!mounted) return;
+          presentChatSendError(context, failure);
+        },
+        (message) async {
+          pendingMediaIds = [];
+          ChatLocalMediaCache.instance.seedDiskCaches(message.media);
+        },
+      );
+    } finally {
+      if (pendingMediaIds.isNotEmpty) {
+        await deletePendingChatMedia(repository, pendingMediaIds);
+      }
+      if (mounted) {
+        setState(() {
+          _sendingMedia = false;
+          _mediaUpload = null;
+          _pendingMedia =
+              failed
+                  ? ChatPendingMedia(
+                    files: files,
+                    mediaType: mediaType,
+                    caption: caption,
+                    parent: parent,
+                    current: 0,
+                    total: files.length,
+                    failed: true,
+                    singleAspectRatio: singleAspect,
+                  )
+                  : null;
+        });
+      }
+    }
+  }
+
   Future<void> _send() async {
     final body = _bodyController.text.trim();
     if (body.isEmpty || _sending) return;
@@ -243,6 +423,17 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
                 showIdentity: false,
                 presentMessage: _presentMessage,
                 messageHeader: _messageHeader,
+                pending:
+                    _pendingMedia == null
+                        ? null
+                        : ChatPendingMediaBubble(
+                          pending: _pendingMedia!,
+                          onCancel:
+                              _mediaUpload != null || _pendingMedia!.failed
+                                  ? _cancelMediaUpload
+                                  : null,
+                          onRetry: _retryMediaUpload,
+                        ),
               ),
             ),
           ],
@@ -289,9 +480,9 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
             hintText: context.l10n.group_chat_message_hint,
             isSending: _sending,
             onSubmit: _send,
+            onAddMediaPressed: _openMediaPicker,
+            addMediaEnabled: !_sendingMedia,
             enabled: canSend,
-            avatarUrl: user?.avatarUrl,
-            displayName: user?.visibleNameOrNull ?? user?.email,
           ),
         ],
       ),

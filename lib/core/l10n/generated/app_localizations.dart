@@ -4857,6 +4857,252 @@ abstract class AppLocalizations {
   /// **'That message is no longer available, so the quote was removed. Send again to post your message'**
   String get group_chat_reply_parent_gone;
 
+  /// No description provided for @group_chat_preview_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get group_chat_preview_photo;
+
+  /// No description provided for @group_chat_preview_photos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {1 photo} other {{count} photos}}'**
+  String group_chat_preview_photos(int count);
+
+  /// No description provided for @group_chat_preview_video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get group_chat_preview_video;
+
+  /// No description provided for @group_chat_preview_videos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1 {1 video} other {{count} videos}}'**
+  String group_chat_preview_videos(int count);
+
+  /// No description provided for @group_chat_preview_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get group_chat_preview_media;
+
+  /// No description provided for @group_chat_media_upload_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t upload media. Try again'**
+  String get group_chat_media_upload_failed;
+
+  /// No description provided for @group_chat_media_sending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending {current} of {total}'**
+  String group_chat_media_sending(int current, int total);
+
+  /// No description provided for @group_chat_media_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get group_chat_media_failed;
+
+  /// No description provided for @group_chat_media_share_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Share in chat'**
+  String get group_chat_media_share_title;
+
+  /// No description provided for @group_chat_media_gallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallery'**
+  String get group_chat_media_gallery;
+
+  /// No description provided for @group_chat_media_camera.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get group_chat_media_camera;
+
+  /// No description provided for @group_chat_media_photo.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get group_chat_media_photo;
+
+  /// No description provided for @group_chat_media_video.
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get group_chat_media_video;
+
+  /// No description provided for @group_chat_media_caption_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Message…'**
+  String get group_chat_media_caption_hint;
+
+  /// No description provided for @group_chat_media_camera_caption_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a caption…'**
+  String get group_chat_media_camera_caption_hint;
+
+  /// No description provided for @group_chat_media_send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get group_chat_media_send;
+
+  /// No description provided for @group_chat_media_limited_access.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the photos you allowed are shown.'**
+  String get group_chat_media_limited_access;
+
+  /// No description provided for @group_chat_media_select_more.
+  ///
+  /// In en, this message translates to:
+  /// **'Select more'**
+  String get group_chat_media_select_more;
+
+  /// No description provided for @group_chat_media_permission_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow photo access'**
+  String get group_chat_media_permission_title;
+
+  /// No description provided for @group_chat_media_permission_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow access to your photos in Settings to share photos and videos.'**
+  String get group_chat_media_permission_body;
+
+  /// No description provided for @group_chat_media_open_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get group_chat_media_open_settings;
+
+  /// No description provided for @group_chat_media_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos or videos found on this device.'**
+  String get group_chat_media_empty;
+
+  /// No description provided for @group_chat_media_empty_limited.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the photos you allowed are here yet.'**
+  String get group_chat_media_empty_limited;
+
+  /// No description provided for @group_chat_media_photo_limit.
+  ///
+  /// In en, this message translates to:
+  /// **'You can select up to {count} photos.'**
+  String group_chat_media_photo_limit(int count);
+
+  /// No description provided for @group_chat_media_video_too_large.
+  ///
+  /// In en, this message translates to:
+  /// **'This video is {size} MB. Videos can be up to {max} MB, so it can’t be added.'**
+  String group_chat_media_video_too_large(String size, int max);
+
+  /// No description provided for @group_chat_media_video_too_long.
+  ///
+  /// In en, this message translates to:
+  /// **'This video is {duration}. Videos can be up to {max}, so it can’t be added.'**
+  String group_chat_media_video_too_long(String duration, String max);
+
+  /// No description provided for @group_chat_media_camera_too_large.
+  ///
+  /// In en, this message translates to:
+  /// **'This video is {size} MB. Videos can be up to {max} MB. Record a shorter clip.'**
+  String group_chat_media_camera_too_large(String size, int max);
+
+  /// No description provided for @group_chat_media_camera_too_long.
+  ///
+  /// In en, this message translates to:
+  /// **'This video is {duration}. Videos can be up to {max}. Record a shorter clip.'**
+  String group_chat_media_camera_too_long(String duration, String max);
+
+  /// No description provided for @group_chat_media_position.
+  ///
+  /// In en, this message translates to:
+  /// **'{index} of {total}'**
+  String group_chat_media_position(int index, int total);
+
+  /// No description provided for @group_chat_media_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get group_chat_media_download;
+
+  /// No description provided for @group_chat_media_saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to your photos'**
+  String get group_chat_media_saved;
+
+  /// No description provided for @group_chat_media_save_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save. Try again'**
+  String get group_chat_media_save_failed;
+
+  /// No description provided for @group_chat_media_save_denied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow photo access in Settings to save'**
+  String get group_chat_media_save_denied;
+
+  /// No description provided for @group_chat_media_mute.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute'**
+  String get group_chat_media_mute;
+
+  /// No description provided for @group_chat_media_unmute.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute'**
+  String get group_chat_media_unmute;
+
+  /// No description provided for @group_chat_browser_open_external.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in browser'**
+  String get group_chat_browser_open_external;
+
+  /// No description provided for @group_chat_browser_copy_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get group_chat_browser_copy_link;
+
+  /// No description provided for @group_chat_browser_link_copied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get group_chat_browser_link_copied;
+
+  /// No description provided for @group_chat_browser_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get group_chat_browser_back;
+
+  /// No description provided for @group_chat_browser_forward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get group_chat_browser_forward;
+
+  /// No description provided for @group_chat_browser_load_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'This page couldn\'t be loaded'**
+  String get group_chat_browser_load_failed;
+
   /// No description provided for @group_tab_posts.
   ///
   /// In en, this message translates to:

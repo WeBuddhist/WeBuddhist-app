@@ -3,6 +3,7 @@ import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_parent_dto.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_media_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
 
 /// The quoted original, shown above the body of a reply.
@@ -78,7 +79,7 @@ class GroupChatQuotedMessage extends StatelessWidget {
           isDeleted
               ? _tombstone(context, textColor)
               : Text(
-                parent.body,
+                _quoteText(context),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 strutStyle: context.tibetanStrutStyle(14),
@@ -118,6 +119,16 @@ class GroupChatQuotedMessage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _quoteText(BuildContext context) {
+    final trimmed = parent.body.trim();
+    if (trimmed.isNotEmpty) return parent.body;
+    final summary = parent.mediaSummary;
+    if (summary != null) {
+      return chatMediaSummaryPreviewLabel(context.l10n, summary);
+    }
+    return '';
   }
 
   String _header(BuildContext context) {

@@ -5,6 +5,7 @@ import 'package:flutter_pecha/features/group_chat/data/models/chat_message_react
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_intention_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_prayer_summary_dto.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_room_dto.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
 import 'package:fpdart/fpdart.dart';
 
 abstract class GroupChatRepository {
@@ -41,6 +42,7 @@ abstract class GroupChatRepository {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   });
 
   Future<Either<Failure, ChatMessageDTO>> sendEventMessage(
@@ -49,6 +51,7 @@ abstract class GroupChatRepository {
     String? parentMessageId,
     String? messageType,
     String? intention,
+    List<String>? mediaIds,
   });
 
   /// Sends [body] to the direct room the viewer shares with [userId].
@@ -56,7 +59,22 @@ abstract class GroupChatRepository {
     String userId, {
     required String body,
     String? parentMessageId,
+    List<String>? mediaIds,
   });
+
+  Future<Either<Failure, ChatMessageMedia>> uploadChatMedia({
+    required List<int> fileBytes,
+    required String filename,
+    required String mediaType, // IMAGE or VIDEO
+    String quality = 'STANDARD',
+    List<int>? posterBytes,
+    String? posterFilename,
+    int? width,
+    int? height,
+    void Function(int sent, int total)? onSendProgress,
+  });
+
+  Future<Either<Failure, Unit>> deleteChatMedia(String mediaId);
 
   Future<Either<Failure, List<ChatPrayerIntentionDTO>>> listIntentions();
 

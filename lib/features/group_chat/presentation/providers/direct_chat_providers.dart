@@ -174,6 +174,7 @@ class DirectChatNotifier extends StateNotifier<DirectChatState>
   Future<Either<Failure, ChatMessageDTO>> send(
     String body, {
     String? parentMessageId,
+    List<String>? mediaIds,
   }) async {
     final otherUserId = _otherUserId;
     if (otherUserId.isEmpty) {
@@ -186,6 +187,7 @@ class DirectChatNotifier extends StateNotifier<DirectChatState>
           otherUserId,
           body: body,
           parentMessageId: parentMessageId,
+          mediaIds: mediaIds,
         );
     if (!mounted) return result;
 
