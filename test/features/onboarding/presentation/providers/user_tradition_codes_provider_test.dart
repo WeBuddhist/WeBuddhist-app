@@ -266,7 +266,7 @@ void main() {
   );
 
   group('reporting to analytics', () {
-    test('the first lookup puts the codes on the person', () async {
+    test('the first lookup puts the traditions on the person', () async {
       remote.selected = const ['tibetan', 'pali'];
       container = build(_signedIn);
       await pumpEventQueue();
@@ -276,7 +276,7 @@ void main() {
         'traditions_count': 2,
         'is_first_report': true,
         r'$set': {
-          'traditions': ['pali', 'tibetan'],
+          'traditions': ['theravada', 'vajrayana'],
         },
       });
     });
@@ -306,7 +306,7 @@ void main() {
         'traditions_count': 1,
         'is_first_report': false,
         r'$set': {
-          'traditions': ['chinese'],
+          'traditions': ['mahayana'],
         },
       });
     });
@@ -363,7 +363,7 @@ void main() {
 
       expect(analytics.events, hasLength(1));
       expect(analytics.events.single.properties[r'$set'], {
-        'traditions': ['chinese'],
+        'traditions': ['mahayana'],
       });
     });
   });

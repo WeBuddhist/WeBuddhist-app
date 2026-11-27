@@ -437,8 +437,9 @@ abstract final class AnalyticsProperties {
   static const String signedUpAt = 'signed_up_at';
   static const String backendUserId = 'backend_user_id';
 
-  /// The tradition codes the account follows. Sent inside `$set` only, never
-  /// as an event property: see `TraditionAnalytics`.
+  /// The traditions the account follows, by name (`theravada`, `mahayana`,
+  /// `vajrayana`). Sent inside `$set` only, never as an event property: see
+  /// `TraditionAnalytics`.
   static const String traditions = 'traditions';
 }
 

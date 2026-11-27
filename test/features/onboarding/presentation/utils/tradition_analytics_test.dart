@@ -13,7 +13,7 @@ void main() {
     analytics = TraditionAnalytics(service);
   });
 
-  test('the codes go on the person, the event carries only how many', () {
+  test('the traditions go on the person, the event carries only how many', () {
     analytics.traditionsChanged(
       codes: const ['pali', 'tibetan'],
       isFirstReport: false,
@@ -24,17 +24,34 @@ void main() {
       'traditions_count': 2,
       'is_first_report': false,
       r'$set': {
-        'traditions': ['pali', 'tibetan'],
+        'traditions': ['theravada', 'vajrayana'],
       },
     });
   });
 
-  test('no tradition code is an event property', () {
+  test('each server code is sent as the name of its tradition, sorted', () {
+    expect(TraditionAnalytics.traditionNames(const ['tibetan', 'chinese']), [
+      'mahayana',
+      'vajrayana',
+    ]);
+    expect(TraditionAnalytics.traditionNames(const ['pali']), ['theravada']);
+    expect(TraditionAnalytics.traditionNames(const []), isEmpty);
+  });
+
+  test('a code with no known name is sent as it is', () {
+    expect(TraditionAnalytics.traditionNames(const ['pali', 'newer']), [
+      'newer',
+      'theravada',
+    ]);
+  });
+
+  test('no tradition is an event property', () {
     analytics.traditionsChanged(codes: const ['chinese'], isFirstReport: true);
 
     final eventProperties = Map.of(service.events.single.properties)
       ..remove(r'$set');
-    expect(eventProperties.values, isNot(contains('chinese')));
     expect(eventProperties.keys, isNot(contains('traditions')));
+    expect(eventProperties.values, isNot(contains('chinese')));
+    expect(eventProperties.values, isNot(contains('mahayana')));
   });
 }
