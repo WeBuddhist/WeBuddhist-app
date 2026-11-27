@@ -11,8 +11,13 @@ void showChatMediaAttachSheet(
   required void Function(List<File> files, String mediaType, String caption)
       onMediaSelected,
 }) {
+  // Drop the keyboard first, so the sheet covers the composer as drawn
+  // rather than sitting on top of a raised field.
+  FocusScope.of(context).unfocus();
   showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
+    barrierColor: chatSheetBarrier,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (context) => ChatMediaPickerSheet(onMediaSelected: onMediaSelected),
@@ -41,11 +46,13 @@ Future<ChatMediaUploadResult> uploadChatMediaFiles({
   required List<File> files,
   required String mediaType,
   void Function(int current, int total)? onProgress,
+  void Function(double fraction)? onFraction,
 }) {
   final apiType = mediaType == 'VIDEO' ? 'VIDEO' : 'IMAGE';
   final uploader = ChatMediaUploader(
     repository: repository,
     onProgress: onProgress ?? (_, __) {},
+    onFraction: onFraction,
   );
   final future = uploader.compressAndUpload(files: files, mediaType: apiType);
   return (uploader: uploader, future: future);
