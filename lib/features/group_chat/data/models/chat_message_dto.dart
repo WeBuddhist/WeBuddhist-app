@@ -59,12 +59,6 @@ class ChatMessageDTO extends Equatable {
   final ChatMessageTranslationDTO? translation;
   final bool canTranslate;
 
-  /// Local-only fields for media uploads
-  final bool isOptimisticSending;
-  final bool isOptimisticFailed;
-  final int sendingProgressCurrent;
-  final int sendingProgressTotal;
-  final List<String>? optimisticLocalFilePaths;
 
   /// An accomplished request stays listed with its counts; nobody prays for it.
   final bool isCompleted;
@@ -99,11 +93,6 @@ class ChatMessageDTO extends Equatable {
     this.sourceLanguage,
     this.translation,
     this.canTranslate = false,
-    this.isOptimisticSending = false,
-    this.isOptimisticFailed = false,
-    this.sendingProgressCurrent = 0,
-    this.sendingProgressTotal = 0,
-    this.optimisticLocalFilePaths,
     this.isCompleted = false,
     this.completedAt,
     this.group,
@@ -220,11 +209,6 @@ class ChatMessageDTO extends Equatable {
     ChatMessageTranslationDTO? translation,
     bool? canTranslate,
     bool clearTranslation = false,
-    bool? isOptimisticSending,
-    bool? isOptimisticFailed,
-    int? sendingProgressCurrent,
-    int? sendingProgressTotal,
-    List<String>? optimisticLocalFilePaths,
     bool? isCompleted,
     String? completedAt,
     bool clearCompletedAt = false,
@@ -253,11 +237,6 @@ class ChatMessageDTO extends Equatable {
           sourceLanguage ?? (clearTranslation ? null : this.sourceLanguage),
       translation: translation ?? (clearTranslation ? null : this.translation),
       canTranslate: canTranslate ?? this.canTranslate,
-      isOptimisticSending: isOptimisticSending ?? this.isOptimisticSending,
-      isOptimisticFailed: isOptimisticFailed ?? this.isOptimisticFailed,
-      sendingProgressCurrent: sendingProgressCurrent ?? this.sendingProgressCurrent,
-      sendingProgressTotal: sendingProgressTotal ?? this.sendingProgressTotal,
-      optimisticLocalFilePaths: optimisticLocalFilePaths ?? this.optimisticLocalFilePaths,
       isCompleted: isCompleted ?? this.isCompleted,
       completedAt: completedAt ?? (clearCompletedAt ? null : this.completedAt),
       group: group,
@@ -322,11 +301,6 @@ class ChatMessageDTO extends Equatable {
     sourceLanguage,
     translation,
     canTranslate,
-    isOptimisticSending,
-    isOptimisticFailed,
-    sendingProgressCurrent,
-    sendingProgressTotal,
-    optimisticLocalFilePaths,
     isCompleted,
     completedAt,
     group,

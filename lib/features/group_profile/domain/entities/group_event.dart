@@ -209,9 +209,6 @@ class GroupEvent {
   /// Whether the event's chat room (prayer requests) is switched on.
   final bool chatEnabled;
 
-  /// Whether members can upload photos and videos to the event's chat room.
-  final bool chatMediaEnabled;
-
   /// Null until the room is created on first use.
   final String? chatRoomId;
 
@@ -256,7 +253,6 @@ class GroupEvent {
     this.eventFormat,
       this.myParticipationType,
       this.chatEnabled = false,
-      this.chatMediaEnabled = true,
       this.chatRoomId,
       this.prayerRequestCount = 0,
     });

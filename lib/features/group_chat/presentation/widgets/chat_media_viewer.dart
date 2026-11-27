@@ -771,6 +771,10 @@ class _VideoPageState extends State<_VideoPage> with WidgetsBindingObserver {
   static const _autoHide = Duration(seconds: 3);
 
   VideoPlayerController? _controller;
+
+  /// True from the start of [_start] until it has a controller, so a rebuild
+  /// during the cache lookup can't start a second player.
+  bool _starting = false;
   Timer? _hideTimer;
   bool _ready = false;
   bool _firstFrame = false;
@@ -788,7 +792,7 @@ class _VideoPageState extends State<_VideoPage> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(covariant _VideoPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isActive && _controller == null && !_failed) {
+    if (widget.isActive && _controller == null && !_failed && !_starting) {
       unawaited(_start());
     }
     if (!widget.isActive) _controller?.pause();
@@ -839,15 +843,23 @@ class _VideoPageState extends State<_VideoPage> with WidgetsBindingObserver {
   }
 
   Future<void> _start() async {
+    if (_starting || _controller != null) return;
     final url = widget.media.url;
     final uri = url == null ? null : Uri.tryParse(url);
     if (url == null || uri == null) {
       setState(() => _failed = true);
       return;
     }
+    _starting = true;
     setState(() => _failed = false);
-    final controller = await _makeController(url, uri);
-    if (!mounted) {
+    final VideoPlayerController controller;
+    try {
+      controller = await _makeController(url, uri);
+    } finally {
+      _starting = false;
+    }
+    if (!mounted || _controller != null) {
+      // Gone, or another start won: this player must never be heard.
       unawaited(controller.dispose());
       return;
     }

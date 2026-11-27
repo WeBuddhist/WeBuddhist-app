@@ -264,9 +264,12 @@ class ChatMessageMediaBubble extends StatelessWidget {
     );
   }
 
+  /// The thumbnail, or a photo's own URL. Never a video's URL: that is the
+  /// mp4, which would be downloaded whole and then fail to decode as an
+  /// image. A video with no poster shows the placeholder instead.
   String? _displayUrl(ChatMessageMedia item) {
     final thumb = item.thumbnailUrl;
     if (thumb != null && thumb.isNotEmpty) return thumb;
-    return item.url;
+    return chatMediaIsVideo(item.mediaType) ? null : item.url;
   }
 }

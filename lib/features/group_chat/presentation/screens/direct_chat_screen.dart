@@ -185,7 +185,7 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
     final upload = _mediaUpload;
     if (upload != null) {
       upload.cancel();
-    } else {
+    } else if (!_sendingMedia) {
       setState(() => _pendingMedia = null);
     }
   }
@@ -260,6 +260,9 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
     var pendingMediaIds = <String>[];
     try {
       final upload = await session.future;
+      // The ids now belong to the message about to be sent; Cancel goes
+      // away rather than deleting media the message carries.
+      if (mounted) setState(() => _mediaUpload = null);
       pendingMediaIds = List<String>.from(upload.mediaIds);
       if (!mounted) {
         await deletePendingChatMedia(repository, pendingMediaIds);
@@ -425,7 +428,10 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
                         ? null
                         : ChatPendingMediaBubble(
                           pending: _pendingMedia!,
-                          onCancel: _cancelMediaUpload,
+                          onCancel:
+                              _mediaUpload != null || _pendingMedia!.failed
+                                  ? _cancelMediaUpload
+                                  : null,
                           onRetry: _retryMediaUpload,
                         ),
               ),
@@ -475,6 +481,7 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
             isSending: _sending,
             onSubmit: _send,
             onAddMediaPressed: _openMediaPicker,
+            addMediaEnabled: !_sendingMedia,
             enabled: canSend,
           ),
         ],

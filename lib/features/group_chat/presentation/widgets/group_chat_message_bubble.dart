@@ -353,7 +353,9 @@ class GroupChatMessageBubble extends StatelessWidget {
 
   Widget _maybeIntrinsic(Widget column) {
     final isReply = message.parent != null && !isDeleted;
-    final hasMedia = message.media.isNotEmpty;
+    // A deleted media message is a one-line tombstone, which needs the
+    // IntrinsicWidth like any other short bubble.
+    final hasMedia = message.media.isNotEmpty && !isDeleted;
     return isReply || hasMedia ? column : IntrinsicWidth(child: column);
   }
 

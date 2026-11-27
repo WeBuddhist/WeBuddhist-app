@@ -83,7 +83,10 @@ class ChatPendingMediaBubble extends StatelessWidget {
   });
 
   final ChatPendingMedia pending;
-  final VoidCallback onCancel;
+
+  /// Null once the upload is done and the message itself is being sent:
+  /// past that point the send can't be taken back, so Cancel is hidden.
+  final VoidCallback? onCancel;
   final VoidCallback onRetry;
 
   /// The sender's avatar beside the bubble; a direct chat leaves it out.
@@ -210,7 +213,10 @@ class ChatPendingMediaBubble extends StatelessWidget {
       ),
     );
     if (!pending.failed) {
-      return Align(alignment: Alignment.centerRight, child: cancel);
+      return Align(
+        alignment: Alignment.centerRight,
+        child: onCancel == null ? const SizedBox(height: 20) : cancel,
+      );
     }
     return Row(
       children: [

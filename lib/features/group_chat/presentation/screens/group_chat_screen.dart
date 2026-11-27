@@ -415,7 +415,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     final upload = _mediaUpload;
     if (upload != null) {
       upload.cancel();
-    } else {
+    } else if (!_sendingMedia) {
       setState(() => _pendingMedia = null);
     }
   }
@@ -490,6 +490,9 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     var pendingMediaIds = <String>[];
     try {
       final upload = await session.future;
+      // The ids now belong to the message about to be sent; Cancel goes
+      // away rather than deleting media the message carries.
+      if (mounted) setState(() => _mediaUpload = null);
       pendingMediaIds = List<String>.from(upload.mediaIds);
       if (!mounted) {
         await deletePendingChatMedia(repository, pendingMediaIds);
@@ -838,6 +841,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                     isSending: _sending,
                     onSubmit: _send,
                     onAddMediaPressed: _openMediaPicker,
+                    addMediaEnabled: !_sendingMedia,
                   ),
                 ],
               )
@@ -861,7 +865,8 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     final user = ref.read(userProvider).user;
     return ChatPendingMediaBubble(
       pending: pending,
-      onCancel: _cancelMediaUpload,
+      onCancel:
+          _mediaUpload != null || pending.failed ? _cancelMediaUpload : null,
       onRetry: _retryMediaUpload,
       avatar: GroupChatAvatar(
         avatarUrl: user?.avatarUrl,

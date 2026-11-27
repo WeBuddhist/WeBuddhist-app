@@ -18,7 +18,7 @@ class GroupChatComposer extends StatelessWidget {
     required this.isSending,
     required this.onSubmit,
     this.enabled = true,
-    this.chatMediaEnabled = true,
+    this.addMediaEnabled = true,
     this.onAddMediaPressed,
   });
 
@@ -29,8 +29,9 @@ class GroupChatComposer extends StatelessWidget {
   final VoidCallback onSubmit;
   final bool enabled;
 
-  /// Whether this room takes photos and videos.
-  final bool chatMediaEnabled;
+  /// False greys out the + while a photo or video message is still sending,
+  /// so a second pick can't be dropped.
+  final bool addMediaEnabled;
   final VoidCallback? onAddMediaPressed;
 
   static const double _buttonSize = 44;
@@ -59,9 +60,9 @@ class GroupChatComposer extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (chatMediaEnabled && onAddMediaPressed != null) ...[
+          if (onAddMediaPressed != null) ...[
             _AddMediaButton(
-              onPressed: enabled ? onAddMediaPressed : null,
+              onPressed: enabled && addMediaEnabled ? onAddMediaPressed : null,
               isDark: isDark,
             ),
             const SizedBox(width: _gap),

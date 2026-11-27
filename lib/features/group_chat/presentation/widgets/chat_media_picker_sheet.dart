@@ -469,8 +469,15 @@ class _GroupChatGalleryPickerState extends State<GroupChatGalleryPicker> {
     if (entity.type == AssetType.video) {
       var problem = _videoProblems[entity.id];
       if (problem == null && !_videoBytes.containsKey(entity.id)) {
-        final file = await entity.file;
-        final bytes = file != null ? await file.length() : 0;
+        // An unreadable file (an iCloud-only clip, say) is never selected:
+        // its size is unknown, and Send would find nothing to upload. Not
+        // remembered either, so a second tap tries again.
+        int? bytes;
+        try {
+          final file = await entity.file;
+          if (file != null) bytes = await file.length();
+        } catch (_) {}
+        if (bytes == null) return;
         _videoBytes[entity.id] = bytes;
         problem = validateChatVideo(
           bytes: bytes,

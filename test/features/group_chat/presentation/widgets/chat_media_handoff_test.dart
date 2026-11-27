@@ -8,6 +8,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_viewer.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_message_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_pending_media_bubble.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_composer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 ChatMessageMedia _photo(String id, {int? width, int? height}) {
@@ -168,6 +169,53 @@ void main() {
       final grid = tester.getRect(find.byType(ChatMediaGrid));
       final caption = tester.getRect(find.text('Hi'));
       expect(grid.right - caption.right, closeTo(8, 0.5));
+    });
+  });
+
+  group('while a media message sends', () {
+    testWidgets('Cancel shows during the upload, not once it is sending', (
+      tester,
+    ) async {
+      Widget bubble({VoidCallback? onCancel}) => _host(
+        ChatPendingMediaBubble(
+          pending: _pending([File('/tmp/a.jpg')]),
+          onCancel: onCancel,
+          onRetry: () {},
+        ),
+      );
+
+      await tester.pumpWidget(bubble(onCancel: () {}));
+      expect(find.text('Cancel'), findsOneWidget);
+
+      await tester.pumpWidget(bubble());
+      expect(find.text('Cancel'), findsNothing);
+    });
+
+    testWidgets('the + is greyed out and does nothing', (tester) async {
+      var opened = 0;
+      final controller = TextEditingController();
+      final focus = FocusNode();
+      addTearDown(controller.dispose);
+      addTearDown(focus.dispose);
+      Widget composer({required bool addMediaEnabled}) => _host(
+        GroupChatComposer(
+          controller: controller,
+          focusNode: focus,
+          hintText: 'Message',
+          isSending: false,
+          onSubmit: () {},
+          addMediaEnabled: addMediaEnabled,
+          onAddMediaPressed: () => opened++,
+        ),
+      );
+
+      await tester.pumpWidget(composer(addMediaEnabled: false));
+      await tester.tap(find.byType(InkWell).first);
+      expect(opened, 0);
+
+      await tester.pumpWidget(composer(addMediaEnabled: true));
+      await tester.tap(find.byType(InkWell).first);
+      expect(opened, 1);
     });
   });
 

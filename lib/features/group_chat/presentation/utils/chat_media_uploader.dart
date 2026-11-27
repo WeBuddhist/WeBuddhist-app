@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_pecha/core/error/failures.dart';
+import 'package:flutter_pecha/features/group_chat/data/models/chat_message_media.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:flutter_pecha/features/group_chat/domain/repositories/group_chat_repository.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
@@ -59,12 +62,30 @@ class ChatMediaUploader {
   final List<String> _uploadedMediaIds = [];
   final Map<String, ChatLocalMediaFiles> _localFiles = {};
 
-  ChatMediaUploadResult _success() => ChatMediaUploadResult(
-    mediaIds: List.unmodifiable(_uploadedMediaIds),
-    localFiles: Map.unmodifiable(_localFiles),
-  );
+  /// Set once the ids are handed to the caller: from then on they belong to
+  /// the message being sent, and [cancel] must not delete them.
+  bool _handedOff = false;
+
+  ChatMediaUploadResult _success() {
+    final result = ChatMediaUploadResult(
+      mediaIds: List.unmodifiable(_uploadedMediaIds),
+      localFiles: Map.unmodifiable(_localFiles),
+    );
+    _handedOff = true;
+    _uploadedMediaIds.clear();
+    return result;
+  }
+
+  /// Keeps the id of a finished upload before anything else, so a cancel that
+  /// landed while the request was in flight still deletes it.
+  ChatMessageMedia? _keep(Either<Failure, ChatMessageMedia> result) {
+    final media = result.fold((_) => null, (m) => m);
+    if (media != null) _uploadedMediaIds.add(media.id);
+    return media;
+  }
 
   void cancel() {
+    if (_handedOff) return;
     _isCancelled = true;
     unawaited(VideoCompress.cancelCompression());
     unawaited(_cleanupPendingUploads());
@@ -152,26 +173,21 @@ class ChatMediaUploader {
           },
         );
 
+        final media = _keep(result);
         if (_isCancelled) {
           await _cleanupPendingUploads();
           return ChatMediaUploadResult(mediaIds: [], isCancelled: true);
         }
-
-        return result.fold(
-          (_) {
-            return ChatMediaUploadResult(mediaIds: [], failed: true);
-          },
-          (media) {
-            _uploadedMediaIds.add(media.id);
-            _localFiles[media.id] = ChatLocalMediaFiles(
-              image: thumbnailFile,
-              video: compressedVideoFile,
-            );
-            _report(1);
-            _onProgress(1, 1);
-            return _success();
-          },
+        if (media == null) {
+          return ChatMediaUploadResult(mediaIds: [], failed: true);
+        }
+        _localFiles[media.id] = ChatLocalMediaFiles(
+          image: thumbnailFile,
+          video: compressedVideoFile,
         );
+        _report(1);
+        _onProgress(1, 1);
+        return _success();
       }
 
       final tmpDir = await getTemporaryDirectory();
@@ -234,27 +250,18 @@ class ChatMediaUploader {
           },
         );
 
+        final media = _keep(result);
         if (_isCancelled) {
           await _cleanupPendingUploads();
           return ChatMediaUploadResult(mediaIds: [], isCancelled: true);
         }
-
-        final stepResult = result.fold(
-          (_) => ChatMediaUploadResult(mediaIds: [], failed: true),
-          (media) {
-            if (_isCancelled) return null;
-            _uploadedMediaIds.add(media.id);
-            _localFiles[media.id] = ChatLocalMediaFiles(image: compressedFile);
-            _report((i + 1) / totalCount);
-            _onProgress(i + 1, totalCount);
-            return null;
-          },
-        );
-
-        if (stepResult != null) {
+        if (media == null) {
           await _cleanupPendingUploads();
-          return stepResult;
+          return ChatMediaUploadResult(mediaIds: [], failed: true);
         }
+        _localFiles[media.id] = ChatLocalMediaFiles(image: compressedFile);
+        _report((i + 1) / totalCount);
+        _onProgress(i + 1, totalCount);
       }
 
       return _success();
