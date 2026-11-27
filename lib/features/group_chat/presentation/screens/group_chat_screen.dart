@@ -21,7 +21,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_s
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
-import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_upload_banner.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_pending_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
 import 'package:flutter_pecha/features/push_notifications/domain/entities/push_message.dart';
 import 'package:flutter_pecha/features/push_notifications/presentation/providers/push_notification_providers.dart';
@@ -31,6 +31,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_cha
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_composer_link_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_error_state.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_header.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_message_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_notification_bell.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_reply_preview.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_selection_header.dart';
@@ -79,8 +80,14 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   bool _redirecting = false;
   bool _sending = false;
   ChatMediaUploader? _mediaUpload;
-  int? _mediaUploadCurrent;
-  int? _mediaUploadTotal;
+
+  /// A media upload is running. Separate from [_sending], which is the text
+  /// composer's: media goes out in its own bubble and leaves the composer free.
+  bool _sendingMedia = false;
+
+  /// The media message on its way out, drawn in the thread until it lands.
+  /// Stays after a failure so it can be retried.
+  ChatPendingMedia? _pendingMedia;
   bool _resolvingRoom = false;
   _RoomState _roomState = _RoomState.resolving;
   String? _roomId;
@@ -402,17 +409,39 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     );
   }
 
+  /// Stops an upload in flight, or drops a failed one.
   void _cancelMediaUpload() {
-    _mediaUpload?.cancel();
+    final upload = _mediaUpload;
+    if (upload != null) {
+      upload.cancel();
+    } else {
+      setState(() => _pendingMedia = null);
+    }
+  }
+
+  void _retryMediaUpload() {
+    final pending = _pendingMedia;
+    if (pending == null || !pending.failed) return;
+    unawaited(
+      _sendMedia(
+        pending.files,
+        pending.mediaType,
+        pending.caption,
+        parent: pending.parent,
+        isRetry: true,
+      ),
+    );
   }
 
   Future<void> _sendMedia(
     List<File> files,
     String mediaType,
-    String caption,
-  ) async {
-    if (_sending || files.isEmpty) return;
-    final parent = _replyingTo;
+    String caption, {
+    ChatMessageDTO? parent,
+    bool isRetry = false,
+  }) async {
+    if (_sendingMedia || files.isEmpty) return;
+    parent = isRetry ? parent : _replyingTo;
     final repository = _providers.read(groupChatRepositoryProvider);
     final session = startChatMediaUpload(
       repository: repository,
@@ -421,17 +450,34 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
       onProgress: (current, total) {
         if (!mounted) return;
         setState(() {
-          _mediaUploadCurrent = current;
-          _mediaUploadTotal = total;
+          _pendingMedia = _pendingMedia?.copyWith(
+            current: current,
+            total: total,
+          );
+        });
+      },
+      onFraction: (fraction) {
+        if (!mounted) return;
+        setState(() {
+          _pendingMedia = _pendingMedia?.copyWith(progress: fraction);
         });
       },
     );
     setState(() {
-      _sending = true;
+      _sendingMedia = true;
       _mediaUpload = session.uploader;
-      _mediaUploadCurrent = 0;
-      _mediaUploadTotal = files.length;
+      _pendingMedia = ChatPendingMedia(
+        files: files,
+        mediaType: mediaType,
+        caption: caption,
+        parent: parent,
+        current: 0,
+        total: files.length,
+      );
+      // The reply now travels with the pending message.
+      if (!isRetry) _replyingTo = null;
     });
+    var failed = false;
     var pendingMediaIds = <String>[];
     try {
       final upload = await session.future;
@@ -442,9 +488,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
       }
       if (upload.isCancelled) return;
       if (upload.failed || pendingMediaIds.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.group_chat_media_upload_failed)),
-        );
+        failed = true;
         return;
       }
 
@@ -474,9 +518,9 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
           pendingMediaIds = [];
           final lostParent =
               chatSendErrorKind(failure) == ChatSendErrorKind.invalidParent;
-          setState(() {
-            if (lostParent) _replyingTo = null;
-          });
+          // A reply to a message that is gone is retried as a plain message.
+          if (lostParent) parent = null;
+          failed = true;
           if (!mounted) return;
           presentChatSendError(context, failure);
         },
@@ -486,7 +530,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
           if (!mounted) return;
           final newRoom = _roomId != message.roomId;
           setState(() {
-            _replyingTo = null;
             _roomId = message.roomId;
             _roomState = _RoomState.joined;
           });
@@ -503,10 +546,20 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
       }
       if (mounted) {
         setState(() {
-          _sending = false;
+          _sendingMedia = false;
           _mediaUpload = null;
-          _mediaUploadCurrent = null;
-          _mediaUploadTotal = null;
+          _pendingMedia =
+              failed
+                  ? ChatPendingMedia(
+                    files: files,
+                    mediaType: mediaType,
+                    caption: caption,
+                    parent: parent,
+                    current: 0,
+                    total: files.length,
+                    failed: true,
+                  )
+                  : null;
         });
       }
     }
@@ -664,6 +717,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                 targetMessageId: widget.targetMessageId,
                 onReply: _startReply,
                 onSelectionChanged: _onSelectionChanged,
+                pending: _pendingBubble(),
               ),
       },
       // A confirmed member may always write: a lookup that failed still
@@ -684,7 +738,8 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
     bool closed = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final user = ref.watch(userProvider).user;
+    // Rebuilt on a profile change, so the pending bubble's avatar follows.
+    ref.watch(userProvider);
     // The selection belongs to the thread State that published it. Any other
     // body means that State is gone — a profile reload swaps in the spinner
     // — and a disposed State can never publish the null that dismisses the
@@ -759,12 +814,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                         currentUserEmail: _viewerEmail,
                       ),
                     ),
-                  if (_mediaUploadTotal != null && _mediaUploadCurrent != null)
-                    ChatMediaUploadBanner(
-                      current: _mediaUploadCurrent!,
-                      total: _mediaUploadTotal!,
-                      onCancel: _cancelMediaUpload,
-                    ),
                   GroupChatComposer(
                     controller: _bodyController,
                     focusNode: _bodyFocusNode,
@@ -772,8 +821,6 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                     isSending: _sending,
                     onSubmit: _send,
                     onAddMediaPressed: _openMediaPicker,
-                    avatarUrl: user?.avatarUrl,
-                    displayName: user?.visibleNameOrNull ?? user?.email,
                   ),
                 ],
               )
@@ -782,6 +829,28 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   }
 
   Widget _buildLoading() {
+    final pending = _pendingBubble();
+    // No room yet means this is the first send: show it at the bottom so
+    // Cancel is still in reach while the room is created.
+    if (pending != null) {
+      return Align(alignment: Alignment.bottomCenter, child: pending);
+    }
     return const GroupChatSkeleton();
+  }
+
+  Widget? _pendingBubble() {
+    final pending = _pendingMedia;
+    if (pending == null) return null;
+    final user = ref.read(userProvider).user;
+    return ChatPendingMediaBubble(
+      pending: pending,
+      onCancel: _cancelMediaUpload,
+      onRetry: _retryMediaUpload,
+      avatar: GroupChatAvatar(
+        avatarUrl: user?.avatarUrl,
+        displayName: user?.visibleNameOrNull ?? user?.email,
+        isDark: Theme.of(context).brightness == Brightness.dark,
+      ),
+    );
   }
 }
