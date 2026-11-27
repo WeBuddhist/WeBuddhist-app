@@ -159,6 +159,8 @@ class AppAssets {
   static const IconData timerAmbientSound = PhosphorIconsRegular.waveform;
   static const IconData speakerSimpleHigh =
       PhosphorIconsRegular.speakerSimpleHigh;
+  static const IconData speakerSimpleX = PhosphorIconsRegular.speakerSimpleX;
+  static const IconData download = PhosphorIconsRegular.downloadSimple;
   static const IconData headphones = PhosphorIconsRegular.headphones;
   static const IconData monitorPlay = PhosphorIconsRegular.monitorPlay;
   static const IconData vibrate = PhosphorIconsRegular.vibrate;
