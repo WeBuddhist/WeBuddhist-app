@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_pecha/core/analytics/analytics_service.dart';
 import 'package:flutter_pecha/core/analytics/composite_analytics_service.dart';
+import 'package:flutter_pecha/core/analytics/no_op_analytics_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _SpyAnalyticsService implements AnalyticsService {
@@ -28,6 +29,15 @@ class _SpyAnalyticsService implements AnalyticsService {
 
   @override
   List<NavigatorObserver> get routeObservers => [NavigatorObserver()];
+}
+
+/// A backend that keeps person profiles, on or off.
+class _ProfileAnalyticsService extends _SpyAnalyticsService
+    implements PersonProfileAnalytics {
+  _ProfileAnalyticsService({required this.acceptsPersonProperties});
+
+  @override
+  final bool acceptsPersonProperties;
 }
 
 class _FailingAnalyticsService extends _SpyAnalyticsService {
@@ -85,5 +95,37 @@ void main() {
     await composite.identify(userId: 'u1');
 
     expect(healthy.calls, ['identify:u1']);
+  });
+
+  group('person properties', () {
+    test('are accepted when a backend that keeps profiles is on', () {
+      final CompositeAnalyticsService composite = CompositeAnalyticsService([
+        _ProfileAnalyticsService(acceptsPersonProperties: true),
+        _SpyAnalyticsService(),
+      ]);
+
+      expect(composite.acceptsPersonProperties, isTrue);
+      expect(composite.canStorePersonProperties, isTrue);
+    });
+
+    test('are not accepted when that backend is off, whatever else runs', () {
+      final CompositeAnalyticsService composite = CompositeAnalyticsService([
+        const NoOpAnalyticsService(),
+        _SpyAnalyticsService(),
+      ]);
+
+      expect(composite.acceptsPersonProperties, isFalse);
+      expect(composite.canStorePersonProperties, isFalse);
+    });
+
+    test('a service that cannot say is taken to accept them', () {
+      final AnalyticsService unknown = _SpyAnalyticsService();
+
+      expect(unknown.canStorePersonProperties, isTrue);
+      expect(
+        const NoOpAnalyticsService().canStorePersonProperties,
+        isFalse,
+      );
+    });
   });
 }

@@ -175,6 +175,7 @@ abstract final class AnalyticsEvents {
   static const String uiLanguageChanged = 'ui_language_changed';
   static const String notificationSettingChanged =
       'notification_setting_changed';
+  static const String traditionsChanged = 'traditions_changed';
 
   // Practice / Routine
   static const String routineSaved = 'routine_saved';
@@ -281,6 +282,7 @@ abstract final class AnalyticsProperties {
   static const String uiLanguage = 'ui_language';
   static const String durationMs = 'duration_ms';
   static const String traditionsCount = 'traditions_count';
+  static const String isFirstReport = 'is_first_report';
 
   // Auth
   static const String isNewUser = 'is_new_user';
@@ -432,6 +434,13 @@ abstract final class AnalyticsProperties {
   static const String contentLanguage = 'content_language';
   static const String firstAppVersion = 'first_app_version';
   static const String onboardingCompletedAt = 'onboarding_completed_at';
+  static const String signedUpAt = 'signed_up_at';
+  static const String backendUserId = 'backend_user_id';
+
+  /// The traditions the account follows, by name (`theravada`, `mahayana`,
+  /// `vajrayana`). Sent inside `$set` only, never as an event property: see
+  /// `TraditionAnalytics`.
+  static const String traditions = 'traditions';
 }
 
 /// PostHog group types; a sangha is a WeBuddhist group.

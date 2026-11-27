@@ -6,10 +6,18 @@ final _logger = AppLogger('CompositeAnalytics');
 
 /// Fans every call out to each backend so features keep depending on one
 /// [AnalyticsService]. A failing backend never blocks the others.
-class CompositeAnalyticsService implements AnalyticsService {
+class CompositeAnalyticsService
+    implements AnalyticsService, PersonProfileAnalytics {
   const CompositeAnalyticsService(this._services);
 
   final List<AnalyticsService> _services;
+
+  /// True when a backend that keeps person profiles is taking them. One that
+  /// keeps none (Clarity) does not count, however healthy it is.
+  @override
+  bool get acceptsPersonProperties => _services
+      .whereType<PersonProfileAnalytics>()
+      .any((backend) => backend.acceptsPersonProperties);
 
   @override
   Future<void> initialize() => _each((service) => service.initialize());

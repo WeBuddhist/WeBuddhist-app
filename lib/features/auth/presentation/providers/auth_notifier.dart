@@ -639,6 +639,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         method: connection,
         source: source,
         isNewUser: onboardingStatus == null ? null : !onboardingStatus,
+        backendUserId: _extractUserIdFromToken(credentials.accessToken),
       );
       await ref.read(userProvider.notifier).initializeUser();
     } catch (e, st) {
