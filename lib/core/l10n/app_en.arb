@@ -199,6 +199,93 @@
   "chant_book_delete_title": "Delete chant book?",
   "chant_book_delete_message": "This chant book will be permanently removed",
   "chant_book_fallback_title": "Chant book",
+  "chant_book_your_books": "Your chant books",
+  "@chant_book_your_books": {
+    "description": "Heading over the user's own chant books in the Add to chant book sheet."
+  },
+  "chant_book_name_hint": "Chant book name",
+  "@chant_book_name_hint": {
+    "description": "Placeholder in the empty name field of the New chant book sheet."
+  },
+  "chant_book_added_to": "Added to {book}",
+  "@chant_book_added_to": {
+    "description": "Toast after a chant is added to an existing chant book; book is its name.",
+    "placeholders": {
+      "book": {
+        "type": "String"
+      }
+    }
+  },
+  "chant_book_view": "View",
+  "@chant_book_view": {
+    "description": "Toast action that opens the chant book the chant was just added to."
+  },
+  "chant_book_only_you": "Only you",
+  "@chant_book_only_you": {
+    "description": "Who can see a personal chant book."
+  },
+  "chant_book_private_note": "Your chant books are private",
+  "@chant_book_private_note": {
+    "description": "Line under Only you on a personal chant book."
+  },
+  "chant_book_yours": "Your chant book",
+  "@chant_book_yours": {
+    "description": "Follows the chant count on the user's own chant book page, e.g. 1 chant · Your chant book."
+  },
+  "chant_book_start": "Start",
+  "@chant_book_start": {
+    "description": "Button on a chant book page that opens its first chant."
+  },
+  "chant_book_read_along": "read along",
+  "@chant_book_read_along": {
+    "description": "Follows the language on a text-only chant row in a chant book, e.g. Tibetan · read along."
+  },
+  "chant_book_remove_chant": "Remove from chant book",
+  "@chant_book_remove_chant": {
+    "description": "Option in a chant row's menu on the user's chant book page."
+  },
+  "chant_book_remove_chant_title": "Remove chant?",
+  "@chant_book_remove_chant_title": {
+    "description": "Title of the dialog confirming a chant's removal from a chant book."
+  },
+  "chant_book_remove_chant_message": "\"{chant}\" will be removed from this chant book",
+  "@chant_book_remove_chant_message": {
+    "description": "Body of the dialog confirming a chant's removal; chant is its title.",
+    "placeholders": {
+      "chant": {
+        "type": "String"
+      }
+    }
+  },
+  "chant_book_remove": "Remove",
+  "@chant_book_remove": {
+    "description": "Confirm button that removes a chant from a chant book."
+  },
+  "chant_book_change_cover": "Change cover",
+  "@chant_book_change_cover": {
+    "description": "Spoken label for the camera button on a chant book's cover."
+  },
+  "chant_book_rename": "Rename chant book",
+  "@chant_book_rename": {
+    "description": "Spoken label for the tappable chant book name that edits it in place."
+  },
+  "chant_book_reorder_chant": "Drag to reorder",
+  "@chant_book_reorder_chant": {
+    "description": "Spoken label for a chant row's drag handle."
+  },
+  "chant_book_chant_options": "Chant options",
+  "@chant_book_chant_options": {
+    "description": "Spoken label for a chant row's three-dot menu on a chant book page."
+  },
+  "chant_book_share_message": "My chant book \"{name}\" on WeBuddhist:",
+  "@chant_book_share_message": {
+    "description": "First line of the text shared for a personal chant book; its chants follow, one per line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "my_recitation_collection_unavailable": "No longer available",
   "my_recitation_collection_chant_count": "{count, plural,\n=0 {0 chants}\n=1 {1 chant}\nother {{count} chants}\n}",
   "@my_recitation_collection_chant_count": {

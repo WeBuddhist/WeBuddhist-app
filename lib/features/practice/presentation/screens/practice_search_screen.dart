@@ -39,6 +39,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:fpdart/fpdart.dart' show Either;
 import 'package:go_router/go_router.dart';
+import 'package:flutter_pecha/features/practice/presentation/utils/chants_page_actions.dart';
 
 /// Search on the Practice tab. There is no one search endpoint, so each
 /// existing search runs on the same query and the results show by
@@ -555,6 +556,10 @@ class _PracticeSearchScreenState extends ConsumerState<PracticeSearchScreen> {
           _trackResultOpened(position, itemType: 'chant', itemId: chant.textId);
           openRecitationReader(context, chant, listLanguage: _language);
         },
+        onMore:
+            chant.textId.trim().isEmpty
+                ? null
+                : () => addChantToChantBook(context, ref, chant),
       ),
     );
   }

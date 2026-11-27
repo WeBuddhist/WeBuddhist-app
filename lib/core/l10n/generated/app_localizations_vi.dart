@@ -422,6 +422,66 @@ class AppLocalizationsVi extends AppLocalizations {
   String get chant_book_fallback_title => 'Tuyển tập bài tụng';
 
   @override
+  String get chant_book_your_books => 'Tuyển tập của bạn';
+
+  @override
+  String get chant_book_name_hint => 'Tên tuyển tập';
+
+  @override
+  String chant_book_added_to(String book) {
+    return 'Đã thêm vào $book';
+  }
+
+  @override
+  String get chant_book_view => 'Xem';
+
+  @override
+  String get chant_book_only_you => 'Chỉ mình bạn';
+
+  @override
+  String get chant_book_private_note => 'Tuyển tập của bạn là riêng tư';
+
+  @override
+  String get chant_book_yours => 'Tuyển tập của bạn';
+
+  @override
+  String get chant_book_start => 'Bắt đầu';
+
+  @override
+  String get chant_book_read_along => 'đọc theo';
+
+  @override
+  String get chant_book_remove_chant => 'Xóa khỏi tuyển tập';
+
+  @override
+  String get chant_book_remove_chant_title => 'Xóa bài tụng?';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" sẽ bị xóa khỏi tuyển tập này';
+  }
+
+  @override
+  String get chant_book_remove => 'Xóa';
+
+  @override
+  String get chant_book_change_cover => 'Đổi ảnh bìa';
+
+  @override
+  String get chant_book_rename => 'Đổi tên tuyển tập';
+
+  @override
+  String get chant_book_reorder_chant => 'Kéo để sắp xếp';
+
+  @override
+  String get chant_book_chant_options => 'Tùy chọn bài tụng';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'Tuyển tập \"$name\" của tôi trên WeBuddhist:';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'Không còn khả dụng';
 
   @override

@@ -422,6 +422,66 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chant_book_fallback_title => 'Chant book';
 
   @override
+  String get chant_book_your_books => 'Your chant books';
+
+  @override
+  String get chant_book_name_hint => 'Chant book name';
+
+  @override
+  String chant_book_added_to(String book) {
+    return 'Added to $book';
+  }
+
+  @override
+  String get chant_book_view => 'View';
+
+  @override
+  String get chant_book_only_you => 'Only you';
+
+  @override
+  String get chant_book_private_note => 'Your chant books are private';
+
+  @override
+  String get chant_book_yours => 'Your chant book';
+
+  @override
+  String get chant_book_start => 'Start';
+
+  @override
+  String get chant_book_read_along => 'read along';
+
+  @override
+  String get chant_book_remove_chant => 'Remove from chant book';
+
+  @override
+  String get chant_book_remove_chant_title => 'Remove chant?';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" will be removed from this chant book';
+  }
+
+  @override
+  String get chant_book_remove => 'Remove';
+
+  @override
+  String get chant_book_change_cover => 'Change cover';
+
+  @override
+  String get chant_book_rename => 'Rename chant book';
+
+  @override
+  String get chant_book_reorder_chant => 'Drag to reorder';
+
+  @override
+  String get chant_book_chant_options => 'Chant options';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'My chant book \"$name\" on WeBuddhist:';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'No longer available';
 
   @override

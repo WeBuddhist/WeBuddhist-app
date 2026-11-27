@@ -26,6 +26,16 @@ final myRecitationCollectionsRepositoryProvider =
       );
     });
 
+/// The user's own chant books, for the Add to chant book sheet.
+final ownChantBooksProvider = FutureProvider.autoDispose<
+  Either<Failure, List<MyRecitationCollectionModel>>
+>((ref) {
+  ref.watch(authProvider);
+  return ref
+      .watch(myRecitationCollectionsRepositoryProvider)
+      .getOwnCollections();
+});
+
 /// Stored detail is the first state, refreshed in the background.
 final myRecitationCollectionDetailProvider = AsyncNotifierProvider.autoDispose
     .family<

@@ -782,6 +782,135 @@ class TolgeeAppLocalizations extends AppLocalizations {
   );
 
   @override
+  String get chant_book_your_books => TolgeeBridge.get(
+    localeName,
+    'chant_book_your_books',
+    () => _fallback.chant_book_your_books,
+  );
+
+  @override
+  String get chant_book_name_hint => TolgeeBridge.get(
+    localeName,
+    'chant_book_name_hint',
+    () => _fallback.chant_book_name_hint,
+  );
+
+  @override
+  String chant_book_added_to(String book) => TolgeeBridge.format(
+    localeName,
+    'chant_book_added_to',
+    <String, Object>{'book': book},
+    () => _fallback.chant_book_added_to(book),
+  );
+
+  @override
+  String get chant_book_view => TolgeeBridge.get(
+    localeName,
+    'chant_book_view',
+    () => _fallback.chant_book_view,
+  );
+
+  @override
+  String get chant_book_only_you => TolgeeBridge.get(
+    localeName,
+    'chant_book_only_you',
+    () => _fallback.chant_book_only_you,
+  );
+
+  @override
+  String get chant_book_private_note => TolgeeBridge.get(
+    localeName,
+    'chant_book_private_note',
+    () => _fallback.chant_book_private_note,
+  );
+
+  @override
+  String get chant_book_yours => TolgeeBridge.get(
+    localeName,
+    'chant_book_yours',
+    () => _fallback.chant_book_yours,
+  );
+
+  @override
+  String get chant_book_start => TolgeeBridge.get(
+    localeName,
+    'chant_book_start',
+    () => _fallback.chant_book_start,
+  );
+
+  @override
+  String get chant_book_read_along => TolgeeBridge.get(
+    localeName,
+    'chant_book_read_along',
+    () => _fallback.chant_book_read_along,
+  );
+
+  @override
+  String get chant_book_remove_chant => TolgeeBridge.get(
+    localeName,
+    'chant_book_remove_chant',
+    () => _fallback.chant_book_remove_chant,
+  );
+
+  @override
+  String get chant_book_remove_chant_title => TolgeeBridge.get(
+    localeName,
+    'chant_book_remove_chant_title',
+    () => _fallback.chant_book_remove_chant_title,
+  );
+
+  @override
+  String chant_book_remove_chant_message(String chant) => TolgeeBridge.format(
+    localeName,
+    'chant_book_remove_chant_message',
+    <String, Object>{'chant': chant},
+    () => _fallback.chant_book_remove_chant_message(chant),
+  );
+
+  @override
+  String get chant_book_remove => TolgeeBridge.get(
+    localeName,
+    'chant_book_remove',
+    () => _fallback.chant_book_remove,
+  );
+
+  @override
+  String get chant_book_change_cover => TolgeeBridge.get(
+    localeName,
+    'chant_book_change_cover',
+    () => _fallback.chant_book_change_cover,
+  );
+
+  @override
+  String get chant_book_rename => TolgeeBridge.get(
+    localeName,
+    'chant_book_rename',
+    () => _fallback.chant_book_rename,
+  );
+
+  @override
+  String get chant_book_reorder_chant => TolgeeBridge.get(
+    localeName,
+    'chant_book_reorder_chant',
+    () => _fallback.chant_book_reorder_chant,
+  );
+
+  @override
+  String get chant_book_chant_options => TolgeeBridge.get(
+    localeName,
+    'chant_book_chant_options',
+    () => _fallback.chant_book_chant_options,
+  );
+
+  @override
+  String chant_book_share_message(String name) => TolgeeBridge.format(
+    localeName,
+    'chant_book_share_message',
+    <String, Object>{'name': name},
+    () => _fallback.chant_book_share_message(name),
+  );
+
+  @override
   String get my_recitation_collection_unavailable => TolgeeBridge.get(
     localeName,
     'my_recitation_collection_unavailable',
@@ -4041,12 +4170,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String group_removed_message(String group, String duration) =>
-      TolgeeBridge.format(
-        localeName,
-        'group_removed_message',
-        <String, Object>{'group': group, 'duration': duration},
-        () => _fallback.group_removed_message(group, duration),
-      );
+      TolgeeBridge.format(localeName, 'group_removed_message', <String, Object>{
+        'group': group,
+        'duration': duration,
+      }, () => _fallback.group_removed_message(group, duration));
 
   @override
   String group_removed_message_no_date(String group) => TolgeeBridge.format(
@@ -5729,12 +5856,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String event_replay_session(String day, String session) =>
-      TolgeeBridge.format(
-        localeName,
-        'event_replay_session',
-        <String, Object>{'day': day, 'session': session},
-        () => _fallback.event_replay_session(day, session),
-      );
+      TolgeeBridge.format(localeName, 'event_replay_session', <String, Object>{
+        'day': day,
+        'session': session,
+      }, () => _fallback.event_replay_session(day, session));
 
   @override
   String get event_replay_recording => TolgeeBridge.get(
@@ -8528,12 +8653,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_round_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_round_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_round_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_round_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_round_position(current, total));
 
   @override
   String reader_round_number(String current) => TolgeeBridge.format(
@@ -8545,12 +8668,10 @@ class TolgeeAppLocalizations extends AppLocalizations {
 
   @override
   String reader_count_position(String current, String total) =>
-      TolgeeBridge.format(
-        localeName,
-        'reader_count_position',
-        <String, Object>{'current': current, 'total': total},
-        () => _fallback.reader_count_position(current, total),
-      );
+      TolgeeBridge.format(localeName, 'reader_count_position', <String, Object>{
+        'current': current,
+        'total': total,
+      }, () => _fallback.reader_count_position(current, total));
 
   @override
   String reader_show_script_in(String language) => TolgeeBridge.format(

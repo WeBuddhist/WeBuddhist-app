@@ -423,6 +423,66 @@ class AppLocalizationsHi extends AppLocalizations {
   String get chant_book_fallback_title => 'जप पुस्तक';
 
   @override
+  String get chant_book_your_books => 'आपकी जप पुस्तकें';
+
+  @override
+  String get chant_book_name_hint => 'जप पुस्तक का नाम';
+
+  @override
+  String chant_book_added_to(String book) {
+    return '$book में जोड़ा गया';
+  }
+
+  @override
+  String get chant_book_view => 'देखें';
+
+  @override
+  String get chant_book_only_you => 'केवल आप';
+
+  @override
+  String get chant_book_private_note => 'आपकी जप पुस्तकें निजी हैं';
+
+  @override
+  String get chant_book_yours => 'आपकी जप पुस्तक';
+
+  @override
+  String get chant_book_start => 'शुरू करें';
+
+  @override
+  String get chant_book_read_along => 'साथ में पढ़ें';
+
+  @override
+  String get chant_book_remove_chant => 'जप पुस्तक से हटाएँ';
+
+  @override
+  String get chant_book_remove_chant_title => 'जप हटाएँ?';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" इस जप पुस्तक से हटा दिया जाएगा';
+  }
+
+  @override
+  String get chant_book_remove => 'हटाएँ';
+
+  @override
+  String get chant_book_change_cover => 'कवर बदलें';
+
+  @override
+  String get chant_book_rename => 'जप पुस्तक का नाम बदलें';
+
+  @override
+  String get chant_book_reorder_chant => 'क्रम बदलने के लिए खींचें';
+
+  @override
+  String get chant_book_chant_options => 'जप विकल्प';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'WeBuddhist पर मेरी जप पुस्तक \"$name\":';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'अब उपलब्ध नहीं';
 
   @override
