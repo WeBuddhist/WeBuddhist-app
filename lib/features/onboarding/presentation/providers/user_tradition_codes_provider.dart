@@ -173,7 +173,8 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
 
   /// Tells analytics the account's codes when they differ from the last ones
   /// this device reported for it, so the person's profile is updated on a
-  /// real change and not on every launch. Never throws.
+  /// real change and not on every launch. Codes that could not be reported
+  /// are not noted, and go out in a later session. Never throws.
   Future<void> _reportIfChanged(
     ScreenCacheStore store,
     List<String> codes,
@@ -187,15 +188,41 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
       final json = jsonEncode(codes);
       final previous = store.read(key);
       if (previous == json) return;
+      // Analytics is off in this build or did not start. Nothing is noted as
+      // reported, so a later session with analytics on sends the codes.
+      if (!analytics.canReport) return;
       // Nothing saved means nothing to compare with next time, and the same
       // report would go out every session.
       if (!await store.save(key, json)) return;
+      // A sign-out or a tradition edit during the save: these codes belong
+      // to an identity or a selection that is gone. Undo the note so the
+      // lookup that replaced this one reports instead.
+      if (epoch != _epoch) {
+        await _forgetReport(store, key, written: json, previous: previous);
+        return;
+      }
       analytics.traditionsChanged(
         codes: codes,
         isFirstReport: previous == null,
       );
     } catch (e, stackTrace) {
       _logger.warning('Reporting tradition codes failed', e, stackTrace);
+    }
+  }
+
+  /// Puts [previous] back as the last reported codes, unless a newer report
+  /// has already replaced [written].
+  static Future<void> _forgetReport(
+    ScreenCacheStore store,
+    String key, {
+    required String written,
+    required String? previous,
+  }) async {
+    if (store.read(key) != written) return;
+    if (previous == null) {
+      await store.remove(key);
+    } else {
+      await store.save(key, previous);
     }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_pecha/core/analytics/analytics_events.dart';
+import 'package:flutter_pecha/core/analytics/no_op_analytics_service.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/utils/tradition_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -53,5 +54,13 @@ void main() {
     expect(eventProperties.keys, isNot(contains('traditions')));
     expect(eventProperties.values, isNot(contains('chinese')));
     expect(eventProperties.values, isNot(contains('mahayana')));
+  });
+
+  test('a report can be made unless analytics says it is off', () {
+    expect(analytics.canReport, isTrue);
+    expect(
+      const TraditionAnalytics(NoOpAnalyticsService()).canReport,
+      isFalse,
+    );
   });
 }

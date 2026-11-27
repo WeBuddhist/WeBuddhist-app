@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_pecha/core/analytics/analytics_events.dart';
 import 'package:flutter_pecha/core/analytics/analytics_providers.dart';
+import 'package:flutter_pecha/core/analytics/analytics_service.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_providers.dart';
 import 'package:flutter_pecha/core/di/core_providers.dart';
 import 'package:flutter_pecha/core/network/network_info.dart';
@@ -66,6 +67,26 @@ class _FakeNetwork implements NetworkInfo {
   Stream<bool> get onConnectivityChanged => controller.stream;
 }
 
+/// Analytics that can be switched off, as in a build with no PostHog key.
+class _SwitchableAnalytics extends RecordingAnalyticsService
+    implements PersonProfileAnalytics {
+  @override
+  bool acceptsPersonProperties = true;
+}
+
+/// Holds the save of one key until released, so the provider can rebuild
+/// while that save is in flight.
+class _GatedStore extends FakeScreenCacheStore {
+  String? gatedKey;
+  Completer<void>? gate;
+
+  @override
+  Future<bool> save(String key, String json) async {
+    if (key == gatedKey) await gate?.future;
+    return super.save(key, json);
+  }
+}
+
 const _signedIn = AuthState(isLoggedIn: true);
 const _guest = AuthState(isLoggedIn: false, isGuest: true);
 const _booting = AuthState(isLoggedIn: false, isLoading: true);
@@ -75,7 +96,7 @@ void main() {
   late _FakeRemote remote;
   late _FakeAuth auth;
   late _FakeNetwork network;
-  late RecordingAnalyticsService analytics;
+  late _SwitchableAnalytics analytics;
   late ProviderContainer container;
   late List<AsyncValue<List<String>>> states;
 
@@ -104,7 +125,7 @@ void main() {
     store = FakeScreenCacheStore();
     remote = _FakeRemote();
     network = _FakeNetwork();
-    analytics = RecordingAnalyticsService();
+    analytics = _SwitchableAnalytics();
   });
 
   String key() => UserTraditionCodesNotifier.storageKey(store);
@@ -366,5 +387,79 @@ void main() {
         'traditions': ['mahayana'],
       });
     });
+
+    test('with analytics off nothing is noted, so a later session reports', () async {
+      analytics.acceptsPersonProperties = false;
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      expect(analytics.events, isEmpty);
+      expect(
+        store.entries[UserTraditionCodesNotifier.reportedKey(store)],
+        isNull,
+      );
+
+      // A later session, in a build with analytics on.
+      analytics.acceptsPersonProperties = true;
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      expect(analytics.events.single.properties['is_first_report'], isTrue);
+    });
+
+    test('a sign-out while the report is being saved sends nothing', () async {
+      final gated = _GatedStore();
+      store = gated;
+      final reportedKey = UserTraditionCodesNotifier.reportedKey(gated);
+      gated
+        ..gatedKey = reportedKey
+        ..gate = Completer<void>();
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      // The report is waiting on its save when the account signs out.
+      auth.set(const AuthState(isLoggedIn: false));
+      await pumpEventQueue();
+      gated.gate!.complete();
+      await pumpEventQueue();
+
+      expect(analytics.events, isEmpty);
+      expect(store.entries[reportedKey], isNull);
+
+      // Nothing was noted as reported, so signing back in reports it.
+      gated.gate = null;
+      auth.set(_signedIn);
+      await pumpEventQueue();
+
+      expect(analytics.events.single.properties[r'$set'], {
+        'traditions': ['vajrayana'],
+      });
+    });
+
+    test(
+      'a tradition edit while the report is being saved sends only the edit',
+      () async {
+        final gated = _GatedStore();
+        store = gated;
+        final reportedKey = UserTraditionCodesNotifier.reportedKey(gated);
+        gated
+          ..gatedKey = reportedKey
+          ..gate = Completer<void>();
+        container = build(_signedIn);
+        await pumpEventQueue();
+
+        // The first report is waiting on its save when the user edits.
+        remote.selected = const ['chinese'];
+        container.invalidate(userTraditionCodesProvider);
+        await pumpEventQueue();
+        gated.gate!.complete();
+        await pumpEventQueue();
+
+        expect(analytics.events.single.properties[r'$set'], {
+          'traditions': ['mahayana'],
+        });
+        expect(jsonDecode(store.entries[reportedKey]!), ['chinese']);
+      },
+    );
   });
 }

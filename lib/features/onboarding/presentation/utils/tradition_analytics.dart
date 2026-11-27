@@ -30,6 +30,11 @@ class TraditionAnalytics {
     return {for (final code in codes) _names[code] ?? code}.toList()..sort();
   }
 
+  /// False while analytics is off in this build or did not start, so a
+  /// report made now would be lost. The caller then leaves the traditions
+  /// unreported and tries again in a later session.
+  bool get canReport => _analytics.canStorePersonProperties;
+
   /// The account's traditions, as the server has them, differ from what this
   /// device last reported. [codes] are the server's codes. [isFirstReport] is
   /// true when nothing was reported for the account before, which tells the

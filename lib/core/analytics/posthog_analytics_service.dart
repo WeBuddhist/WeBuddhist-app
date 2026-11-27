@@ -28,7 +28,8 @@ const List<String> _redactedKeys = [
 ];
 
 /// PostHog-backed analytics. Initialized manually after dotenv is loaded.
-class PostHogAnalyticsService implements AnalyticsService {
+class PostHogAnalyticsService
+    implements AnalyticsService, PersonProfileAnalytics {
   PostHogAnalyticsService._();
 
   static PostHogAnalyticsService? _instance;
@@ -36,6 +37,11 @@ class PostHogAnalyticsService implements AnalyticsService {
       _instance ??= PostHogAnalyticsService._();
 
   bool _isInitialized = false;
+
+  /// False until [initialize] has set the SDK up; every call before that is
+  /// dropped.
+  @override
+  bool get acceptsPersonProperties => _isInitialized;
 
   static AnalyticsService create() {
     if (!Env.posthogEnabled) {
