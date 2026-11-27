@@ -106,6 +106,7 @@ class _FakeRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendDirectMessage(
     String userId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
   }) async {
     sent.add((userId: userId, body: body, parentMessageId: parentMessageId));

@@ -82,6 +82,10 @@ const _eventScope = PrayerRoomScope.event('e1');
 const _groupScope = PrayerRoomScope.group('g1');
 
 class _FakeGroupChatRepository implements GroupChatRepository {
+  // Media upload and delete are not exercised here.
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
   _FakeGroupChatRepository({this.history = const []});
 
   List<ChatMessageDTO> history;
@@ -207,6 +211,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendEventMessage(
     String eventId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
     String? messageType,
     String? intention,
@@ -221,6 +226,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendDirectMessage(
     String userId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
   }) async => const Left(NotFoundFailure('not used'));
 
@@ -311,6 +317,7 @@ class _FakeGroupChatRepository implements GroupChatRepository {
   Future<Either<Failure, ChatMessageDTO>> sendGroupMessage(
     String groupId, {
     required String body,
+    List<String>? mediaIds,
     String? parentMessageId,
     String? messageType,
     String? intention,
