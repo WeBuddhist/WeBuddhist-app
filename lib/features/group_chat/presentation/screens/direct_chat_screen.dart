@@ -16,6 +16,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/providers/direct_
 import 'package:flutter_pecha/features/group_chat/presentation/providers/group_chat_providers.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_pending_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
@@ -212,6 +213,13 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
   }) async {
     if (_sendingMedia || files.isEmpty) return;
     parent = isRetry ? parent : _replyingTo;
+    // Held while the photo's shape is read, so a double tap can't send twice.
+    _sendingMedia = true;
+    final singleAspect =
+        mediaType != 'VIDEO' && files.length == 1
+            ? await resolveLocalImageAspect(files.first)
+            : null;
+    if (!mounted) return;
     final repository = _providers.read(groupChatRepositoryProvider);
     final session = startChatMediaUpload(
       repository: repository,
@@ -243,6 +251,7 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
         parent: parent,
         current: 0,
         total: files.length,
+        singleAspectRatio: singleAspect,
       );
       // The reply now travels with the pending message.
       if (!isRetry) _replyingTo = null;
@@ -261,6 +270,7 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
         failed = true;
         return;
       }
+      ChatLocalMediaCache.instance.registerAll(upload.localFiles);
 
       final result = await _notifier.send(
         caption,
@@ -291,8 +301,9 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
           if (!mounted) return;
           presentChatSendError(context, failure);
         },
-        (_) async {
+        (message) async {
           pendingMediaIds = [];
+          ChatLocalMediaCache.instance.seedDiskCaches(message.media);
         },
       );
     } finally {
@@ -313,6 +324,7 @@ class _DirectChatScreenState extends ConsumerState<DirectChatScreen> {
                     current: 0,
                     total: files.length,
                     failed: true,
+                    singleAspectRatio: singleAspect,
                   )
                   : null;
         });

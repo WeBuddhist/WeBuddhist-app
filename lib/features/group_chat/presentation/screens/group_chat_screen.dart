@@ -20,6 +20,7 @@ import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_compos
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_send.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_uploader.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_pending_media_bubble.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_rooms_list.dart';
@@ -442,6 +443,13 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
   }) async {
     if (_sendingMedia || files.isEmpty) return;
     parent = isRetry ? parent : _replyingTo;
+    // Held while the photo's shape is read, so a double tap can't send twice.
+    _sendingMedia = true;
+    final singleAspect =
+        mediaType != 'VIDEO' && files.length == 1
+            ? await resolveLocalImageAspect(files.first)
+            : null;
+    if (!mounted) return;
     final repository = _providers.read(groupChatRepositoryProvider);
     final session = startChatMediaUpload(
       repository: repository,
@@ -473,6 +481,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
         parent: parent,
         current: 0,
         total: files.length,
+        singleAspectRatio: singleAspect,
       );
       // The reply now travels with the pending message.
       if (!isRetry) _replyingTo = null;
@@ -491,6 +500,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
         failed = true;
         return;
       }
+      ChatLocalMediaCache.instance.registerAll(upload.localFiles);
 
       final analytics = _providers.read(groupChatAnalyticsProvider);
       final result = await repository.sendGroupMessage(
@@ -529,9 +539,15 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
           await _persistRoomId(message.roomId);
           if (!mounted) return;
           final newRoom = _roomId != message.roomId;
+          ChatLocalMediaCache.instance.seedDiskCaches(message.media);
+          // Pending goes in the same frame the sent message arrives, so the
+          // two are never on screen together.
           setState(() {
             _roomId = message.roomId;
             _roomState = _RoomState.joined;
+            _sendingMedia = false;
+            _mediaUpload = null;
+            _pendingMedia = null;
           });
           _providers
               .read(groupChatThreadProvider(message.roomId).notifier)
@@ -558,6 +574,7 @@ class _GroupChatScreenState extends ConsumerState<GroupChatScreen>
                     current: 0,
                     total: files.length,
                     failed: true,
+                    singleAspectRatio: singleAspect,
                   )
                   : null;
         });

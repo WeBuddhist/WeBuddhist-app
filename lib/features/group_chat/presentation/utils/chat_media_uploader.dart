@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter_pecha/features/group_chat/domain/repositories/group_chat_repository.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_media_cleanup.dart';
 
 class ChatMediaUploadResult {
@@ -12,10 +13,15 @@ class ChatMediaUploadResult {
   final bool isCancelled;
   final bool failed;
 
+  /// The compressed files sent for each id in [mediaIds], so the sent
+  /// message can paint from them instead of downloading its own media.
+  final Map<String, ChatLocalMediaFiles> localFiles;
+
   ChatMediaUploadResult({
     required this.mediaIds,
     this.isCancelled = false,
     this.failed = false,
+    this.localFiles = const {},
   });
 }
 
@@ -51,6 +57,12 @@ class ChatMediaUploader {
 
   bool _isCancelled = false;
   final List<String> _uploadedMediaIds = [];
+  final Map<String, ChatLocalMediaFiles> _localFiles = {};
+
+  ChatMediaUploadResult _success() => ChatMediaUploadResult(
+    mediaIds: List.unmodifiable(_uploadedMediaIds),
+    localFiles: Map.unmodifiable(_localFiles),
+  );
 
   void cancel() {
     _isCancelled = true;
@@ -151,9 +163,13 @@ class ChatMediaUploader {
           },
           (media) {
             _uploadedMediaIds.add(media.id);
+            _localFiles[media.id] = ChatLocalMediaFiles(
+              image: thumbnailFile,
+              video: compressedVideoFile,
+            );
             _report(1);
             _onProgress(1, 1);
-            return ChatMediaUploadResult(mediaIds: List.unmodifiable(_uploadedMediaIds));
+            return _success();
           },
         );
       }
@@ -228,6 +244,7 @@ class ChatMediaUploader {
           (media) {
             if (_isCancelled) return null;
             _uploadedMediaIds.add(media.id);
+            _localFiles[media.id] = ChatLocalMediaFiles(image: compressedFile);
             _report((i + 1) / totalCount);
             _onProgress(i + 1, totalCount);
             return null;
@@ -240,7 +257,7 @@ class ChatMediaUploader {
         }
       }
 
-      return ChatMediaUploadResult(mediaIds: List.unmodifiable(_uploadedMediaIds));
+      return _success();
     } catch (_) {
       await _cleanupPendingUploads();
       return ChatMediaUploadResult(mediaIds: [], failed: true);

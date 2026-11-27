@@ -305,10 +305,29 @@ class GroupChatMessageBubble extends StatelessWidget {
                 ChatMessageMediaBubble(
                   media: message.media,
                   isDark: isDark,
+                  messageId: message.id,
                   onTapMedia: onOpenMedia,
                 ),
               if (message.body.trim().isNotEmpty)
-                _body(context, textColor, isDark),
+                isMedia
+                    ? Padding(
+                      padding: chatMediaCaptionPadding,
+                      // Your own caption hugs the right edge, under the
+                      // time, as in the "Sent" media frames.
+                      child:
+                          isSelf
+                              ? Align(
+                                alignment: AlignmentDirectional.centerEnd,
+                                child: _body(
+                                  context,
+                                  textColor,
+                                  isDark,
+                                  textAlign: TextAlign.end,
+                                ),
+                              )
+                              : _body(context, textColor, isDark),
+                    )
+                    : _body(context, textColor, isDark),
               if (previewUrl != null)
                 GroupChatLinkPreviewCard(url: previewUrl, onOpen: _openUrl),
             ],
@@ -316,10 +335,14 @@ class GroupChatMessageBubble extends StatelessWidget {
             // `_tombstone`), so the bubble stays one line tall.
             if (!isDeleted) ...[
               const SizedBox(height: 2),
-              Text(
-                timeLabel(context, message),
-                textAlign: TextAlign.right,
-                style: _timeStyle(isDark),
+              Padding(
+                // Lines up with the pending bubble's Cancel row.
+                padding: EdgeInsets.symmetric(horizontal: isMedia ? 4 : 0),
+                child: Text(
+                  timeLabel(context, message),
+                  textAlign: TextAlign.right,
+                  style: _timeStyle(isDark),
+                ),
               ),
             ],
           ],
@@ -384,12 +407,18 @@ class GroupChatMessageBubble extends StatelessWidget {
 
   /// A message with no markers stays a single [Text]; only one that needs
   /// block layout pays for it.
-  Widget _body(BuildContext context, Color textColor, bool isDark) {
+  Widget _body(
+    BuildContext context,
+    Color textColor,
+    bool isDark, {
+    TextAlign? textAlign,
+  }) {
     if (!chatBodyNeedsBlocks(message.body)) {
       return ChatFormattedText(
         body: message.body,
         textColor: textColor,
         isDark: isDark,
+        textAlign: textAlign,
       );
     }
 
@@ -505,17 +534,25 @@ class GroupChatMessageBubble extends StatelessWidget {
 ///
 /// Stateful so the [TapGestureRecognizer]s it creates are disposed with the
 /// row rather than leaking on every rebuild.
+/// Caption inset under photos and video, shared by the sent and the pending
+/// bubble so a caption doesn't move when its upload finishes.
+const chatMediaCaptionPadding = EdgeInsets.fromLTRB(8, 4, 8, 0);
+
 class ChatFormattedText extends StatefulWidget {
   const ChatFormattedText({
     super.key,
     required this.body,
     required this.textColor,
     required this.isDark,
+    this.textAlign,
   });
 
   final String body;
   final Color textColor;
   final bool isDark;
+
+  /// Null keeps the default, which starts each line at the leading edge.
+  final TextAlign? textAlign;
 
   @override
   State<ChatFormattedText> createState() => _ChatFormattedTextState();
@@ -544,6 +581,7 @@ class _ChatFormattedTextState extends State<ChatFormattedText> {
     if (links.isEmpty && !chatTextHasInlineMarkers(widget.body)) {
       return Text(
         widget.body,
+        textAlign: widget.textAlign,
         strutStyle: context.tibetanStrutStyle(15),
         style: baseStyle,
       );
@@ -578,6 +616,7 @@ class _ChatFormattedTextState extends State<ChatFormattedText> {
 
     return Text.rich(
       TextSpan(style: baseStyle, children: spans),
+      textAlign: widget.textAlign,
       strutStyle: context.tibetanStrutStyle(15),
     );
   }

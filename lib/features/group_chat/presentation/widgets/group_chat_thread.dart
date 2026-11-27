@@ -1230,6 +1230,7 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
         sentAt: message.createdAtLocal,
         caption: shown.body,
         initialIndex: index,
+        messageId: message.id,
       ),
     );
   }

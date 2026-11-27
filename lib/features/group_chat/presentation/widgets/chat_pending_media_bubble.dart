@@ -5,8 +5,11 @@ import 'package:flutter_pecha/core/constants/app_assets.dart';
 import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_local_media_cache.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_badges.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_picker_sheet.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_message_media_bubble.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_message_bubble.dart';
 import 'package:video_player/video_player.dart';
 
 /// An outgoing media message that has not reached the server yet: what was
@@ -22,6 +25,7 @@ class ChatPendingMedia {
     required this.total,
     this.progress = 0,
     this.failed = false,
+    this.singleAspectRatio,
   });
 
   final List<File> files;
@@ -38,6 +42,10 @@ class ChatPendingMedia {
   /// Overall upload progress, 0 to 1, drawn as the ring.
   final double progress;
   final bool failed;
+
+  /// Width over height of a lone photo, read before the bubble is shown so
+  /// it is drawn at the shape the sent message will have.
+  final double? singleAspectRatio;
 
   bool get isVideo => mediaType == 'VIDEO';
 
@@ -56,6 +64,7 @@ class ChatPendingMedia {
       total: total ?? this.total,
       progress: progress ?? this.progress,
       failed: failed ?? this.failed,
+      singleAspectRatio: singleAspectRatio,
     );
   }
 }
@@ -81,8 +90,6 @@ class ChatPendingMediaBubble extends StatelessWidget {
   final Widget? avatar;
 
   static const _width = 240.0;
-  static const _gap = 3.0;
-  static const _tileRadius = BorderRadius.all(Radius.circular(10));
 
   @override
   Widget build(BuildContext context) {
@@ -114,11 +121,16 @@ class ChatPendingMediaBubble extends StatelessWidget {
           ),
           if (caption.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(4, 6, 4, 0),
-              child: Text(
-                caption,
-                textAlign: TextAlign.right,
-                style: TextStyle(fontSize: 16, color: textColor),
+              padding: chatMediaCaptionPadding,
+              // Against the right edge, like the sent bubble it becomes.
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: ChatFormattedText(
+                  body: caption,
+                  textColor: textColor,
+                  isDark: isDark,
+                  textAlign: TextAlign.end,
+                ),
               ),
             ),
           const SizedBox(height: 4),
@@ -222,100 +234,47 @@ class ChatPendingMediaBubble extends StatelessWidget {
     );
   }
 
-  /// Same shapes as the sent bubble: one, two side by side, or a hero over
-  /// two squares; a fourth onward is folded into "+N".
+  /// Same shapes as the sent bubble, from the same [ChatMediaGrid].
   Widget _collage(bool isDark) {
-    const inner = _width - 8;
     final files = pending.files;
-    if (pending.isVideo || files.length == 1) {
-      return SizedBox(
-        width: inner,
-        height: 160,
-        child: _tile(files.first, isDark, isVideo: pending.isVideo),
-      );
-    }
-    if (files.length == 2) {
-      return SizedBox(
-        height: (inner - _gap) / 2,
-        child: Row(
-          children: [
-            Expanded(child: _tile(files[0], isDark)),
-            const SizedBox(width: _gap),
-            Expanded(child: _tile(files[1], isDark)),
-          ],
-        ),
-      );
-    }
-    final hidden = files.length - 3;
-    const square = (inner - _gap) / 2;
-    return Column(
-      children: [
-        SizedBox(height: 160, width: inner, child: _tile(files[0], isDark)),
-        const SizedBox(height: _gap),
-        SizedBox(
-          height: square,
-          child: Row(
-            children: [
-              Expanded(child: _tile(files[1], isDark)),
-              const SizedBox(width: _gap),
-              Expanded(
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _tile(files[2], isDark),
-                    if (hidden > 0)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          borderRadius: _tileRadius,
-                        ),
-                        child: Center(
-                          child: Text(
-                            '+$hidden',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return ChatMediaGrid(
+      count: pending.isVideo ? 1 : files.length,
+      singleAspectRatio:
+          pending.isVideo
+              ? ChatMediaGrid.heroRatio
+              : pending.singleAspectRatio ?? chatMediaSingleAspect(),
+      tileBuilder:
+          (index, _) => _tile(files[index], isDark, isVideo: pending.isVideo),
     );
   }
 
   Widget _tile(File file, bool isDark, {bool isVideo = false}) {
-    const skeleton = ChatMediaSkeleton();
-    final Widget tile =
-        isVideo
-            ? _LocalVideoFrame(
-              key: ValueKey(file.path),
-              file: file,
-              placeholder: skeleton,
-            )
-            : Image.file(
-              file,
-              fit: BoxFit.cover,
-              cacheWidth: 480,
-              frameBuilder:
-                  (_, child, frame, sync) =>
-                      frame == null && !sync ? skeleton : child,
-              errorBuilder:
-                  (_, _, _) => ColoredBox(
-                    color: isDark ? AppColors.grey800 : AppColors.grey300,
-                    child: Icon(
-                      AppAssets.image,
-                      color: isDark ? AppColors.grey500 : AppColors.grey600,
-                    ),
-                  ),
-            );
-    return ClipRRect(borderRadius: _tileRadius, child: tile);
+    final fill = ColoredBox(
+      color: isDark ? AppColors.grey800 : AppColors.grey100,
+    );
+    if (isVideo) {
+      return _LocalVideoFrame(
+        key: ValueKey(file.path),
+        file: file,
+        placeholder: fill,
+      );
+    }
+    // Same provider and decode width as the sent tile's local placeholder,
+    // so the hand-off reuses this decode.
+    return Image(
+      image: chatLocalTileProvider(file),
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      frameBuilder: (_, child, frame, sync) => frame == null && !sync ? fill : child,
+      errorBuilder:
+          (_, _, _) => ColoredBox(
+            color: isDark ? AppColors.grey800 : AppColors.grey300,
+            child: Icon(
+              AppAssets.image,
+              color: isDark ? AppColors.grey500 : AppColors.grey600,
+            ),
+          ),
+    );
   }
 }
 

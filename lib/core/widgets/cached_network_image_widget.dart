@@ -94,6 +94,10 @@ class CachedNetworkImageWidget extends StatelessWidget {
   final Duration? fadeInDuration;
   final VoidCallback? onImageLoaded;
 
+  /// Drawn with download progress while a network image loads. Takes the
+  /// place of [placeholder] for network URLs when set.
+  final ProgressIndicatorBuilder? progressIndicatorBuilder;
+
   /// Explicit decode width in physical pixels. When null and [width] is set,
   /// it is auto-derived from `width * devicePixelRatio`.
   final int? memCacheWidth;
@@ -116,6 +120,7 @@ class CachedNetworkImageWidget extends StatelessWidget {
     this.placeholderFadeInDuration,
     this.fadeInDuration,
     this.onImageLoaded,
+    this.progressIndicatorBuilder,
     this.memCacheWidth,
     this.memCacheHeight,
   });
@@ -215,8 +220,12 @@ class CachedNetworkImageWidget extends StatelessWidget {
       // A re-signed or replaced URL keeps the old image until the new one is
       // decoded, like stale-while-revalidate for data.
       useOldImageOnUrlChange: true,
+      // The package allows one of the two builders, never both.
+      progressIndicatorBuilder: progressIndicatorBuilder,
       placeholder:
-          placeholder != null
+          progressIndicatorBuilder != null
+              ? null
+              : placeholder != null
               ? (context, url) => placeholder!
               : (context, url) => _buildLoadingPlaceholder(context),
       errorWidget:
