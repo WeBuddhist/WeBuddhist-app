@@ -5,10 +5,10 @@ import 'package:flutter_pecha/core/extensions/context_ext.dart';
 import 'package:flutter_pecha/core/l10n/intl_format_locale.dart';
 import 'package:flutter_pecha/core/theme/app_colors.dart';
 import 'package:flutter_pecha/core/utils/tibetan_numerals.dart';
-import 'package:flutter_pecha/core/utils/url_opener.dart';
 import 'package:flutter_pecha/core/widgets/cached_network_image_widget.dart';
 import 'package:flutter_pecha/features/group_chat/data/models/chat_message_dto.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_inline_format.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_opener.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_link_spans.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_blocks.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_time.dart';
@@ -39,6 +39,7 @@ class GroupChatMessageBubble extends StatelessWidget {
     this.isParentOwn = false,
     this.onShowReactions,
     this.onTapQuote,
+    this.onOpenMedia,
     this.showIdentity = true,
   });
 
@@ -76,11 +77,16 @@ class GroupChatMessageBubble extends StatelessWidget {
   /// Scrolls to the quoted original when it is still on screen.
   final VoidCallback? onTapQuote;
 
+  /// Opens the media viewer at the tapped photo or video. Null in selection
+  /// mode, where a tap toggles the row instead.
+  final ValueChanged<int>? onOpenMedia;
+
   /// Avatars and the sender name. A direct chat leaves them out: the header
   /// already says who the other person is, and the side says who wrote what.
   final bool showIdentity;
 
   static const double _avatarSize = 32;
+  static const double _mediaBubbleWidth = 240;
   static const double _maxWidthFactor = 0.68;
 
   /// A tombstone is one line — icon, label and the time after it — and that
@@ -130,7 +136,7 @@ class GroupChatMessageBubble extends StatelessWidget {
         context.l10n.group_chat_unknown_sender;
     final avatarUrl =
         message.senderAvatarUrl ?? (isSelf ? selfAvatarUrl : null);
-    final avatar = _Avatar(
+    final avatar = GroupChatAvatar(
       avatarUrl: avatarUrl,
       displayName: displayName,
       isDark: isDark,
@@ -227,9 +233,15 @@ class GroupChatMessageBubble extends StatelessWidget {
     final textColor =
         isDark ? AppColors.textPrimaryDark : AppColors.textPrimary;
     final previewUrl = firstChatLinkUrl(message.body);
+    // Photos and video sit 4px inside a 240-wide bubble, per the media frames.
+    final isMedia = message.media.isNotEmpty && !isDeleted;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      width: isMedia ? _mediaBubbleWidth : null,
+      padding:
+          isMedia
+              ? const EdgeInsets.fromLTRB(4, 4, 4, 6)
+              : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: background,
         // Uniform corners and a soft shadow, per the mocks: no tail, the
@@ -290,7 +302,11 @@ class GroupChatMessageBubble extends StatelessWidget {
                   onTap: onTapQuote,
                 ),
               if (message.media.isNotEmpty)
-                ChatMessageMediaBubble(media: message.media, isDark: isDark),
+                ChatMessageMediaBubble(
+                  media: message.media,
+                  isDark: isDark,
+                  onTapMedia: onOpenMedia,
+                ),
               if (message.body.trim().isNotEmpty)
                 _body(context, textColor, isDark),
               if (previewUrl != null)
@@ -482,7 +498,7 @@ class GroupChatMessageBubble extends StatelessWidget {
     return context.isTibetanLocale ? toTibetanDigits(formatted) : formatted;
   }
 
-  static Future<void> _openUrl(String url) => openUrl(url);
+  static Future<void> _openUrl(String url) => openChatLink(url);
 }
 
 /// Message body with tappable links and inline formatting.
@@ -617,8 +633,10 @@ class _ChatFormattedTextState extends State<ChatFormattedText> {
   }
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({
+/// Round 32px avatar used beside chat bubbles, with initials as fallback.
+class GroupChatAvatar extends StatelessWidget {
+  const GroupChatAvatar({
+    super.key,
     required this.avatarUrl,
     required this.displayName,
     required this.isDark,

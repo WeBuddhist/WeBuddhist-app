@@ -15,12 +15,14 @@ import 'package:flutter_pecha/features/group_chat/presentation/providers/group_c
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_analytics.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_copy_text.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_haptics.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_message_time.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_reactions.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_report_request.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_report_reason.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_selection.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_sender.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/utils/chat_thread_rows.dart';
+import 'package:flutter_pecha/features/group_chat/presentation/widgets/chat_media_viewer.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_date_separator.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_delete_dialog.dart';
 import 'package:flutter_pecha/features/group_chat/presentation/widgets/group_chat_emoji_picker.dart';
@@ -64,6 +66,7 @@ class GroupChatThread extends ConsumerStatefulWidget {
     this.showIdentity = true,
     this.presentMessage,
     this.messageHeader,
+    this.pending,
   });
 
   final String roomId;
@@ -91,6 +94,10 @@ class GroupChatThread extends ConsumerStatefulWidget {
   /// emoji pill and quote jumps still measure the bubble alone.
   final Widget? Function(BuildContext context, ChatMessageDTO message)?
   messageHeader;
+
+  /// An outgoing media message still uploading (or failed), drawn as the
+  /// newest row until the real message lands.
+  final Widget? pending;
 
   @override
   ConsumerState<GroupChatThread> createState() => _GroupChatThreadState();
@@ -983,7 +990,16 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
     }
 
     if (state.messages.isEmpty) {
-      return _dismissKeyboardOnTap(const GroupChatEmptyState());
+      final pending = widget.pending;
+      return _dismissKeyboardOnTap(
+        pending == null
+            ? const GroupChatEmptyState()
+            : ListView(
+              reverse: true,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [pending],
+            ),
+      );
     }
 
     _maybeStartTargetJump(state);
@@ -1072,6 +1088,8 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
     final viewerId = user?.id?.trim() ?? '';
     final viewerEmail = user?.email;
     final selecting = _hasSelection;
+    final pending = widget.pending;
+    final lead = pending == null ? 0 : 1;
 
     return ListView.builder(
       controller: _scrollController,
@@ -1082,8 +1100,10 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
       // dismiss it, which is why the keyboard felt stuck there and not on
       // Android.
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      itemCount: rows.length + (state.isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
+      itemCount: lead + rows.length + (state.isLoadingMore ? 1 : 0),
+      itemBuilder: (context, listIndex) {
+        if (pending != null && listIndex == 0) return pending;
+        final index = listIndex - lead;
         if (index >= rows.length) return const _LoadingMoreFooter();
 
         final row = rows[index];
@@ -1123,6 +1143,10 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
               onShowReactions: () => _showReactions(message),
               onTapQuote:
                   parent == null ? null : () => _scrollToMessage(parent.id),
+              onOpenMedia:
+                  selecting || isDeleted
+                      ? null
+                      : (index) => _openMedia(message, index, user),
             );
 
             // In selection mode the whole tinted row is the target, not just
@@ -1179,6 +1203,34 @@ class _GroupChatThreadState extends ConsumerState<GroupChatThread> {
             );
         }
       },
+    );
+  }
+
+  /// Full-screen viewer for [message]'s photos or video, at [index].
+  void _openMedia(ChatMessageDTO message, int index, User? user) {
+    if (message.media.isEmpty) return;
+    FocusScope.of(context).unfocus();
+    final isSelf = _isSelf(message);
+    final name =
+        (isSelf
+            ? (message.senderName ??
+                user?.visibleNameOrNull ??
+                chatSenderDisplayName(senderEmail: message.senderEmail))
+            : chatSenderDisplayName(
+              messageName: message.senderName,
+              senderEmail: message.senderEmail,
+            )) ??
+        context.l10n.group_chat_unknown_sender;
+    final shown = widget.presentMessage?.call(message) ?? message;
+    unawaited(
+      ChatMediaViewer.show(
+        context,
+        media: message.media,
+        senderName: name,
+        sentAt: message.createdAtLocal,
+        caption: shown.body,
+        initialIndex: index,
+      ),
     );
   }
 
