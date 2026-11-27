@@ -413,6 +413,66 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chant_book_fallback_title => '持誦集';
 
   @override
+  String get chant_book_your_books => '你的持誦集';
+
+  @override
+  String get chant_book_name_hint => '持誦集名稱';
+
+  @override
+  String chant_book_added_to(String book) {
+    return '已加入$book';
+  }
+
+  @override
+  String get chant_book_view => '查看';
+
+  @override
+  String get chant_book_only_you => '僅限你';
+
+  @override
+  String get chant_book_private_note => '你的持誦集為私人';
+
+  @override
+  String get chant_book_yours => '你的持誦集';
+
+  @override
+  String get chant_book_start => '開始';
+
+  @override
+  String get chant_book_read_along => '跟讀';
+
+  @override
+  String get chant_book_remove_chant => '從持誦集移除';
+
+  @override
+  String get chant_book_remove_chant_title => '移除持誦？';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '「$chant」將從此持誦集移除';
+  }
+
+  @override
+  String get chant_book_remove => '移除';
+
+  @override
+  String get chant_book_change_cover => '更換封面';
+
+  @override
+  String get chant_book_rename => '重新命名持誦集';
+
+  @override
+  String get chant_book_reorder_chant => '拖曳以重新排序';
+
+  @override
+  String get chant_book_chant_options => '持誦選項';
+
+  @override
+  String chant_book_share_message(String name) {
+    return '我在 WeBuddhist 上的持誦集「$name」：';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => '已無法使用';
 
   @override
@@ -4767,6 +4827,66 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get chant_book_fallback_title => '持诵集';
+
+  @override
+  String get chant_book_your_books => '你的持诵集';
+
+  @override
+  String get chant_book_name_hint => '持诵集名称';
+
+  @override
+  String chant_book_added_to(String book) {
+    return '已加入$book';
+  }
+
+  @override
+  String get chant_book_view => '查看';
+
+  @override
+  String get chant_book_only_you => '仅限你';
+
+  @override
+  String get chant_book_private_note => '你的持诵集为私人';
+
+  @override
+  String get chant_book_yours => '你的持诵集';
+
+  @override
+  String get chant_book_start => '开始';
+
+  @override
+  String get chant_book_read_along => '跟读';
+
+  @override
+  String get chant_book_remove_chant => '从持诵集移除';
+
+  @override
+  String get chant_book_remove_chant_title => '移除持诵？';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '“$chant”将从此持诵集移除';
+  }
+
+  @override
+  String get chant_book_remove => '移除';
+
+  @override
+  String get chant_book_change_cover => '更换封面';
+
+  @override
+  String get chant_book_rename => '重命名持诵集';
+
+  @override
+  String get chant_book_reorder_chant => '拖动以重新排序';
+
+  @override
+  String get chant_book_chant_options => '持诵选项';
+
+  @override
+  String chant_book_share_message(String name) {
+    return '我在 WeBuddhist 上的持诵集“$name”：';
+  }
 
   @override
   String get my_recitation_collection_unavailable => '已无法使用';

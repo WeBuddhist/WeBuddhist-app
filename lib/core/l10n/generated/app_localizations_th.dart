@@ -416,6 +416,66 @@ class AppLocalizationsTh extends AppLocalizations {
   String get chant_book_fallback_title => 'ชุดบทสวด';
 
   @override
+  String get chant_book_your_books => 'ชุดบทสวดของคุณ';
+
+  @override
+  String get chant_book_name_hint => 'ชื่อชุดบทสวด';
+
+  @override
+  String chant_book_added_to(String book) {
+    return 'เพิ่มลงใน $book แล้ว';
+  }
+
+  @override
+  String get chant_book_view => 'ดู';
+
+  @override
+  String get chant_book_only_you => 'เฉพาะคุณ';
+
+  @override
+  String get chant_book_private_note => 'ชุดบทสวดของคุณเป็นแบบส่วนตัว';
+
+  @override
+  String get chant_book_yours => 'ชุดบทสวดของคุณ';
+
+  @override
+  String get chant_book_start => 'เริ่ม';
+
+  @override
+  String get chant_book_read_along => 'อ่านตาม';
+
+  @override
+  String get chant_book_remove_chant => 'นำออกจากชุดบทสวด';
+
+  @override
+  String get chant_book_remove_chant_title => 'นำบทสวดออกหรือไม่';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" จะถูกนำออกจากชุดบทสวดนี้';
+  }
+
+  @override
+  String get chant_book_remove => 'นำออก';
+
+  @override
+  String get chant_book_change_cover => 'เปลี่ยนปก';
+
+  @override
+  String get chant_book_rename => 'เปลี่ยนชื่อชุดบทสวด';
+
+  @override
+  String get chant_book_reorder_chant => 'ลากเพื่อจัดลำดับ';
+
+  @override
+  String get chant_book_chant_options => 'ตัวเลือกบทสวด';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'ชุดบทสวดของฉัน \"$name\" บน WeBuddhist:';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'ไม่มีให้ใช้งานแล้ว';
 
   @override

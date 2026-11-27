@@ -106,6 +106,24 @@ class MyRecitationCollectionsRepository {
     }
   }
 
+  /// The user's own chant books, without imported ones: the books a chant
+  /// can be added to.
+  Future<Either<Failure, List<MyRecitationCollectionModel>>> getOwnCollections({
+    int limit = 50,
+  }) async {
+    try {
+      final page = await remoteDatasource.fetchCollections(
+        limit: limit,
+        scope: RecitationCollectionScope.own,
+      );
+      return Right(page.collections);
+    } catch (e) {
+      return Left(
+        ExceptionMapper.map(e, context: 'Failed to load chant books'),
+      );
+    }
+  }
+
   Future<Either<Failure, MyRecitationCollectionDetailModel>>
   getCollectionDetail(String collectionId) async {
     try {
@@ -160,7 +178,10 @@ class MyRecitationCollectionsRepository {
       return const Right(null);
     } catch (e) {
       return Left(
-        ExceptionMapper.map(e, context: 'Failed to remove chant from collection'),
+        ExceptionMapper.map(
+          e,
+          context: 'Failed to remove chant from collection',
+        ),
       );
     }
   }

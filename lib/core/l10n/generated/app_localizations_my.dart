@@ -424,6 +424,67 @@ class AppLocalizationsMy extends AppLocalizations {
   String get chant_book_fallback_title => 'ရွတ်ဆိုရန်စာ စုစည်းမှု';
 
   @override
+  String get chant_book_your_books => 'သင့်စုစည်းမှုများ';
+
+  @override
+  String get chant_book_name_hint => 'စုစည်းမှုအမည်';
+
+  @override
+  String chant_book_added_to(String book) {
+    return '$book သို့ ထည့်ပြီး';
+  }
+
+  @override
+  String get chant_book_view => 'ကြည့်ရန်';
+
+  @override
+  String get chant_book_only_you => 'သင်တစ်ဦးတည်း';
+
+  @override
+  String get chant_book_private_note =>
+      'သင့်စုစည်းမှုများသည် ကိုယ်ပိုင်ဖြစ်သည်';
+
+  @override
+  String get chant_book_yours => 'သင့်စုစည်းမှု';
+
+  @override
+  String get chant_book_start => 'စတင်ရန်';
+
+  @override
+  String get chant_book_read_along => 'လိုက်ဖတ်ရန်';
+
+  @override
+  String get chant_book_remove_chant => 'စုစည်းမှုမှ ဖယ်ရှားရန်';
+
+  @override
+  String get chant_book_remove_chant_title => 'ရွတ်ဆိုချက်ကို ဖယ်ရှားမလား။';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" ကို ဤစုစည်းမှုမှ ဖယ်ရှားပါမည်';
+  }
+
+  @override
+  String get chant_book_remove => 'ဖယ်ရှားရန်';
+
+  @override
+  String get chant_book_change_cover => 'မျက်နှာဖုံး ပြောင်းရန်';
+
+  @override
+  String get chant_book_rename => 'စုစည်းမှုအမည် ပြောင်းရန်';
+
+  @override
+  String get chant_book_reorder_chant => 'အစီအစဉ်ပြောင်းရန် ဆွဲပါ';
+
+  @override
+  String get chant_book_chant_options => 'ရွတ်ဆိုချက် ရွေးချယ်စရာများ';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'WeBuddhist ပေါ်ရှိ ကျွန်ုပ်၏စုစည်းမှု \"$name\":';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'မရရှိနိုင်တော့ပါ';
 
   @override

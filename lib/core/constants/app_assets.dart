@@ -111,6 +111,7 @@ class AppAssets {
       PhosphorIconsRegular.dotsThreeVertical;
   static const IconData dotsThreeVerticalBold =
       PhosphorIconsBold.dotsThreeVertical;
+  static const IconData dotsSixVertical = PhosphorIconsRegular.dotsSixVertical;
   static const IconData paperPlaneRight = PhosphorIconsRegular.paperPlaneRight;
   static const IconData arrowCircleUp = PhosphorIconsFill.arrowCircleUp;
   static const IconData handsPraying = PhosphorIconsRegular.handsPraying;

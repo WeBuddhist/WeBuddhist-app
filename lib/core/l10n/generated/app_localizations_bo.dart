@@ -422,6 +422,67 @@ class AppLocalizationsBo extends AppLocalizations {
   String get chant_book_fallback_title => 'ཞལ་འདོན་དེབ།';
 
   @override
+  String get chant_book_your_books => 'ཁྱེད་ཀྱི་ཞལ་འདོན་དེབ།';
+
+  @override
+  String get chant_book_name_hint => 'ཞལ་འདོན་དེབ་ཀྱི་མིང་།';
+
+  @override
+  String chant_book_added_to(String book) {
+    return '$book ནང་བསྣན་ཟིན།';
+  }
+
+  @override
+  String get chant_book_view => 'ལྟ་བ།';
+
+  @override
+  String get chant_book_only_you => 'ཁྱེད་རང་ཁོ་ན།';
+
+  @override
+  String get chant_book_private_note =>
+      'ཁྱེད་ཀྱི་ཞལ་འདོན་དེབ་རྣམས་སྒེར་གྱི་ཡིན།';
+
+  @override
+  String get chant_book_yours => 'ཁྱེད་ཀྱི་ཞལ་འདོན་དེབ།';
+
+  @override
+  String get chant_book_start => 'འགོ་འཛུགས།';
+
+  @override
+  String get chant_book_read_along => 'མཉམ་དུ་ཀློག';
+
+  @override
+  String get chant_book_remove_chant => 'ཞལ་འདོན་དེབ་ནས་ཕྱིར་འདོན།';
+
+  @override
+  String get chant_book_remove_chant_title => 'ཞལ་འདོན་ཕྱིར་འདོན་བྱེད་དམ།';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" ཞལ་འདོན་དེབ་འདི་ནས་ཕྱིར་འདོན་བྱེད་ངེས།';
+  }
+
+  @override
+  String get chant_book_remove => 'ཕྱིར་འདོན།';
+
+  @override
+  String get chant_book_change_cover => 'ཁ་ཤོག་བསྒྱུར།';
+
+  @override
+  String get chant_book_rename => 'ཞལ་འདོན་དེབ་ཀྱི་མིང་བསྒྱུར།';
+
+  @override
+  String get chant_book_reorder_chant => 'འཐེན་ནས་གོ་རིམ་བསྒྱུར།';
+
+  @override
+  String get chant_book_chant_options => 'ཞལ་འདོན་གདམ་ག';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'WeBuddhist ཐོག་གི་ངའི་ཞལ་འདོན་དེབ། \"$name\"';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'ད་ལྟ་མི་འདུག';
 
   @override

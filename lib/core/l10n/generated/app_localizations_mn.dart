@@ -424,6 +424,66 @@ class AppLocalizationsMn extends AppLocalizations {
   String get chant_book_fallback_title => 'Магтаалын ном';
 
   @override
+  String get chant_book_your_books => 'Таны магтаалын номууд';
+
+  @override
+  String get chant_book_name_hint => 'Магтаалын номын нэр';
+
+  @override
+  String chant_book_added_to(String book) {
+    return '$book-д нэмэгдлээ';
+  }
+
+  @override
+  String get chant_book_view => 'Харах';
+
+  @override
+  String get chant_book_only_you => 'Зөвхөн та';
+
+  @override
+  String get chant_book_private_note => 'Таны магтаалын номууд хувийнх';
+
+  @override
+  String get chant_book_yours => 'Таны магтаалын ном';
+
+  @override
+  String get chant_book_start => 'Эхлэх';
+
+  @override
+  String get chant_book_read_along => 'хамт унших';
+
+  @override
+  String get chant_book_remove_chant => 'Магтаалын номоос хасах';
+
+  @override
+  String get chant_book_remove_chant_title => 'Магтаалыг хасах уу?';
+
+  @override
+  String chant_book_remove_chant_message(String chant) {
+    return '\"$chant\" энэ магтаалын номоос хасагдана';
+  }
+
+  @override
+  String get chant_book_remove => 'Хасах';
+
+  @override
+  String get chant_book_change_cover => 'Хавтас солих';
+
+  @override
+  String get chant_book_rename => 'Магтаалын номын нэр солих';
+
+  @override
+  String get chant_book_reorder_chant => 'Дарааллыг өөрчлөхийн тулд чирэх';
+
+  @override
+  String get chant_book_chant_options => 'Магтаалын сонголтууд';
+
+  @override
+  String chant_book_share_message(String name) {
+    return 'WeBuddhist дээрх миний магтаалын ном \"$name\":';
+  }
+
+  @override
   String get my_recitation_collection_unavailable => 'Цаашид боломжгүй';
 
   @override

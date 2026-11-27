@@ -230,6 +230,10 @@ class _ChantsSeeAllScreenState extends ConsumerState<ChantsSeeAllScreen> {
                   chant,
                   listLanguage: languageCode,
                 ),
+            onMore:
+                chant.textId.trim().isEmpty
+                    ? null
+                    : () => addChantToChantBook(context, ref, chant),
           );
         },
       );

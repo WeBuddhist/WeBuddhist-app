@@ -475,6 +475,7 @@ class _AllRecitationsScreenState extends ConsumerState<AllRecitationsScreen> {
                       catalogue.recitations[i - others.length],
                       listLanguage: languageCode,
                     ),
+                onMore: (chant) => addChantToChantBook(context, ref, chant),
               ),
           if (isFullList && catalogue.isLoadingMore)
             const Padding(
@@ -635,11 +636,16 @@ class _TextChantItem extends StatelessWidget {
     required this.recitation,
     required this.openLabel,
     required this.onTap,
+    required this.onMore,
   });
 
   final RecitationModel recitation;
   final String openLabel;
   final VoidCallback onTap;
+
+  /// Opens the Add to chant book sheet for [recitation]; not offered without
+  /// a text id.
+  final ValueChanged<RecitationModel> onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -651,6 +657,8 @@ class _TextChantItem extends StatelessWidget {
         language: recitation.language,
         firstVerse: recitation.firstSegment?.content,
         onTap: onTap,
+        onMore:
+            recitation.textId.trim().isEmpty ? null : () => onMore(recitation),
       ),
     );
   }

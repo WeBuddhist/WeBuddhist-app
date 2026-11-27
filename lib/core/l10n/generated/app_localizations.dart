@@ -845,6 +845,114 @@ abstract class AppLocalizations {
   /// **'Chant book'**
   String get chant_book_fallback_title;
 
+  /// Heading over the user's own chant books in the Add to chant book sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Your chant books'**
+  String get chant_book_your_books;
+
+  /// Placeholder in the empty name field of the New chant book sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant book name'**
+  String get chant_book_name_hint;
+
+  /// Toast after a chant is added to an existing chant book; book is its name.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to {book}'**
+  String chant_book_added_to(String book);
+
+  /// Toast action that opens the chant book the chant was just added to.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get chant_book_view;
+
+  /// Who can see a personal chant book.
+  ///
+  /// In en, this message translates to:
+  /// **'Only you'**
+  String get chant_book_only_you;
+
+  /// Line under Only you on a personal chant book.
+  ///
+  /// In en, this message translates to:
+  /// **'Your chant books are private'**
+  String get chant_book_private_note;
+
+  /// Follows the chant count on the user's own chant book page, e.g. 1 chant · Your chant book.
+  ///
+  /// In en, this message translates to:
+  /// **'Your chant book'**
+  String get chant_book_yours;
+
+  /// Button on a chant book page that opens its first chant.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get chant_book_start;
+
+  /// Follows the language on a text-only chant row in a chant book, e.g. Tibetan · read along.
+  ///
+  /// In en, this message translates to:
+  /// **'read along'**
+  String get chant_book_read_along;
+
+  /// Option in a chant row's menu on the user's chant book page.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from chant book'**
+  String get chant_book_remove_chant;
+
+  /// Title of the dialog confirming a chant's removal from a chant book.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove chant?'**
+  String get chant_book_remove_chant_title;
+
+  /// Body of the dialog confirming a chant's removal; chant is its title.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{chant}\" will be removed from this chant book'**
+  String chant_book_remove_chant_message(String chant);
+
+  /// Confirm button that removes a chant from a chant book.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get chant_book_remove;
+
+  /// Spoken label for the camera button on a chant book's cover.
+  ///
+  /// In en, this message translates to:
+  /// **'Change cover'**
+  String get chant_book_change_cover;
+
+  /// Spoken label for the tappable chant book name that edits it in place.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename chant book'**
+  String get chant_book_rename;
+
+  /// Spoken label for a chant row's drag handle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get chant_book_reorder_chant;
+
+  /// Spoken label for a chant row's three-dot menu on a chant book page.
+  ///
+  /// In en, this message translates to:
+  /// **'Chant options'**
+  String get chant_book_chant_options;
+
+  /// First line of the text shared for a personal chant book; its chants follow, one per line.
+  ///
+  /// In en, this message translates to:
+  /// **'My chant book \"{name}\" on WeBuddhist:'**
+  String chant_book_share_message(String name);
+
   /// No description provided for @my_recitation_collection_unavailable.
   ///
   /// In en, this message translates to:

@@ -508,6 +508,10 @@ class _RecitationsSearchScreenState
             listLanguage: widget.languageCode,
           );
         },
+        onMore:
+            chant.textId.trim().isEmpty
+                ? null
+                : () => addChantToChantBook(context, ref, chant),
       ),
     );
   }
