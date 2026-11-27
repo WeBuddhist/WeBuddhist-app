@@ -23,11 +23,31 @@ class ChatMediaUploader {
   ChatMediaUploader({
     required GroupChatRepository repository,
     required void Function(int current, int total) onProgress,
+    void Function(double fraction)? onFraction,
   })  : _repository = repository,
-        _onProgress = onProgress;
+        _onProgress = onProgress,
+        _onFraction = onFraction;
 
   final GroupChatRepository _repository;
   final void Function(int current, int total) _onProgress;
+
+  /// Overall progress, 0 to 1, for the ring on the pending bubble. Never goes
+  /// backwards, so the ring only ever fills.
+  final void Function(double fraction)? _onFraction;
+  double _fraction = 0;
+
+  void _report(double fraction) {
+    final next = fraction.clamp(0.0, 1.0);
+    if (next <= _fraction) return;
+    _fraction = next;
+    _onFraction?.call(next);
+  }
+
+  /// Share of a video's progress taken by compressing it on the device.
+  static const _videoCompressShare = 0.4;
+
+  /// Share of each photo's slice taken by compressing it.
+  static const _photoCompressShare = 0.15;
 
   bool _isCancelled = false;
   final List<String> _uploadedMediaIds = [];
@@ -59,12 +79,21 @@ class ChatMediaUploader {
 
         final videoFile = files.first;
 
-        final MediaInfo? mediaInfo = await VideoCompress.compressVideo(
-          videoFile.path,
-          quality: VideoQuality.DefaultQuality,
-          deleteOrigin: false,
-          includeAudio: true,
+        final compressing = VideoCompress.compressProgress$.subscribe(
+          (percent) => _report(percent / 100 * _videoCompressShare),
         );
+        final MediaInfo? mediaInfo;
+        try {
+          mediaInfo = await VideoCompress.compressVideo(
+            videoFile.path,
+            quality: VideoQuality.DefaultQuality,
+            deleteOrigin: false,
+            includeAudio: true,
+          );
+        } finally {
+          compressing.unsubscribe();
+        }
+        _report(_videoCompressShare);
 
         if (_isCancelled || mediaInfo == null || mediaInfo.file == null) {
           await _cleanupPendingUploads();
@@ -103,6 +132,12 @@ class ChatMediaUploader {
               'poster_${DateTime.now().millisecondsSinceEpoch}.jpg',
           width: width,
           height: height,
+          onSendProgress: (sent, total) {
+            if (total <= 0) return;
+            _report(
+              _videoCompressShare + (1 - _videoCompressShare) * sent / total,
+            );
+          },
         );
 
         if (_isCancelled) {
@@ -116,6 +151,7 @@ class ChatMediaUploader {
           },
           (media) {
             _uploadedMediaIds.add(media.id);
+            _report(1);
             _onProgress(1, 1);
             return ChatMediaUploadResult(mediaIds: List.unmodifiable(_uploadedMediaIds));
           },
@@ -152,6 +188,7 @@ class ChatMediaUploader {
         }
 
         final compressedFile = File(compressedXFile.path);
+        _report((i + _photoCompressShare) / totalCount);
 
         int? width;
         int? height;
@@ -170,6 +207,15 @@ class ChatMediaUploader {
           quality: 'STANDARD',
           width: width,
           height: height,
+          onSendProgress: (sent, total) {
+            if (total <= 0) return;
+            _report(
+              (i +
+                      _photoCompressShare +
+                      (1 - _photoCompressShare) * sent / total) /
+                  totalCount,
+            );
+          },
         );
 
         if (_isCancelled) {
@@ -182,6 +228,7 @@ class ChatMediaUploader {
           (media) {
             if (_isCancelled) return null;
             _uploadedMediaIds.add(media.id);
+            _report((i + 1) / totalCount);
             _onProgress(i + 1, totalCount);
             return null;
           },

@@ -71,6 +71,7 @@ abstract class GroupChatRepository {
     String? posterFilename,
     int? width,
     int? height,
+    void Function(int sent, int total)? onSendProgress,
   });
 
   Future<Either<Failure, Unit>> deleteChatMedia(String mediaId);

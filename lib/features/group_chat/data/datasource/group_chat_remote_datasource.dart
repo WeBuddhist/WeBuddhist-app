@@ -696,6 +696,7 @@ class GroupChatRemoteDatasource {
     String? posterFilename,
     int? width,
     int? height,
+    void Function(int sent, int total)? onSendProgress,
   }) async {
     try {
       final formData = FormData.fromMap({
@@ -711,6 +712,7 @@ class GroupChatRemoteDatasource {
       final response = await _dio.post(
         '/chat/media',
         data: formData,
+        onSendProgress: onSendProgress,
       );
       return ChatMessageMedia.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

@@ -170,6 +170,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
     String? posterFilename,
     int? width,
     int? height,
+    void Function(int sent, int total)? onSendProgress,
   }) async {
     try {
       return Right(
@@ -182,6 +183,7 @@ class GroupChatRepositoryImpl implements GroupChatRepository {
           posterFilename: posterFilename,
           width: width,
           height: height,
+          onSendProgress: onSendProgress,
         ),
       );
     } catch (e) {
