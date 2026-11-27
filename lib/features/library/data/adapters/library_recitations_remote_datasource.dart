@@ -1,6 +1,7 @@
 import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/library/data/models/library_text.dart';
 import 'package:flutter_pecha/features/library/data/repositories/library_repository.dart';
+import 'package:flutter_pecha/features/library/domain/library_license_policy.dart';
 import 'package:flutter_pecha/features/practice/data/datasource/my_recitation_collections_remote_datasource.dart';
 import 'package:flutter_pecha/features/practice/data/models/my_recitation_collection_models.dart';
 import 'package:flutter_pecha/features/recitation/data/datasource/recitations_remote_datasource.dart';
@@ -94,9 +95,8 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
         throw StateError('LIBRARY_CHANTS_TAG_ID is not configured');
       }
       final clientTagIds = _clientTagIds;
-      final pages = clientTagIds == null ? 1 : maxFilterPages;
       final kept = <LibraryText>[];
-      for (var i = 0; i < pages; i++) {
+      for (var i = 0; i < maxFilterPages; i++) {
         final page = await _library.fetchChants(
           tagId: _serverTagIds(tagId),
           language: params.language,
@@ -105,16 +105,23 @@ class LibraryRecitationsRemoteDatasource extends RecitationsRemoteDatasource {
           offset: nextSkip,
           noCache: params.noCache,
         );
+        // The library filters by license; one that does not yet, or a text
+        // it lets through, is caught here.
+        final allowed = page.items
+            .where((t) => LibraryLicensePolicy.isAllowed(t.license))
+            .toList();
         kept.addAll(
           clientTagIds == null
-              ? page.items
-              : page.items.where((t) => t.tagIds.any(clientTagIds.contains)),
+              ? allowed
+              : allowed.where((t) => t.tagIds.any(clientTagIds.contains)),
         );
         // Every library text counts towards the next offset, filtered-out and
         // edition-less ones included, so pages never repeat.
         nextSkip += page.items.length;
         hasMore = page.hasMore && page.items.isNotEmpty;
         if (!hasMore || kept.length >= limit) break;
+        // When the library did all the filtering its page is the answer.
+        if (clientTagIds == null && allowed.length == page.items.length) break;
       }
       // A text without an edition has nothing to open, so it is not listed.
       texts = kept.where((t) => t.primaryEditionId != null).toList();

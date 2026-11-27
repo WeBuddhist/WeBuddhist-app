@@ -16,10 +16,12 @@ class LibraryRemoteDatasource {
   final Dio dio;
 
   /// [title] filters by title and must be at least two characters.
+  /// [licenses] keeps texts with any of them; the parameter is repeated.
   Future<LibraryTextPage> fetchTexts({
     required String tagId,
     String? language,
     String? title,
+    List<String> licenses = const [],
     int limit = 20,
     int offset = 0,
     bool noCache = false,
@@ -29,11 +31,15 @@ class LibraryRemoteDatasource {
       queryParameters: {
         if (language != null && language.isNotEmpty) 'language': language,
         if (title != null && title.isNotEmpty) 'title': title,
+        if (licenses.isNotEmpty) 'license': licenses,
         'tag_id': tagId,
         'limit': limit,
         'offset': offset,
       },
-      options: noCache ? Options(extra: {'no_cache': true}) : null,
+      options: Options(
+        listFormat: ListFormat.multi,
+        extra: noCache ? {'no_cache': true} : null,
+      ),
     );
     return LibraryTextPage.fromJson(_asMap(response.data, '/v2/texts'));
   }
