@@ -1478,7 +1478,7 @@
   },
   "group_chat_preview_media": "Media",
   "group_chat_media_upload_failed": "Couldn't upload media. Try again",
-  "group_chat_media_sending": "Sending {current} of {total}…",
+  "group_chat_media_sending": "Sending {current} of {total}",
   "@group_chat_media_sending": {
     "placeholders": {
       "current": {
@@ -1489,6 +1489,97 @@
       }
     }
   },
+  "group_chat_media_failed": "Failed",
+  "group_chat_media_share_title": "Share in chat",
+  "group_chat_media_gallery": "Gallery",
+  "group_chat_media_camera": "Camera",
+  "group_chat_media_photo": "Photo",
+  "group_chat_media_video": "Video",
+  "group_chat_media_caption_hint": "Message…",
+  "group_chat_media_camera_caption_hint": "Add a caption…",
+  "group_chat_media_send": "Send",
+  "group_chat_media_limited_access": "Only the photos you allowed are shown.",
+  "group_chat_media_select_more": "Select more",
+  "group_chat_media_permission_title": "Allow photo access",
+  "group_chat_media_permission_body": "Allow access to your photos in Settings to share photos and videos.",
+  "group_chat_media_open_settings": "Open Settings",
+  "group_chat_media_empty": "No photos or videos found on this device.",
+  "group_chat_media_empty_limited": "None of the photos you allowed are here yet.",
+  "group_chat_media_photo_limit": "You can select up to {count} photos.",
+  "@group_chat_media_photo_limit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "group_chat_media_video_too_large": "This video is {size} MB. Videos can be up to {max} MB, so it can’t be added.",
+  "@group_chat_media_video_too_large": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "group_chat_media_video_too_long": "This video is {duration}. Videos can be up to {max}, so it can’t be added.",
+  "@group_chat_media_video_too_long": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "group_chat_media_camera_too_large": "This video is {size} MB. Videos can be up to {max} MB. Record a shorter clip.",
+  "@group_chat_media_camera_too_large": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "group_chat_media_camera_too_long": "This video is {duration}. Videos can be up to {max}. Record a shorter clip.",
+  "@group_chat_media_camera_too_long": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "group_chat_media_position": "{index} of {total}",
+  "@group_chat_media_position": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "group_chat_media_download": "Download",
+  "group_chat_media_saved": "Saved to your photos",
+  "group_chat_media_save_failed": "Couldn't save. Try again",
+  "group_chat_media_save_denied": "Allow photo access in Settings to save",
+  "group_chat_media_mute": "Mute",
+  "group_chat_media_unmute": "Unmute",
+  "group_chat_browser_open_external": "Open in browser",
+  "group_chat_browser_copy_link": "Copy link",
+  "group_chat_browser_link_copied": "Link copied",
+  "group_chat_browser_back": "Back",
+  "group_chat_browser_forward": "Forward",
+  "group_chat_browser_load_failed": "This page couldn't be loaded",
   "group_tab_posts": "Posts",
   "group_tab_events": "Events",
   "group_posts_empty_title": "No posts yet",

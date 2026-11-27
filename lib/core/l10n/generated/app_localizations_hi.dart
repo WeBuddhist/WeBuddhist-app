@@ -2826,8 +2826,127 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String group_chat_media_sending(int current, int total) {
-    return 'Sending $current of $total…';
+    return 'Sending $current of $total';
   }
+
+  @override
+  String get group_chat_media_failed => 'Failed';
+
+  @override
+  String get group_chat_media_share_title => 'Share in chat';
+
+  @override
+  String get group_chat_media_gallery => 'Gallery';
+
+  @override
+  String get group_chat_media_camera => 'Camera';
+
+  @override
+  String get group_chat_media_photo => 'Photo';
+
+  @override
+  String get group_chat_media_video => 'Video';
+
+  @override
+  String get group_chat_media_caption_hint => 'Message…';
+
+  @override
+  String get group_chat_media_camera_caption_hint => 'Add a caption…';
+
+  @override
+  String get group_chat_media_send => 'Send';
+
+  @override
+  String get group_chat_media_limited_access =>
+      'Only the photos you allowed are shown.';
+
+  @override
+  String get group_chat_media_select_more => 'Select more';
+
+  @override
+  String get group_chat_media_permission_title => 'Allow photo access';
+
+  @override
+  String get group_chat_media_permission_body =>
+      'Allow access to your photos in Settings to share photos and videos.';
+
+  @override
+  String get group_chat_media_open_settings => 'Open Settings';
+
+  @override
+  String get group_chat_media_empty =>
+      'No photos or videos found on this device.';
+
+  @override
+  String get group_chat_media_empty_limited =>
+      'None of the photos you allowed are here yet.';
+
+  @override
+  String group_chat_media_photo_limit(int count) {
+    return 'You can select up to $count photos.';
+  }
+
+  @override
+  String group_chat_media_video_too_large(String size, int max) {
+    return 'This video is $size MB. Videos can be up to $max MB, so it can’t be added.';
+  }
+
+  @override
+  String group_chat_media_video_too_long(String duration, String max) {
+    return 'This video is $duration. Videos can be up to $max, so it can’t be added.';
+  }
+
+  @override
+  String group_chat_media_camera_too_large(String size, int max) {
+    return 'This video is $size MB. Videos can be up to $max MB. Record a shorter clip.';
+  }
+
+  @override
+  String group_chat_media_camera_too_long(String duration, String max) {
+    return 'This video is $duration. Videos can be up to $max. Record a shorter clip.';
+  }
+
+  @override
+  String group_chat_media_position(int index, int total) {
+    return '$index of $total';
+  }
+
+  @override
+  String get group_chat_media_download => 'Download';
+
+  @override
+  String get group_chat_media_saved => 'Saved to your photos';
+
+  @override
+  String get group_chat_media_save_failed => 'Couldn\'t save. Try again';
+
+  @override
+  String get group_chat_media_save_denied =>
+      'Allow photo access in Settings to save';
+
+  @override
+  String get group_chat_media_mute => 'Mute';
+
+  @override
+  String get group_chat_media_unmute => 'Unmute';
+
+  @override
+  String get group_chat_browser_open_external => 'Open in browser';
+
+  @override
+  String get group_chat_browser_copy_link => 'Copy link';
+
+  @override
+  String get group_chat_browser_link_copied => 'Link copied';
+
+  @override
+  String get group_chat_browser_back => 'Back';
+
+  @override
+  String get group_chat_browser_forward => 'Forward';
+
+  @override
+  String get group_chat_browser_load_failed => 'This page couldn\'t be loaded';
 
   @override
   String get group_tab_posts => 'पोस्ट';
