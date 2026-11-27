@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_pecha/core/analytics/analytics_events.dart';
+import 'package:flutter_pecha/core/analytics/analytics_providers.dart';
 import 'package:flutter_pecha/core/cache/screen_cache/screen_cache_providers.dart';
 import 'package:flutter_pecha/core/di/core_providers.dart';
 import 'package:flutter_pecha/core/network/network_info.dart';
@@ -15,6 +17,7 @@ import 'package:flutter_pecha/features/onboarding/presentation/providers/user_tr
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../../core/analytics/recording_analytics_service.dart';
 import '../../../../helpers/fake_screen_cache_store.dart';
 
 class _FakeAuth extends StateNotifier<AuthState> implements AuthNotifier {
@@ -72,6 +75,7 @@ void main() {
   late _FakeRemote remote;
   late _FakeAuth auth;
   late _FakeNetwork network;
+  late RecordingAnalyticsService analytics;
   late ProviderContainer container;
   late List<AsyncValue<List<String>>> states;
 
@@ -83,6 +87,7 @@ void main() {
         screenCacheStoreProvider.overrideWithValue(store),
         onboardingRemoteDatasourceProvider.overrideWithValue(remote),
         networkInfoProvider.overrideWithValue(network),
+        analyticsServiceProvider.overrideWithValue(analytics),
       ],
     );
     addTearDown(c.dispose);
@@ -99,6 +104,7 @@ void main() {
     store = FakeScreenCacheStore();
     remote = _FakeRemote();
     network = _FakeNetwork();
+    analytics = RecordingAnalyticsService();
   });
 
   String key() => UserTraditionCodesNotifier.storageKey(store);
@@ -258,4 +264,107 @@ void main() {
       expect(states.last.value, ['chinese']);
     },
   );
+
+  group('reporting to analytics', () {
+    test('the first lookup puts the codes on the person', () async {
+      remote.selected = const ['tibetan', 'pali'];
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      expect(analytics.eventNames, [AnalyticsEvents.traditionsChanged]);
+      expect(analytics.events.single.properties, {
+        'traditions_count': 2,
+        'is_first_report': true,
+        r'$set': {
+          'traditions': ['pali', 'tibetan'],
+        },
+      });
+    });
+
+    test('unchanged codes are not reported again in a later session', () async {
+      container = build(_signedIn);
+      await pumpEventQueue();
+      expect(analytics.events, hasLength(1));
+
+      // A new session: same account, same store, same answer from the server.
+      container = build(_signedIn);
+      await pumpEventQueue();
+      expect(remote.calls, 2);
+      expect(analytics.events, hasLength(1));
+    });
+
+    test('a tradition edit is reported as a change', () async {
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      remote.selected = const ['chinese'];
+      container.invalidate(userTraditionCodesProvider);
+      await pumpEventQueue();
+
+      expect(analytics.events, hasLength(2));
+      expect(analytics.events.last.properties, {
+        'traditions_count': 1,
+        'is_first_report': false,
+        r'$set': {
+          'traditions': ['chinese'],
+        },
+      });
+    });
+
+    test('an account with no traditions reports an empty list once', () async {
+      remote.selected = const [];
+      container = build(_signedIn);
+      await pumpEventQueue();
+      container.invalidate(userTraditionCodesProvider);
+      await pumpEventQueue();
+
+      expect(analytics.events.single.properties, {
+        'traditions_count': 0,
+        'is_first_report': true,
+        r'$set': {'traditions': <String>[]},
+      });
+    });
+
+    test('another account on the same device gets its own report', () async {
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      store.userId = 'user-2';
+      container.invalidate(userTraditionCodesProvider);
+      await pumpEventQueue();
+
+      expect(analytics.events, hasLength(2));
+      expect(analytics.events.last.properties['is_first_report'], isTrue);
+    });
+
+    test('a guest and a failed lookup report nothing', () async {
+      container = build(_guest);
+      await pumpEventQueue();
+
+      remote.fail = true;
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      expect(analytics.events, isEmpty);
+    });
+
+    test('a lookup from before a rebuild does not report', () async {
+      final stale = remote.gate = Completer<void>();
+      container = build(_signedIn);
+      await pumpEventQueue();
+
+      remote
+        ..gate = null
+        ..selected = const ['chinese'];
+      container.invalidate(userTraditionCodesProvider);
+      await pumpEventQueue();
+      stale.complete();
+      await pumpEventQueue();
+
+      expect(analytics.events, hasLength(1));
+      expect(analytics.events.single.properties[r'$set'], {
+        'traditions': ['chinese'],
+      });
+    });
+  });
 }

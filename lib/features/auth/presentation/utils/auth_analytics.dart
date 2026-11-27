@@ -94,9 +94,12 @@ enum LoginFailureCode {
 /// names and their property keys live in one place. Every call fires and
 /// forgets; callers fire after the action happened, never optimistically.
 class AuthAnalytics {
-  const AuthAnalytics(this._analytics);
+  const AuthAnalytics(this._analytics, {DateTime Function()? now}) : _now = now;
 
   final AnalyticsService _analytics;
+
+  /// Injectable for tests; the wall clock when null.
+  final DateTime Function()? _now;
 
   /// The user tapped a provider button; [method] is `google`, `apple` or
   /// `sms` (the Auth0 connection names, kept so charts stay continuous).
@@ -111,16 +114,33 @@ class AuthAnalytics {
   /// or drawer. [isNewUser] is true when the account has not finished
   /// onboarding, null when that could not be checked.
   ///
-  /// A new account also records its sign-up method on the person, once.
-  void loginSucceeded({String? method, AuthSource? source, bool? isNewUser}) {
+  /// A new account also records its sign-up method and date on the person,
+  /// once. The date is this first login, since the server does not send the
+  /// account's creation date.
+  ///
+  /// [backendUserId] is the account's id on the server. It goes on the person
+  /// so PostHog data can be matched to backend records: the PostHog id is not
+  /// always the backend id (see `AuthNotifier._localUserIdFor`).
+  void loginSucceeded({
+    String? method,
+    AuthSource? source,
+    bool? isNewUser,
+    String? backendUserId,
+  }) {
     final resolvedMethod = method ?? 'default';
     _analytics.trackInBackground(AnalyticsEvents.authLoginSucceeded, {
       AnalyticsProperties.method: resolvedMethod,
       AnalyticsProperties.source: source?.key,
       if (isNewUser != null) AnalyticsProperties.isNewUser: isNewUser,
+      if (backendUserId != null && backendUserId.isNotEmpty)
+        AnalyticsProperties.personSet: {
+          AnalyticsProperties.backendUserId: backendUserId,
+        },
       if (isNewUser == true)
         AnalyticsProperties.personSetOnce: {
           AnalyticsProperties.signupMethod: resolvedMethod,
+          AnalyticsProperties.signedUpAt:
+              (_now ?? DateTime.now)().toUtc().toIso8601String(),
         },
     });
   }

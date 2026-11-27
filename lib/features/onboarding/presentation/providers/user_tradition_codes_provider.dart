@@ -10,6 +10,7 @@ import 'package:flutter_pecha/core/utils/app_logger.dart';
 import 'package:flutter_pecha/features/auth/presentation/providers/state_providers.dart';
 import 'package:flutter_pecha/features/onboarding/data/datasource/onboarding_remote_datasource.dart';
 import 'package:flutter_pecha/features/onboarding/presentation/providers/onboarding_datasource_providers.dart';
+import 'package:flutter_pecha/features/onboarding/presentation/utils/tradition_analytics.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final _logger = AppLogger('UserTraditionCodes');
@@ -31,6 +32,10 @@ final _logger = AppLogger('UserTraditionCodes');
 /// [UserTraditionCodesNotifier.retryIfFailed] (Home refresh), so a lookup
 /// that failed with nothing stored does not leave the user on the All
 /// traditions verse for the rest of the session.
+///
+/// Each successful lookup also tells analytics the codes when they differ
+/// from what this device last reported for the account, which keeps the
+/// person's `traditions` current after onboarding and profile edits.
 final userTraditionCodesProvider =
     AsyncNotifierProvider<UserTraditionCodesNotifier, List<String>>(
       UserTraditionCodesNotifier.new,
@@ -45,6 +50,7 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
   Future<void>? _retry;
   OnboardingRemoteDatasource? _datasource;
   ScreenCacheStore? _store;
+  TraditionAnalytics? _analytics;
 
   @override
   FutureOr<List<String>> build() {
@@ -53,6 +59,7 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
     _retry = null;
     _datasource = null;
     _store = null;
+    _analytics = null;
     final (isAuthLoading, isLoggedIn, isGuest) = ref.watch(
       authProvider.select(
         (auth) => (auth.isLoading, auth.isLoggedIn, auth.isGuest),
@@ -65,6 +72,7 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
     final datasource = ref.watch(onboardingRemoteDatasourceProvider);
     _store = store;
     _datasource = datasource;
+    _analytics = ref.watch(traditionAnalyticsProvider);
     final subscription = ref
         .watch(networkInfoProvider)
         .onConnectivityChanged
@@ -118,6 +126,13 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
     language: 'all',
   );
 
+  /// Where the codes last reported to analytics for this account are kept.
+  static String reportedKey(ScreenCacheStore store) => ScreenCacheKey.user(
+    'tradition_codes_reported',
+    userId: store.currentUserIdSync,
+    language: 'all',
+  );
+
   static List<String>? _readStored(ScreenCacheStore store, String key) {
     final json = store.read(key);
     if (json == null) return null;
@@ -147,11 +162,40 @@ class UserTraditionCodesNotifier extends AsyncNotifier<List<String>> {
       if (epoch != _epoch) return codes;
       await store.save(key, jsonEncode(codes));
       _lookupFailed = false;
+      unawaited(_reportIfChanged(store, codes, epoch));
       return codes;
     } catch (e, stackTrace) {
       _logger.error('Resolving tradition codes failed', e, stackTrace);
       if (epoch == _epoch) _lookupFailed = true;
       return null;
+    }
+  }
+
+  /// Tells analytics the account's codes when they differ from the last ones
+  /// this device reported for it, so the person's profile is updated on a
+  /// real change and not on every launch. Never throws.
+  Future<void> _reportIfChanged(
+    ScreenCacheStore store,
+    List<String> codes,
+    int epoch,
+  ) async {
+    final analytics = _analytics;
+    // A rebuild since the lookup (sign-out, another account) owns the report.
+    if (analytics == null || epoch != _epoch) return;
+    try {
+      final key = reportedKey(store);
+      final json = jsonEncode(codes);
+      final previous = store.read(key);
+      if (previous == json) return;
+      // Nothing saved means nothing to compare with next time, and the same
+      // report would go out every session.
+      if (!await store.save(key, json)) return;
+      analytics.traditionsChanged(
+        codes: codes,
+        isFirstReport: previous == null,
+      );
+    } catch (e, stackTrace) {
+      _logger.warning('Reporting tradition codes failed', e, stackTrace);
     }
   }
 }

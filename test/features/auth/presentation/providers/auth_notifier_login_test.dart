@@ -256,6 +256,10 @@ void main() {
       expect(storage.values[StorageKeys.currentUserId], 'google-oauth2|1');
       // The same person in analytics too.
       expect(analytics.identified, ['google-oauth2|1']);
+      // Their backend id still reaches the person, so the two can be matched.
+      expect(succeededLogin().properties[AnalyticsProperties.personSet], {
+        AnalyticsProperties.backendUserId: 'backend-user-1',
+      });
     });
 
     test('another account on that phone gets its own id', () async {
@@ -357,6 +361,9 @@ void main() {
         AnalyticsProperties.method: 'sms',
         AnalyticsProperties.source: 'login_page',
         AnalyticsProperties.isNewUser: false,
+        AnalyticsProperties.personSet: {
+          AnalyticsProperties.backendUserId: 'backend-user-8',
+        },
       });
     });
 
@@ -435,6 +442,9 @@ void main() {
         AnalyticsProperties.method: 'sms',
         AnalyticsProperties.source: 'login_drawer',
         AnalyticsProperties.isNewUser: false,
+        AnalyticsProperties.personSet: {
+          AnalyticsProperties.backendUserId: 'backend-user-1',
+        },
       });
     });
 

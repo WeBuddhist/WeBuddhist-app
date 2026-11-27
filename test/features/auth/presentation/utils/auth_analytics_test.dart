@@ -217,14 +217,51 @@ void main() {
     });
   });
 
-  test('a login says whether the account is new when that is known', () {
-    analytics.loginSucceeded(method: 'google-oauth2', isNewUser: true);
+  test('a new account records its sign-up method and date, once', () {
+    final analytics = AuthAnalytics(
+      service,
+      now: () => DateTime.utc(2026, 11, 27, 6, 30),
+    );
+
+    analytics.loginSucceeded(method: 'google', isNewUser: true);
 
     expect(service.events.single.properties, {
-      'method': 'google-oauth2',
+      'method': 'google',
       'source': null,
       'is_new_user': true,
-      r'$set_once': {'signup_method': 'google-oauth2'},
+      r'$set_once': {
+        'signup_method': 'google',
+        'signed_up_at': '2026-11-27T06:30:00.000Z',
+      },
+    });
+  });
+
+  test('a returning account records no sign-up method or date', () {
+    analytics.loginSucceeded(method: 'google', isNewUser: false);
+
+    expect(service.events.single.properties, {
+      'method': 'google',
+      'source': null,
+      'is_new_user': false,
+    });
+  });
+
+  test('a login puts the backend user id on the person', () {
+    analytics.loginSucceeded(method: 'apple', backendUserId: 'user-42');
+
+    expect(service.events.single.properties, {
+      'method': 'apple',
+      'source': null,
+      r'$set': {'backend_user_id': 'user-42'},
+    });
+  });
+
+  test('a login with no readable backend user id sets nothing', () {
+    analytics.loginSucceeded(method: 'apple', backendUserId: '');
+
+    expect(service.events.single.properties, {
+      'method': 'apple',
+      'source': null,
     });
   });
 
